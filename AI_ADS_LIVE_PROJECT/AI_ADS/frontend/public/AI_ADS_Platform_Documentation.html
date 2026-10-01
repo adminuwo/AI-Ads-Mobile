@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI ADS™ — Complete Platform & Feature Documentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #030712;
+      --bg-secondary: #0f172a;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --border-color: rgba(255, 255, 255, 0.1);
+      --accent-indigo: #6366f1;
+      --accent-purple: #8b5cf6;
+      --accent-cyan: #06b6d4;
+      --accent-gold: #f59e0b;
+      --accent-emerald: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.15), transparent 40%),
+        radial-gradient(circle at 85% 65%, rgba(139, 92, 246, 0.12), transparent 40%);
+      background-attachment: fixed;
+    }
+
+    /* Sticky Glass Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .brand-logo img {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #fbbf24, #f43f5e, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(99, 102, 241, 0.6);
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.8);
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(51, 65, 85, 0.9);
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    /* Container Layout */
+    .container {
+      max-w: 1400px;
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 3rem;
+    }
+
+    /* Sidebar Table of Contents */
+    .sidebar {
+      position: sticky;
+      top: 6rem;
+      height: fit-content;
+      max-height: calc(100vh - 8rem);
+      overflow-y: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 1.25rem;
+      padding: 1.5rem;
+      backdrop-filter: blur(16px);
+    }
+
+    .sidebar h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent-indigo);
+      margin-bottom: 1rem;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .sidebar a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: color 0.2s ease;
+      display: block;
+      padding: 0.3rem 0.5rem;
+      border-radius: 0.5rem;
+    }
+
+    .sidebar a:hover {
+      color: var(--text-main);
+      background: rgba(99, 102, 241, 0.15);
+    }
+
+    /* Main Doc Content */
+    .doc-content {
+      space-y: 3rem;
+    }
+
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .hero-banner h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.75rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .hero-banner p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 800px;
+    }
+
+    .meta-badges {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .badge {
+      padding: 0.3rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+    }
+
+    .section {
+      margin-bottom: 3.5rem;
+      scroll-margin-top: 6rem;
+    }
+
+    .section h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.85rem;
+      font-weight: 800;
+      margin-bottom: 1.25rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+    }
+
+    .section h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin: 1.75rem 0 0.75rem 0;
+      color: var(--accent-indigo);
+    }
+
+    .section p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Feature Grid Cards */
+    .module-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 1.25rem;
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(16px);
+      transition: all 0.3s ease;
+    }
+
+    .module-card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.15);
+    }
+
+    .module-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .module-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .route-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 0.2rem 0.6rem;
+      border-radius: 0.5rem;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.6rem;
+    }
+
+    .feature-list li {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .feature-list li::before {
+      content: "✓";
+      color: var(--accent-emerald);
+      font-weight: 900;
+    }
+
+    /* Diagram Block */
+    .diagram-box {
+      background: #020617;
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: #38bdf8;
+      overflow-x: auto;
+      white-space: pre;
+      margin: 1.5rem 0;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      background: var(--bg-card);
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    th, td {
+      padding: 1rem 1.25rem;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: rgba(30, 41, 59, 0.9);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      color: #fff;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Print Styles */
+    @media print {
+      header, .sidebar, .actions {
+        display: none !important;
+      }
+      .container {
+        display: block;
+        padding: 0;
+      }
+      body {
+        background: #fff;
+        color: #000;
+      }
+      .module-card, table, .hero-banner {
+        border: 1px solid #ccc;
+        background: #fff;
+        color: #000;
+      }
+      th { background: #f0f0f0; color: #000; }
+      td, p, li { color: #333 !important; }
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Glass Header -->
+  <header>
+    <a href="/landing-page" class="brand-logo">
+      <img src="/logo_transparent.png" alt="AI ADS Logo" onError="this.src='/logo.png'">
+      <span class="brand-title">AI ADS™ Documentation</span>
+    </a>
+
+    <div class="actions">
+      <a href="/AI_ADS_Platform_Documentation.md" download class="btn btn-secondary">
+        ⬇ Download Markdown (.md)
+      </a>
+      <button onclick="window.print()" class="btn btn-primary">
+        🖨 Print / Save PDF
+      </button>
+    </div>
+  </header>
+
+  <!-- Documentation Layout -->
+  <div class="container">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <h3>Documentation</h3>
+      <ul>
+        <li><a href="#overview">1. Overview</a></li>
+        <li><a href="#brand-dna">2.1 Brand DNA Memory</a></li>
+        <li><a href="#strategy">2.2 30-Day Strategy</a></li>
+        <li><a href="#creative">2.3 Creative Studio & 8K</a></li>
+        <li><a href="#content-studio">2.4 Content Studio</a></li>
+        <li><a href="#website-builder">2.5 AI Website Builder</a></li>
+        <li><a href="#seo">2.6 SEO Intelligence</a></li>
+        <li><a href="#calendar">2.7 Publishing Calendar</a></li>
+        <li><a href="#approvals">2.8 Approvals Desk</a></li>
+        <li><a href="#copilot">2.9 AISA Copilot</a></li>
+        <li><a href="#analytics">2.10 Analytics Hub</a></li>
+        <li><a href="#rbac">2.11 Team RBAC</a></li>
+        <li><a href="#pricing">3. Transparent Pricing</a></li>
+        <li><a href="#architecture">4. System Architecture</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="doc-content">
+
+      <!-- Hero Header -->
+      <div class="hero-banner">
+        <h1>AI ADS™ Platform Documentation</h1>
+        <p>Complete operational guide and technical specifications for the AI ADS™ Autonomous Content Intelligence & 8K Creative Studio platform.</p>
+        <div class="meta-badges">
+          <span class="badge">Version 3.5.0 Enterprise</span>
+          <span class="badge">Governed AI Engine</span>
+          <span class="badge">Gemini 3.1 Flash Image</span>
+        </div>
+      </div>
+
+      <!-- Section 1: Overview -->
+      <section id="overview" class="section">
+        <h2>1. Platform Architecture Overview</h2>
+        <p>AI ADS™ is engineered as a unified governed artificial intelligence pipeline connecting brand strategy, photo vision models, copy generation, and multi-channel publishing into one seamless dashboard.</p>
+
+        <div class="diagram-box">
+┌────────────────────────────────────────────────────────────────────────┐
+│                        AI ADS™ Web Platform                            │
+│           (React 18 + Vite + Tailwind CSS + Context State)             │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                  ┌─────────────────┴─────────────────┐
+                  │    Node.js REST API Gateway       │
+                  │  (Express + RBAC + Credit Engine) │
+                  └─────────────────┬─────────────────┘
+                                    │
+  ┌──────────────────┬──────────────┴──────────────┬──────────────────┐
+  │                  │                             │                  │
+┌─┴──────────────┐ ┌─┴──────────────┐          ┌───┴──────────────┐ ┌─┴──────────────┐
+│ MongoDB        │ │ Google Gemini  │          │ Vertex AI        │ │ Google Cloud   │
+│ Database       │ │ 3.1 Flash      │          │ Imagen 3 / Flux  │ │ Storage (GCS)  │
+│ (Brand DNA)    │ │ Vision AI      │          │ (8K Visuals)     │ │ (Signed URLs)  │
+└────────────────┘ └────────────────┘          └──────────────────┘ └────────────────┘
+        </div>
+      </section>
+
+      <!-- Section 2: Modules -->
+      <section id="modules" class="section">
+        <h2>2. Core Platform Modules & Features</h2>
+
+        <!-- Module 1 -->
+        <div id="brand-dna" class="module-card">
+          <div class="module-header">
+            <span class="module-title">01. Brand DNA Memory & Automated Scraper</span>
+            <span class="route-badge">/brand-dna</span>
+          </div>
+          <p>Scrapes brand website URLs to ingest logos, hex color palettes, positioning statements, and verified claims. Locks guidelines into immutable single-source AI memory.</p>
+          <ul class="feature-list">
+            <li>Automated URL identity scraper for logos, hex colors, and positioning</li>
+            <li>Immutable single-source AI memory preventing voice drift</li>
+            <li>Multi-brand client workspace isolation</li>
+          </ul>
+        </div>
+
+        <!-- Module 2 -->
+        <div id="strategy" class="module-card">
+          <div class="module-header">
+            <span class="module-title">02. 30-Day Strategy Roadmap Engine</span>
+            <span class="route-badge">/strategy</span>
+          </div>
+          <p>Synthesizes 30 non-repeating daily social campaign directives across Instagram, LinkedIn, X, and Facebook. Integrates product photo brief analysis.</p>
+          <ul class="feature-list">
+            <li>30 daily non-repeating campaign directives across 4 social channels</li>
+            <li>Reference product photo photoshoot directive synthesis</li>
+            <li>1-click conversion into image briefs and social post captions</li>
+          </ul>
+        </div>
+
+        <!-- Module 3 -->
+        <div id="creative" class="module-card">
+          <div class="module-header">
+            <span class="module-title">03. Creative Studio & 2-Agent Vision Pipeline</span>
+            <span class="route-badge">/creative-studio</span>
+          </div>
+          <p>Renders photorealistic 8K commercial ad visuals powered by Gemini 3.1 Flash Image AI vision models with automatic brand logo overlays.</p>
+          <ul class="feature-list">
+            <li>Agent 1 (Prompt Crafting Agent) + Agent 2 (Image Generation Agent)</li>
+            <li>Photorealistic 8K commercial ad rendering</li>
+            <li>Automated Brand DNA logo watermarking & GCS V4 signed URL exports</li>
+          </ul>
+        </div>
+
+        <!-- Module 4 -->
+        <div id="content-studio" class="module-card">
+          <div class="module-header">
+            <span class="module-title">04. Content Studio & Carousel Builder</span>
+            <span class="route-badge">/content-studio</span>
+          </div>
+          <p>Multi-channel copywriter generating Instagram carousels, LinkedIn slide decks, viral X threads, Facebook ads, and long-form blog articles.</p>
+          <ul class="feature-list">
+            <li>Slide-by-slide Instagram carousel & LinkedIn slide deck generator</li>
+            <li>Viral X thread creator & long-form article writer</li>
+            <li>1-click copy repurposing & tone/emoji density adjustment</li>
+          </ul>
+        </div>
+
+        <!-- Module 5 -->
+        <div id="website-builder" class="module-card">
+          <div class="module-header">
+            <span class="module-title">05. AI Website & Landing Page Builder</span>
+            <span class="route-badge">/website-builder</span>
+          </div>
+          <p>Prompt-driven landing page generator with real-time live code execution, split visual preview, and full HTML/CSS ZIP package exports.</p>
+          <ul class="feature-list">
+            <li>Prompt-to-full landing page HTML/CSS structure generation</li>
+            <li>Live code preview editor with responsive viewport switching</li>
+            <li>1-click downloadable source ZIP code packages</li>
+          </ul>
+        </div>
+
+        <!-- Module 6 -->
+        <div id="seo" class="module-card">
+          <div class="module-header">
+            <span class="module-title">06. SEO Intelligence & JSON-LD Briefs</span>
+            <span class="route-badge">/seo-intelligence</span>
+          </div>
+          <p>Performs search intent keyword analysis, competitive SERP audits, and structured Schema.org JSON-LD markup generation.</p>
+          <ul class="feature-list">
+            <li>Commercial & informational search intent keyword analysis</li>
+            <li>Structured JSON-LD schema generator (Article, Product, FAQPage)</li>
+            <li>Comprehensive SEO content brief outlines for top rankings</li>
+          </ul>
+        </div>
+
+        <!-- Module 7 -->
+        <div id="calendar" class="module-card">
+          <div class="module-header">
+            <span class="module-title">07. Omnichannel Publishing Calendar</span>
+            <span class="route-badge">/calendar</span>
+          </div>
+          <p>Interactive drag-and-drop calendar grid to schedule multi-channel social publishing with smart peak engagement timing.</p>
+          <ul class="feature-list">
+            <li>Drag-and-drop schedule grid across days and weeks</li>
+            <li>Live social card feed previews (Instagram, LinkedIn, X, Facebook)</li>
+            <li>Auto-scheduling at peak audience activity hours</li>
+          </ul>
+        </div>
+
+        <!-- Module 8 -->
+        <div id="approvals" class="module-card">
+          <div class="module-header">
+            <span class="module-title">08. Approvals Desk & Governance Queue</span>
+            <span class="route-badge">/approvals-desk</span>
+          </div>
+          <p>Human-in-the-loop review desk for agencies and clients to inspect, verify brand claims, comment on, or approve content before publishing.</p>
+          <ul class="feature-list">
+            <li>Human-in-the-loop quality gate and audit log trail</li>
+            <li>Automated AI brand claim verification checks</li>
+            <li>1-click client approval & revision request workflows</li>
+          </ul>
+        </div>
+
+        <!-- Module 9 -->
+        <div id="copilot" class="module-card">
+          <div class="module-header">
+            <span class="module-title">09. Embedded AISA™ AI Copilot Assistant</span>
+            <span class="route-badge">Global Assistant Drawer</span>
+          </div>
+          <p>Floating 24/7 AI chat copilot trained specifically on content marketing workflows, prompt optimization, and platform navigation.</p>
+          <ul class="feature-list">
+            <li>Real-time campaign strategy advice & prompt refinement</li>
+            <li>Conversational shortcut triggers for all 9 platform engines</li>
+          </ul>
+        </div>
+
+        <!-- Module 10 -->
+        <div id="analytics" class="module-card">
+          <div class="module-header">
+            <span class="module-title">10. Analytics & Velocity Hub</span>
+            <span class="route-badge">/analytics</span>
+          </div>
+          <p>Performance tracking dashboard monitoring content velocity metrics (400% gain), credit consumption, and team output ROI.</p>
+        </div>
+
+        <!-- Module 11 -->
+        <div id="rbac" class="module-card">
+          <div class="module-header">
+            <span class="module-title">11. Team RBAC & Multi-Tenant Isolation</span>
+            <span class="route-badge">/team-rbac</span>
+          </div>
+          <p>4 granular user roles (Super Admin, Agency Admin, Creator, Client) with complete data separation between client brand accounts.</p>
+        </div>
+
+      </section>
+
+      <!-- Section 3: Pricing -->
+      <section id="pricing" class="section">
+        <h2>3. Transparent INR (₹) Subscription Pricing</h2>
+        <p>All subscription plans are billed transparently in Indian Rupees (₹) with zero hidden fees and automatic credit rollover.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Plan Name</th>
+              <th>Monthly Billed</th>
+              <th>Yearly Billed (Save 20%)</th>
+              <th>Visual AI Credits</th>
+              <th>Key Included Features</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Starter Suite</strong></td>
+              <td>₹799 / mo</td>
+              <td>₹639 / mo</td>
+              <td>50 Credits / mo</td>
+              <td>1 Brand DNA Workspace, 30-Day Strategy, Standard Ad Visuals</td>
+            </tr>
+            <tr>
+              <td><strong>Growth Agency</strong></td>
+              <td>₹2,499 / mo</td>
+              <td>₹1,999 / mo</td>
+              <td>250 Credits / mo</td>
+              <td>5 Brand Workspaces, 8K Photorealistic Studio Renders, AI Website Builder, Approvals Desk</td>
+            </tr>
+            <tr>
+              <td><strong>Enterprise Scale</strong></td>
+              <td>₹6,999 / mo</td>
+              <td>₹5,599 / mo</td>
+              <td>1,000 Credits / mo</td>
+              <td>Unlimited Workspaces, Dedicated Account Manager, Custom API Integrations</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Section 4: System Architecture -->
+      <section id="architecture" class="section">
+        <h2>4. User Roles & RBAC Matrix</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Role Name</th>
+              <th>Access Level</th>
+              <th>Key Responsibilities</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Super Admin</strong></td>
+              <td>Global System Control</td>
+              <td>Full platform diagnostics, global user management, system-wide billing.</td>
+            </tr>
+            <tr>
+              <td><strong>Agency Admin</strong></td>
+              <td>Workspace Owner</td>
+              <td>Create brand workspaces, invite team members, manage subscriptions, approve content.</td>
+            </tr>
+            <tr>
+              <td><strong>Content Creator</strong></td>
+              <td>Editor Access</td>
+              <td>Scrape Brand DNA, generate 30-day strategy roadmaps, render 8K visuals, build websites.</td>
+            </tr>
+            <tr>
+              <td><strong>Client Viewer</strong></td>
+              <td>Read & Review Only</td>
+              <td>Dedicated portal to inspect, comment on, and approve deliverables at Approvals Desk.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+</body>
+</html>

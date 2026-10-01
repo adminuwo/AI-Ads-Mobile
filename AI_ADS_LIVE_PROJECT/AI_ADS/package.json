@@ -1,0 +1,21 @@
+{
+  "name": "ai-ads-platform",
+  "version": "2.0.0",
+  "private": true,
+  "description": "AI Ads Enterprise Unified Platform - Cloud Run Ready",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
+    "start": "npm --prefix backend start",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev"
+  },
+  "keywords": [
+    "ai-ads",
+    "vertex-ai",
+    "cloud-run",
+    "unified-platform"
+  ],
+  "author": "AI Ads Team",
+  "license": "UNLICENSED"
+}

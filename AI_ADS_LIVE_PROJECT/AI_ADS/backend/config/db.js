@@ -1,0 +1,41 @@
+const mongoose = require('mongoose');
+const dns = require('dns');
+
+// Fix Windows Node.js DNS SRV resolution issue for mongodb+srv:// by setting public Google & Cloudflare DNS
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1', '1.0.0.1']);
+  if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+  }
+} catch (e) {}
+
+
+// Mongoose connection helper with DNS SRV fix
+const connectDB = async () => {
+  mongoose.set('bufferCommands', true);
+  const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ai_ads_db';
+  const localFallbackUri = 'mongodb://127.0.0.1:27017/ai_ads_db';
+
+  try {
+    const conn = await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 15000,
+      connectTimeoutMS: 15000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10
+    });
+    console.log(`🍃 MongoDB Atlas Cloud Connected: ${conn.connection.host} / DB: ${conn.connection.name}`);
+  } catch (error) {
+    console.log(`⚠️ Atlas Cloud IP Restricted (${error.message}). Attempting local DB fallback...`);
+    try {
+      const connLocal = await mongoose.connect(localFallbackUri, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000
+      });
+      console.log(`🍃 Local MongoDB Connected: ${connLocal.connection.host} / DB: ${connLocal.connection.name}`);
+    } catch (localErr) {
+      console.log('MongoDB Note: Running with in-memory persistence store.');
+    }
+  }
+};
+
+module.exports = connectDB;

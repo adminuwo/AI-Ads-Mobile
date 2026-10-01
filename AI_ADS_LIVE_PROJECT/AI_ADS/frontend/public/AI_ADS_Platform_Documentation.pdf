@@ -1,0 +1,112 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 4654 >>
+stream
+BT
+/F1 9 Tf
+11 TL
+40 800 Td
+/F2 11 Tf (AI ADS \(TM\) - Platform Architecture & Feature Documentation) Tj T* /F1 9 Tf
+(===========================================================) Tj T*
+() Tj T*
+(Version: 3.5.0 Enterprise) Tj T*
+(Platform Name: AI ADS \(TM\) Autonomous Content Intelligence & 8K Creative Studio) Tj T*
+(Target Audience: Enterprise Marketing Teams, Digital Agencies, Brand Managers) Tj T*
+() Tj T*
+/F2 11 Tf (EXECUTIVE SUMMARY) Tj T* /F1 9 Tf
+(-----------------) Tj T*
+/F2 11 Tf (AI ADS \(TM\) is an all-in-one, enterprise-grade governed artificial intelligence content creation and ) Tj T* /F1 9 Tf
+(multi-channel publishing platform. By combining multi-tenant Brand DNA memory, an autonomous ) Tj T*
+(2-Agent Vision Architecture, 30-Day Campaign Strategy Generation, photorealistic 8K visual ad rendering, ) Tj T*
+(and an AI Landing Page Generator, AI ADS \(TM\) enables marketing teams to scale content velocity ) Tj T*
+(up to 10x faster while eliminating brand voice drift.) Tj T*
+() Tj T*
+/F2 11 Tf (CORE PLATFORM MODULES & FEATURES) Tj T* /F1 9 Tf
+(--------------------------------) Tj T*
+/F2 9.5 Tf (01. Brand DNA Memory & Scraper \(/brand-dna\)) Tj T* /F1 9 Tf
+(    Auto-scrapes website URLs to ingest logos, hex color palettes, positioning, and verified claims ) Tj T*
+(    into immutable AI memory for 100% brand voice alignment.) Tj T*
+() Tj T*
+/F2 9.5 Tf (02. 30-Day Strategy Roadmap Engine \(/strategy\)) Tj T* /F1 9 Tf
+(    Synthesizes 30 non-repeating daily social post directives for Instagram, LinkedIn, X, and Facebook ) Tj T*
+(    with reference photo photoshoot directive analysis.) Tj T*
+() Tj T*
+/F2 9.5 Tf (03. Creative Studio & 2-Agent Vision Pipeline \(/creative-studio\)) Tj T* /F1 9 Tf
+(    2-Agent Vision Pipeline \(Prompt Crafting Agent + Image Generation Agent\) rendering photorealistic ) Tj T*
+(    8K ad visuals with automatic brand logo watermarking and GCS signed URL exports.) Tj T*
+() Tj T*
+/F2 9.5 Tf (04. Content Studio & Carousel Builder \(/content-studio\)) Tj T* /F1 9 Tf
+(    Drafts Instagram carousels, LinkedIn slide decks, viral X threads, Facebook ad copy, and long-form ) Tj T*
+(    blog posts with 1-click copy repurposing.) Tj T*
+() Tj T*
+/F2 9.5 Tf (05. AI Website & Landing Page Builder \(/website-builder\)) Tj T* /F1 9 Tf
+(    Prompt-driven responsive landing page builder with live visual code editor, responsive previews, ) Tj T*
+(    and downloadable HTML/CSS ZIP packages.) Tj T*
+() Tj T*
+/F2 9.5 Tf (06. SEO Intelligence & JSON-LD Briefs \(/seo-intelligence\)) Tj T* /F1 9 Tf
+(    Search intent keyword analysis, competitive SERP audits, and structured Schema.org JSON-LD schema ) Tj T*
+(    markup generation.) Tj T*
+() Tj T*
+/F2 9.5 Tf (07. Omnichannel Publishing Calendar \(/calendar\)) Tj T* /F1 9 Tf
+(    Interactive drag-and-drop calendar grid to schedule multi-channel campaign posts at peak ) Tj T*
+(    engagement hours with live feed previews.) Tj T*
+() Tj T*
+/F2 9.5 Tf (08. Approvals Desk & Governance \(/approvals-desk\)) Tj T* /F1 9 Tf
+(    Human-in-the-loop review queue for digital agencies and clients with brand claim verification checks ) Tj T*
+(    and RBAC role permissions.) Tj T*
+() Tj T*
+/F2 9.5 Tf (09. Embedded AISA \(TM\) AI Copilot \(Global Drawer\)) Tj T* /F1 9 Tf
+(    Floating 24/7 AI chat assistant trained on marketing workflows for instant strategy advice, ) Tj T*
+(    prompt refining, and direct module triggers.) Tj T*
+() Tj T*
+/F2 9.5 Tf (10. Analytics & Velocity Hub \(/analytics\)) Tj T* /F1 9 Tf
+(    Performance tracking dashboard monitoring content velocity metrics \(400% Gain\), credit usage, ) Tj T*
+(    and agency production ROI.) Tj T*
+() Tj T*
+/F2 9.5 Tf (11. Team RBAC Management \(/team-rbac\)) Tj T* /F1 9 Tf
+(    4 granular user roles \(Super Admin, Agency Admin, Creator, Client\) with cryptographically isolated ) Tj T*
+(    multi-tenant client workspaces.) Tj T*
+() Tj T*
+/F2 9.5 Tf (12. Settings & Transparent INR Billing \(/settings-billing\)) Tj T* /F1 9 Tf
+(    Transparent INR subscription plans starting at Rs 799/mo with automatic credit rollover and custom ) Tj T*
+(    API integration keys.) Tj T*
+() Tj T*
+/F2 11 Tf (TRANSPARENT INR SUBSCRIPTION PLANS) Tj T* /F1 9 Tf
+(----------------------------------) Tj T*
+(- Starter Suite: Rs 799 / mo \(Rs 639 Yearly\) | 50 Credits/mo, 1 Workspace, 30-Day Strategy) Tj T*
+(- Growth Agency: Rs 2,499 / mo \(Rs 1,999 Yearly\) | 250 Credits/mo, 5 Workspaces, 8K Studio, AI Web Builder) Tj T*
+(- Enterprise Scale: Rs 6,999 / mo \(Rs 5,599 Yearly\) | 1000 Credits/mo, Unlimited Workspaces, Custom API) Tj T*
+() Tj T*
+(\(C\) 2026 AI ADS \(TM\) Inc. All rights reserved.) Tj T*
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+5102
+%%EOF

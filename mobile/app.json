@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "AI Ads",
+    "slug": "ai-ads-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo_icon_only.png",
+    "scheme": "aiads",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/logo_transparent.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#070A11"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.uwo.aiads"
+    },
+    "android": {
+      "package": "com.uwo.aiads",
+      "adaptiveIcon": {
+        "backgroundColor": "#070A11",
+        "foregroundImage": "./assets/logo_icon_only.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/logo_icon_only.png"
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
+  }
+}
