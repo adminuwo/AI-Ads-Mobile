@@ -27,6 +27,7 @@ import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { FloatingAISABrain } from '../../components/common/FloatingAISABrain';
 import { StrategyCard } from '../../types';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 export const StrategyScreen: React.FC = () => {
   const { colors, isDark } = useTheme();
@@ -268,6 +269,8 @@ const styles = StyleSheet.create({
   heroCard: {
     padding: 18,
     marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#8B5CF6',
   },
   heroRow: {
     flexDirection: 'row',
@@ -279,13 +282,15 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   heroTitle: {
-    fontSize: 17,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.heading,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.heading,
     letterSpacing: -0.2,
   },
   heroSub: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.caption,
     fontWeight: '500',
+    lineHeight: LINE_HEIGHTS.caption,
     marginTop: 2,
   },
   iconCircle: {
@@ -305,6 +310,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 20,
     gap: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#8B5CF6',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -315,21 +322,23 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.heading,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.heading,
   },
   cardObjective: {
-    fontSize: 13,
-    fontWeight: '500',
-    lineHeight: 19,
+    fontSize: FONT_SIZES.body,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.body,
   },
   detailBlock: {
     gap: 6,
     marginVertical: 4,
   },
   detailLabel: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     letterSpacing: 0.5,
   },
   bulletRow: {
@@ -344,10 +353,10 @@ const styles = StyleSheet.create({
     marginTop: 7,
   },
   bulletText: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '400',
     flex: 1,
-    lineHeight: 18,
+    lineHeight: LINE_HEIGHTS.body,
   },
   metaRow: {
     flexDirection: 'row',
@@ -361,13 +370,15 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   metaLabel: {
-    fontSize: 9.5,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     letterSpacing: 0.4,
   },
   metaValue: {
-    fontSize: 11.5,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   calendarBtn: {
     flexDirection: 'row',
@@ -380,7 +391,8 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   calendarBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.body,
   },
 });

@@ -9,7 +9,10 @@ import {
   Calendar as CalendarIcon,
   Menu,
 } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
+import { PanchTattvaRibbon } from '../components/common/PanchTattvaRibbon';
+import { FONT_SIZES } from '../config/typography';
 import {
   AppTabsParamList,
   StrategyStackParamList,
@@ -30,6 +33,10 @@ import { BrandDnaScreen } from '../screens/more/BrandDnaScreen';
 import { AssetLibraryScreen } from '../screens/more/AssetLibraryScreen';
 import { AnalyticsScreen } from '../screens/more/AnalyticsScreen';
 import { SettingsBillingScreen } from '../screens/more/SettingsBillingScreen';
+import { AIWebsiteBuilderScreen } from '../screens/websiteBuilder/AIWebsiteBuilderScreen';
+import { TeamRbacScreen } from '../screens/more/TeamRbacScreen';
+import { AdminDashboardScreen } from '../screens/more/AdminDashboardScreen';
+import { ProductShowcaseScreen } from '../screens/more/ProductShowcaseScreen';
 
 const Tab = createBottomTabNavigator<AppTabsParamList>();
 const StrategyStack = createNativeStackNavigator<StrategyStackParamList>();
@@ -61,11 +68,20 @@ const MoreNavigator = () => (
     <MoreStack.Screen name="AssetLibrary" component={AssetLibraryScreen} />
     <MoreStack.Screen name="Analytics" component={AnalyticsScreen} />
     <MoreStack.Screen name="SettingsBilling" component={SettingsBillingScreen} />
+    <MoreStack.Screen name="WebsiteBuilder" component={AIWebsiteBuilderScreen} />
+    <MoreStack.Screen name="TeamRbac" component={TeamRbacScreen} />
+    <MoreStack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+    <MoreStack.Screen name="ProductShowcase" component={ProductShowcaseScreen} />
   </MoreStack.Navigator>
 );
 
+
 export const AppTabsNavigator: React.FC = () => {
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 20 : 8);
+  const tabBarHeight = 56 + bottomInset;
 
   return (
     <Tab.Navigator
@@ -74,30 +90,44 @@ export const AppTabsNavigator: React.FC = () => {
         tabBarShowLabel: true,
         tabBarActiveTintColor: colors.accent.primary,
         tabBarInactiveTintColor: colors.textMuted,
+        tabBarBackground: () => (
+          <View
+            style={[
+              StyleSheet.absoluteFillObject,
+              {
+                backgroundColor: colors.tabBarBackground,
+                borderTopColor: colors.neu.borderLight,
+                borderTopWidth: 1.5,
+              },
+            ]}
+          >
+            <PanchTattvaRibbon height={2.5} />
+          </View>
+        ),
         tabBarStyle: {
-          backgroundColor: colors.tabBarBackground,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
-          height: Platform.OS === 'ios' ? 88 : 64,
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          height: tabBarHeight,
           paddingTop: 8,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+          paddingBottom: bottomInset,
           position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 6,
+          elevation: 12,
+          shadowColor: isDark ? '#000000' : '#A3B1C6',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: isDark ? 0.6 : 0.35,
+          shadowRadius: 10,
         },
         tabBarLabelStyle: {
-          fontSize: 10.5,
-          fontWeight: '700',
+          fontSize: FONT_SIZES.caption,
+          fontWeight: '600',
           marginTop: 2,
         },
       }}
     >
+
       <Tab.Screen
         name="Home"
         component={DashboardScreen}

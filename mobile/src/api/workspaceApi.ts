@@ -25,6 +25,20 @@ export const workspaceApi = {
       method: 'DELETE',
     }),
 
+  // Single Unified Form Scraper & DNA Preview
+  unifiedDnaPreview: (formData: FormData): Promise<{
+    success: boolean;
+    workspace?: any;
+    brandProfile?: any;
+    rawScrapedData?: any;
+    error?: string;
+  }> =>
+    apiRequest('/workspace/unified-dna-preview', {
+      method: 'POST',
+      body: formData,
+      timeoutMs: 60000,
+    }),
+
   // Brand Intelligence & Auto Scraper
   analyzeBrand: (payload: {
     websiteUrl?: string;

@@ -1,5 +1,12 @@
 import { apiRequest } from './client';
-import { AnalyticsSummary } from '../types';
+
+export interface AnalyticsSummary {
+  brands?: { total: number };
+  posts?: { total: number; verifiedFactChecked?: number };
+  campaigns?: { total: number; active: number };
+  contentVelocity?: number;
+  creditsBalance?: number;
+}
 
 export const analyticsApi = {
   getSummary: (params: {

@@ -16,6 +16,7 @@ import { Badge } from '../../components/common/Badge';
 import { FloatingAISABrain } from '../../components/common/FloatingAISABrain';
 import { CalendarEntry } from '../../types';
 import { formatDate } from '../../utils/formatters';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 export const CalendarScreen: React.FC = () => {
   const { colors, isDark } = useTheme();
@@ -188,8 +189,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   filterText: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -202,6 +204,8 @@ const styles = StyleSheet.create({
   entryCard: {
     padding: 16,
     gap: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#10B981',
   },
   entryHeader: {
     flexDirection: 'row',
@@ -209,9 +213,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   entryTitle: {
-    fontSize: 14.5,
-    fontWeight: '800',
-    lineHeight: 20,
+    fontSize: FONT_SIZES.body,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.body,
   },
   entryFooter: {
     flexDirection: 'row',
@@ -227,11 +231,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   dateText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '500',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   ownerText: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.caption,
   },
 });

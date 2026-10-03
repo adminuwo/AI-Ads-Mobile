@@ -179,3 +179,21 @@ export interface AnalyticsSummary {
   contentVelocity?: number;
   creditsBalance?: number;
 }
+
+export type {
+  ProvenanceInfo,
+  OnPageKeywordItem,
+  RankingKeywordItem,
+  CompetitorGapItem,
+  OpportunityKeywordItem,
+  QuickWinItem,
+  CompetitorItem,
+  TopicClusterItem,
+  HeadingOutlineItem,
+  InternalLinkingItem,
+  SeoBrief,
+  SeoArticle,
+  RepurposedOutputs,
+  ClusterKeywordsResponse,
+} from '../api/seoApi';
+

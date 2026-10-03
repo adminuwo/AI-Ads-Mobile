@@ -16,6 +16,7 @@ import { GlassCard } from '../../components/common/GlassCard';
 import { Badge } from '../../components/common/Badge';
 import { FloatingAISABrain } from '../../components/common/FloatingAISABrain';
 import { ApprovalQueueItem } from '../../types';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 export const ApprovalsDeskScreen: React.FC = () => {
   const { colors, isDark } = useTheme();
@@ -174,8 +175,9 @@ const styles = StyleSheet.create({
     paddingBottom: 110,
   },
   heading: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.heading,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.heading,
     marginBottom: 12,
   },
   list: {
@@ -184,6 +186,8 @@ const styles = StyleSheet.create({
   card: {
     padding: 16,
     gap: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#F59E0B',
   },
   cardTop: {
     flexDirection: 'row',
@@ -191,9 +195,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   itemTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    lineHeight: 21,
+    fontSize: FONT_SIZES.body,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.body,
   },
   factCheckRow: {
     flexDirection: 'row',
@@ -205,15 +209,17 @@ const styles = StyleSheet.create({
   },
   factCheckText: {
     color: '#10B981',
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   footerRow: {
     paddingTop: 4,
   },
   metaText: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -235,8 +241,9 @@ const styles = StyleSheet.create({
   },
   rejectText: {
     color: '#EF4444',
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.body,
   },
   approveBtn: {
     flex: 1,
@@ -250,7 +257,8 @@ const styles = StyleSheet.create({
   },
   approveText: {
     color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.body,
   },
 });

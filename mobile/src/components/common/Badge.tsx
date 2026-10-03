@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 interface BadgeProps {
   label: string;
   variant?: 'success' | 'warning' | 'danger' | 'info' | 'accent' | 'neutral';
   icon?: React.ReactNode;
   style?: ViewStyle;
+  size?: 'sm' | 'md';
 }
 
 export const Badge: React.FC<BadgeProps> = ({
@@ -14,6 +16,7 @@ export const Badge: React.FC<BadgeProps> = ({
   variant = 'neutral',
   icon,
   style,
+  size = 'md',
 }) => {
   const { colors, isDark } = useTheme();
 
@@ -22,25 +25,25 @@ export const Badge: React.FC<BadgeProps> = ({
       case 'success':
         return {
           bg: isDark ? 'rgba(16, 185, 129, 0.15)' : '#DCFCE7',
-          border: 'rgba(16, 185, 129, 0.3)',
+          border: 'rgba(16, 185, 129, 0.4)',
           text: '#10B981',
         };
       case 'warning':
         return {
           bg: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FEF3C7',
-          border: 'rgba(245, 158, 11, 0.3)',
+          border: 'rgba(245, 158, 11, 0.4)',
           text: '#F59E0B',
         };
       case 'danger':
         return {
           bg: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FEE2E2',
-          border: 'rgba(239, 68, 68, 0.3)',
+          border: 'rgba(239, 68, 68, 0.4)',
           text: '#EF4444',
         };
       case 'info':
         return {
           bg: isDark ? 'rgba(14, 165, 233, 0.15)' : '#E0F2FE',
-          border: 'rgba(14, 165, 233, 0.3)',
+          border: 'rgba(14, 165, 233, 0.4)',
           text: '#0EA5E9',
         };
       case 'accent':
@@ -51,8 +54,8 @@ export const Badge: React.FC<BadgeProps> = ({
         };
       default:
         return {
-          bg: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
-          border: colors.border,
+          bg: isDark ? 'rgba(255, 255, 255, 0.06)' : colors.neu.cardSecondary,
+          border: colors.neu.borderDark,
           text: colors.textSecondary,
         };
     }
@@ -64,7 +67,19 @@ export const Badge: React.FC<BadgeProps> = ({
     <View
       style={[
         styles.badge,
-        { backgroundColor: vStyle.bg, borderColor: vStyle.border },
+        {
+          backgroundColor: vStyle.bg,
+          borderTopColor: colors.neu.borderLight,
+          borderLeftColor: colors.neu.borderLight,
+          borderBottomColor: vStyle.border,
+          borderRightColor: vStyle.border,
+          borderWidth: 1,
+          shadowColor: isDark ? '#000000' : '#A3B1C6',
+          shadowOffset: { width: 1, height: 1 },
+          shadowOpacity: 0.25,
+          shadowRadius: 2,
+          elevation: 1,
+        },
         style,
       ]}
     >
@@ -81,15 +96,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 20,
-    borderWidth: 1,
     alignSelf: 'flex-start',
   },
   iconContainer: {
     marginRight: 4,
   },
   badgeText: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },

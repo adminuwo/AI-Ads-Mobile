@@ -3,7 +3,7 @@ import { Workspace } from '../types';
 import { workspaceApi } from '../api/workspaceApi';
 import { creativeApi } from '../api/creativeApi';
 import { appStorage } from '../utils/storage';
-import { STORAGE_KEYS, DEFAULT_WORKSPACE } from '../config/constants';
+import { STORAGE_KEYS, DEFAULT_WORKSPACE, INITIAL_WORKSPACES } from '../config/constants';
 import { useAuth } from './AuthContext';
 
 interface WorkspaceContextType {
@@ -25,17 +25,28 @@ interface WorkspaceContextType {
   setIsBrandSwitcherOpen: (open: boolean) => void;
   isScraperOpen: boolean;
   setIsScraperOpen: (open: boolean) => void;
+  scraperMode: 'NEW_BRAND' | 'ACTIVE_BRAND';
+  setScraperMode: (mode: 'NEW_BRAND' | 'ACTIVE_BRAND') => void;
+  openScraperModal: (mode?: 'NEW_BRAND' | 'ACTIVE_BRAND') => void;
   isQuickPostOpen: boolean;
   setIsQuickPostOpen: (open: boolean) => void;
   isAISAChatOpen: boolean;
   setIsAISAChatOpen: (open: boolean) => void;
+  isNotificationOpen: boolean;
+  setIsNotificationOpen: (open: boolean) => void;
+  isProfileMenuOpen: boolean;
+  setIsProfileMenuOpen: (open: boolean) => void;
+  unreadCount: number;
+  setUnreadCount: (count: number) => void;
+  studioTarget: any | null;
+  setStudioTarget: (target: any | null) => void;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
 export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([DEFAULT_WORKSPACE]);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>(INITIAL_WORKSPACES);
   const [activeWorkspaceId, setActiveWorkspaceIdState] = useState<string>(DEFAULT_WORKSPACE.id);
   const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState<boolean>(false);
   const [credits, setCredits] = useState<{ tier: string; balance: number }>({ tier: 'Agency Pro', balance: 500 });
@@ -43,8 +54,14 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Modal overlays
   const [isBrandSwitcherOpen, setIsBrandSwitcherOpen] = useState(false);
   const [isScraperOpen, setIsScraperOpen] = useState(false);
+  const [scraperMode, setScraperMode] = useState<'NEW_BRAND' | 'ACTIVE_BRAND'>('NEW_BRAND');
   const [isQuickPostOpen, setIsQuickPostOpen] = useState(false);
   const [isAISAChatOpen, setIsAISAChatOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(3);
+  const [studioTarget, setStudioTarget] = useState<any | null>(null);
+
 
   const fetchWorkspaces = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -183,16 +200,31 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsBrandSwitcherOpen,
         isScraperOpen,
         setIsScraperOpen,
+        scraperMode,
+        setScraperMode,
+        openScraperModal: (mode: 'NEW_BRAND' | 'ACTIVE_BRAND' = 'NEW_BRAND') => {
+          setScraperMode(mode);
+          setIsScraperOpen(true);
+        },
         isQuickPostOpen,
         setIsQuickPostOpen,
         isAISAChatOpen,
         setIsAISAChatOpen,
+        isNotificationOpen,
+        setIsNotificationOpen,
+        isProfileMenuOpen,
+        setIsProfileMenuOpen,
+        unreadCount,
+        setUnreadCount,
+        studioTarget,
+        setStudioTarget,
       }}
     >
       {children}
     </WorkspaceContext.Provider>
   );
 };
+
 
 export const useWorkspace = (): WorkspaceContextType => {
   const context = useContext(WorkspaceContext);

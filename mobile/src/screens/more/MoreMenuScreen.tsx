@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import {
   Dna,
@@ -16,6 +17,9 @@ import {
   ChevronRight,
   ShieldCheck,
   Crown,
+  Globe,
+  Users,
+  Sparkles,
 } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -23,13 +27,55 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { BrandHeader } from '../../components/common/BrandHeader';
 import { GlassCard } from '../../components/common/GlassCard';
 import { Badge } from '../../components/common/Badge';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 export const MoreMenuScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
   const { user, logout } = useAuth();
   const { activeWorkspace } = useWorkspace();
 
+  const handleSignOut = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out of AI Ads?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+          },
+        },
+      ]
+    );
+  };
+
   const menuItems = [
+    {
+      id: 'WebsiteBuilder',
+      title: 'AI Website Builder & Projects',
+      sub: 'Synthesize & preview standalone React websites',
+      icon: Globe,
+      color: '#0284C7',
+      onPress: () => navigation.navigate('WebsiteBuilder'),
+    },
+    {
+      id: 'TeamRbac',
+      title: 'Team & RBAC Permissions Matrix',
+      sub: 'Multi-tenant member governance & role access',
+      icon: Users,
+      color: '#6366F1',
+      onPress: () => navigation.navigate('TeamRbac'),
+    },
+    {
+      id: 'AdminDashboard',
+      title: 'SuperAdmin Platform Console',
+      sub: 'Telemetry, user quota desk & system health',
+      icon: ShieldCheck,
+      color: '#EC4899',
+      onPress: () => navigation.navigate('AdminDashboard'),
+    },
     {
       id: 'BrandDna',
       title: 'Brand DNA Profile & Guidelines',
@@ -55,6 +101,14 @@ export const MoreMenuScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       onPress: () => navigation.navigate('Analytics'),
     },
     {
+      id: 'ProductShowcase',
+      title: 'Product Showcase & Features Tour',
+      sub: 'Platform architecture, pricing plans & FAQ',
+      icon: Sparkles,
+      color: '#14B8A6',
+      onPress: () => navigation.navigate('ProductShowcase'),
+    },
+    {
       id: 'SettingsBilling',
       title: 'Settings, Themes & Billing',
       sub: 'Appearance, accent palette & subscription',
@@ -63,6 +117,7 @@ export const MoreMenuScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       onPress: () => navigation.navigate('SettingsBilling'),
     },
   ];
+
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -105,8 +160,18 @@ export const MoreMenuScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 style={[
                   styles.menuRow,
                   {
-                    backgroundColor: isDark ? colors.cardBackground : '#FFFFFF',
-                    borderColor: colors.border,
+                    backgroundColor: colors.neu.card,
+                    borderTopColor: colors.neu.borderLight,
+                    borderLeftColor: item.color,
+                    borderLeftWidth: 3.5,
+                    borderBottomColor: colors.neu.borderDark,
+                    borderRightColor: colors.neu.borderDark,
+                    borderWidth: 1.5,
+                    shadowColor: isDark ? '#000000' : '#A3B1C6',
+                    shadowOffset: { width: 4, height: 4 },
+                    shadowOpacity: isDark ? 0.65 : 0.55,
+                    shadowRadius: 6,
+                    elevation: 4,
                   },
                 ]}
               >
@@ -133,18 +198,28 @@ export const MoreMenuScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         {/* Sign Out Button */}
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={logout}
+          onPress={handleSignOut}
           style={[
             styles.logoutBtn,
             {
-              backgroundColor: isDark ? 'rgba(239, 68, 68, 0.12)' : '#FEE2E2',
-              borderColor: 'rgba(239, 68, 68, 0.3)',
+              backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FEE2E2',
+              borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : '#FFFFFF',
+              borderLeftColor: isDark ? 'rgba(255,255,255,0.1)' : '#FFFFFF',
+              borderBottomColor: 'rgba(239, 68, 68, 0.4)',
+              borderRightColor: 'rgba(239, 68, 68, 0.4)',
+              borderWidth: 1.5,
+              shadowColor: '#EF4444',
+              shadowOffset: { width: 2, height: 3 },
+              shadowOpacity: 0.25,
+              shadowRadius: 5,
+              elevation: 2,
             },
           ]}
         >
           <LogOut size={16} color="#EF4444" />
           <Text style={styles.logoutText}>Sign Out of AI Ads</Text>
         </TouchableOpacity>
+
       </ScrollView>
     </View>
   );
@@ -176,20 +251,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarInitial: {
-    fontSize: 20,
-    fontWeight: '900',
+    fontSize: FONT_SIZES.heading,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.heading,
   },
   profileText: {
     flex: 1,
     gap: 2,
   },
   userName: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.body,
   },
   userEmail: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   badgesRow: {
     flexDirection: 'row',
@@ -226,12 +304,14 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   menuTitle: {
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.body,
   },
   menuSub: {
-    fontSize: 11.5,
-    fontWeight: '500',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   logoutBtn: {
     flexDirection: 'row',
@@ -244,7 +324,8 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: '#EF4444',
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.body,
   },
 });

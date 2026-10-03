@@ -86,27 +86,49 @@ export const getThemeColors = (mode: ThemeMode, accentKey: AccentColorKey = 'pur
   const isDark = mode === 'dark';
   const accent = ACCENT_PALETTES[accentKey] || ACCENT_PALETTES.purple;
 
+  // Neumorphic Surface & Shadow Tokens
+  const neuBase = isDark ? '#151922' : '#E8EDF5';
+  const neuCard = isDark ? '#181D28' : '#E8EDF5';
+  const neuDarkShadow = isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(163, 177, 198, 0.7)';
+  const neuLightShadow = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.95)';
+  const neuBorderLight = isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.85)';
+  const neuBorderDark = isDark ? 'rgba(0, 0, 0, 0.55)' : 'rgba(163, 177, 198, 0.4)';
+
   return {
     isDark,
     accent,
-    // Backgrounds
-    background: isDark ? '#070A11' : '#F8FAFC',
-    cardBackground: isDark ? '#0D1222' : '#FFFFFF',
-    cardSecondary: isDark ? '#131A32' : '#F1F5F9',
-    headerBackground: isDark ? 'rgba(7, 10, 17, 0.92)' : 'rgba(255, 255, 255, 0.95)',
-    tabBarBackground: isDark ? 'rgba(10, 14, 26, 0.96)' : 'rgba(255, 255, 255, 0.98)',
-    inputBackground: isDark ? '#0F162B' : '#F8FAFC',
+    // Backgrounds - Neumorphic Harmonized
+    background: neuBase,
+    cardBackground: neuCard,
+    cardSecondary: isDark ? '#11151D' : '#DFE5EF',
+    headerBackground: isDark ? 'rgba(21, 25, 34, 0.95)' : 'rgba(232, 237, 245, 0.95)',
+    tabBarBackground: isDark ? 'rgba(24, 29, 40, 0.97)' : 'rgba(232, 237, 245, 0.98)',
+    inputBackground: isDark ? '#10141C' : '#DFE5EF',
+
+    // Neumorphic Soft UI Specific Tokens
+    neu: {
+      base: neuBase,
+      card: neuCard,
+      cardSecondary: isDark ? '#11151D' : '#DFE5EF',
+      darkShadow: neuDarkShadow,
+      lightShadow: neuLightShadow,
+      borderLight: neuBorderLight,
+      borderDark: neuBorderDark,
+      surfaceGradient: (isDark ? ['#1B212D', '#151922'] : ['#EFF3FB', '#E2E8F2']) as [string, string],
+      insetGradient: (isDark ? ['#0F121A', '#161A24'] : ['#DAE1EB', '#E9EEF6']) as [string, string],
+      raisedElevation: isDark ? 6 : 4,
+    },
 
     // Borders
-    border: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)',
-    borderHover: isDark ? 'rgba(123, 97, 255, 0.35)' : 'rgba(123, 97, 255, 0.25)',
-    borderSubtle: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(15, 23, 42, 0.04)',
+    border: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(163, 177, 198, 0.3)',
+    borderHover: isDark ? 'rgba(123, 97, 255, 0.45)' : 'rgba(123, 97, 255, 0.35)',
+    borderSubtle: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(163, 177, 198, 0.15)',
 
     // Typography
-    textPrimary: isDark ? '#FFFFFF' : '#0F172A',
-    textSecondary: isDark ? '#94A3B8' : '#64748B',
-    textMuted: isDark ? '#64748B' : '#94A3B8',
-    textInverse: isDark ? '#0F172A' : '#FFFFFF',
+    textPrimary: isDark ? '#FFFFFF' : '#1E293B',
+    textSecondary: isDark ? '#94A3B8' : '#475569',
+    textMuted: isDark ? '#64748B' : '#8592A6',
+    textInverse: isDark ? '#1E293B' : '#FFFFFF',
 
     // Status Colors
     success: '#10B981',
@@ -120,4 +142,7 @@ export const getThemeColors = (mode: ThemeMode, accentKey: AccentColorKey = 'pur
   };
 };
 
+
 export type ThemeColors = ReturnType<typeof getThemeColors>;
+
+export * from './typography';

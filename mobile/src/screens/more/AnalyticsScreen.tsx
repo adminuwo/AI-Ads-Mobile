@@ -9,6 +9,7 @@ import { TrendingUp, ShieldCheck, Zap, Layers, BarChart3 } from 'lucide-react-na
 import { useTheme } from '../../context/ThemeContext';
 import { BrandHeader } from '../../components/common/BrandHeader';
 import { GlassCard } from '../../components/common/GlassCard';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
@@ -37,7 +38,7 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
           {metrics.map((m, idx) => {
             const Icon = m.icon;
             return (
-              <GlassCard key={idx} style={styles.kpiCard} glow={idx === 0}>
+              <GlassCard key={idx} style={styles.kpiCard} glow={idx === 0} accentColor={m.color}>
                 <View style={styles.kpiTop}>
                   <View style={[styles.iconWrap, { backgroundColor: `${m.color}15` }]}>
                     <Icon size={16} color={m.color} />
@@ -52,7 +53,7 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
         </View>
 
         {/* Platform Share */}
-        <GlassCard style={styles.platformCard}>
+        <GlassCard style={styles.platformCard} accentColor="#3B82F6">
           <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
             Omni-Channel Content Distribution
           </Text>
@@ -103,6 +104,7 @@ const styles = StyleSheet.create({
   kpiCard: {
     padding: 16,
     gap: 6,
+    borderLeftWidth: 4,
   },
   kpiTop: {
     flexDirection: 'row',
@@ -117,25 +119,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   changeText: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   kpiValue: {
-    fontSize: 24,
-    fontWeight: '900',
+    fontSize: FONT_SIZES.hero,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.hero,
+    letterSpacing: -0.3,
     marginTop: 2,
   },
   kpiLabel: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.caption,
     fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   platformCard: {
     padding: 16,
     gap: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3B82F6',
   },
   cardTitle: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.heading,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.heading,
   },
   barContainer: {
     flexDirection: 'row',
@@ -164,12 +173,14 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   legendLabel: {
-    fontSize: 13,
+    fontSize: FONT_SIZES.caption,
     fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     flex: 1,
   },
   legendPct: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
   },
 });

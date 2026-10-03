@@ -16,6 +16,7 @@ import { GlassCard } from '../../components/common/GlassCard';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { FloatingAISABrain } from '../../components/common/FloatingAISABrain';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 export const CampaignsScreen: React.FC = () => {
   const { colors, isDark } = useTheme();
@@ -147,8 +148,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   heading: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.heading,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.heading,
   },
   list: {
     gap: 12,
@@ -156,6 +158,8 @@ const styles = StyleSheet.create({
   card: {
     padding: 16,
     gap: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3B82F6',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -163,12 +167,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   datesText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '500',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   campaignTitle: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.heading,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.heading,
     letterSpacing: -0.2,
   },
   metaRow: {
@@ -183,12 +189,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   metaLabel: {
-    fontSize: 9.5,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     letterSpacing: 0.4,
   },
   metaVal: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
   },
 });

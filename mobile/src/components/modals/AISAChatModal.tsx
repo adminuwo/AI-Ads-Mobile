@@ -11,7 +11,9 @@ import {
   Platform,
   ActivityIndicator,
   Image,
+  StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Send, RotateCcw, Dna, PenTool, CheckCircle2, Sparkles } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../context/ThemeContext';
@@ -20,6 +22,7 @@ import { useAuth } from '../../context/AuthContext';
 import { chatApi } from '../../api/chatApi';
 import { ChatMessage } from '../../types';
 import { cleanText } from '../../utils/formatters';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 const QUICK_CHIPS = [
   { id: '1', label: 'Brand DNA Summary', prompt: 'Summarize Brand DNA and voice guidelines', icon: Dna },
@@ -29,9 +32,14 @@ const QUICK_CHIPS = [
 ];
 
 export const AISAChatModal: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const { isAISAChatOpen, setIsAISAChatOpen, activeWorkspace } = useWorkspace();
   const { user } = useAuth();
+
+  const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : insets.top;
+  const topPadding = Math.max(insets.top, statusBarHeight);
+  const bottomPadding = Math.max(insets.bottom, 12);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -204,7 +212,11 @@ export const AISAChatModal: React.FC = () => {
         <View
           style={[
             styles.header,
-            { backgroundColor: colors.headerBackground, borderBottomColor: colors.border },
+            {
+              backgroundColor: colors.headerBackground,
+              borderBottomColor: colors.border,
+              paddingTop: topPadding,
+            },
           ]}
         >
           <View style={styles.headerLeft}>
@@ -291,7 +303,11 @@ export const AISAChatModal: React.FC = () => {
         <View
           style={[
             styles.inputContainer,
-            { backgroundColor: colors.headerBackground, borderTopColor: colors.border },
+            {
+              backgroundColor: colors.headerBackground,
+              borderTopColor: colors.border,
+              paddingBottom: bottomPadding,
+            },
           ]}
         >
           <TextInput
@@ -331,13 +347,15 @@ export const AISAChatModal: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    maxWidth: 800,
+    width: '100%',
+    alignSelf: 'center',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 45,
     paddingBottom: 14,
     borderBottomWidth: 1,
   },
@@ -351,12 +369,14 @@ const styles = StyleSheet.create({
     height: 32,
   },
   headerTitle: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.heading,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.heading,
   },
   headerSubtitle: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     marginTop: 1,
   },
   headerActions: {
@@ -384,8 +404,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   chipText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   messagesList: {
     paddingHorizontal: 16,
@@ -428,13 +449,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   messageText: {
-    fontSize: 13.5,
-    fontWeight: '500',
-    lineHeight: 20,
+    fontSize: FONT_SIZES.body,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.body,
   },
   timeText: {
-    fontSize: 9.5,
-    fontWeight: '600',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '500',
+    lineHeight: LINE_HEIGHTS.caption,
     marginTop: 4,
     alignSelf: 'flex-end',
   },
@@ -446,8 +468,9 @@ const styles = StyleSheet.create({
     marginLeft: 36,
   },
   typingText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.caption,
     fontWeight: '500',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -455,7 +478,6 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
     borderTopWidth: 1,
   },
   textInput: {
@@ -464,7 +486,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    fontSize: 13.5,
+    fontSize: FONT_SIZES.body,
+    lineHeight: LINE_HEIGHTS.body,
     maxHeight: 90,
   },
   sendButton: {

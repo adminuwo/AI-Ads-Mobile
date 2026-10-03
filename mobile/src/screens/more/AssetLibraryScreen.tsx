@@ -13,6 +13,7 @@ import { FolderKanban, Share2, Sparkles } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { BrandHeader } from '../../components/common/BrandHeader';
 import { GlassCard } from '../../components/common/GlassCard';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 44) / 2;
@@ -143,13 +144,15 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   assetTag: {
-    fontSize: 9.5,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     textTransform: 'uppercase',
   },
   assetTitle: {
-    fontSize: 12.5,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   shareBtn: {
     flexDirection: 'row',
@@ -163,7 +166,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   shareText: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.caption,
     fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
   },
 });

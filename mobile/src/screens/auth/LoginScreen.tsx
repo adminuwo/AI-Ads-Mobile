@@ -17,6 +17,8 @@ import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { GlassCard } from '../../components/common/GlassCard';
 import { PanchTattvaRibbon } from '../../components/common/PanchTattvaRibbon';
+import { DualOrbitLogoAnimation } from '../../components/common/DualOrbitLogoAnimation';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 export const LoginScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -91,11 +93,12 @@ export const LoginScreen: React.FC = () => {
         >
           {/* Logo & Brand Header */}
           <View style={styles.brandHeader}>
-            <Image
-              source={require('../../../assets/logo_icon_only.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
+            <DualOrbitLogoAnimation
+              size={170}
+              logoSize={122}
+              source={require('../../../assets/ai_ads_camera_full_logo.png')}
             />
+
             <View style={styles.brandTitleRow}>
               <Text style={[styles.brandTitle, { color: colors.textPrimary }]}>
                 AI Ads
@@ -117,7 +120,14 @@ export const LoginScreen: React.FC = () => {
             <View
               style={[
                 styles.segmentContainer,
-                { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9' },
+                {
+                  backgroundColor: colors.neu.cardSecondary,
+                  borderTopColor: colors.neu.borderDark,
+                  borderLeftColor: colors.neu.borderDark,
+                  borderBottomColor: colors.neu.borderLight,
+                  borderRightColor: colors.neu.borderLight,
+                  borderWidth: 1.5,
+                },
               ]}
             >
               <TouchableOpacity
@@ -129,7 +139,19 @@ export const LoginScreen: React.FC = () => {
                   styles.segmentBtn,
                   mode === 'login' && [
                     styles.segmentBtnActive,
-                    { backgroundColor: isDark ? colors.cardBackground : '#FFFFFF' },
+                    {
+                      backgroundColor: colors.neu.card,
+                      borderTopColor: colors.neu.borderLight,
+                      borderLeftColor: colors.neu.borderLight,
+                      borderBottomColor: colors.neu.borderDark,
+                      borderRightColor: colors.neu.borderDark,
+                      borderWidth: 1.5,
+                      shadowColor: isDark ? '#000000' : '#A3B1C6',
+                      shadowOffset: { width: 3, height: 3 },
+                      shadowOpacity: isDark ? 0.6 : 0.5,
+                      shadowRadius: 5,
+                      elevation: 3,
+                    },
                   ],
                 ]}
               >
@@ -156,7 +178,19 @@ export const LoginScreen: React.FC = () => {
                   styles.segmentBtn,
                   mode === 'register' && [
                     styles.segmentBtnActive,
-                    { backgroundColor: isDark ? colors.cardBackground : '#FFFFFF' },
+                    {
+                      backgroundColor: colors.neu.card,
+                      borderTopColor: colors.neu.borderLight,
+                      borderLeftColor: colors.neu.borderLight,
+                      borderBottomColor: colors.neu.borderDark,
+                      borderRightColor: colors.neu.borderDark,
+                      borderWidth: 1.5,
+                      shadowColor: isDark ? '#000000' : '#A3B1C6',
+                      shadowOffset: { width: 3, height: 3 },
+                      shadowOpacity: isDark ? 0.6 : 0.5,
+                      shadowRadius: 5,
+                      elevation: 3,
+                    },
                   ],
                 ]}
               >
@@ -174,6 +208,7 @@ export const LoginScreen: React.FC = () => {
                 </Text>
               </TouchableOpacity>
             </View>
+
 
             {/* Error Message */}
             {error && (
@@ -249,8 +284,17 @@ export const LoginScreen: React.FC = () => {
               style={[
                 styles.ssoButton,
                 {
-                  backgroundColor: isDark ? 'rgba(245, 158, 11, 0.12)' : '#FEF3C7',
-                  borderColor: 'rgba(245, 158, 11, 0.35)',
+                  backgroundColor: colors.neu.card,
+                  borderTopColor: colors.neu.borderLight,
+                  borderLeftColor: colors.neu.borderLight,
+                  borderBottomColor: colors.neu.borderDark,
+                  borderRightColor: colors.neu.borderDark,
+                  borderWidth: 1.5,
+                  shadowColor: isDark ? '#000000' : '#A3B1C6',
+                  shadowOffset: { width: 3, height: 3 },
+                  shadowOpacity: isDark ? 0.6 : 0.45,
+                  shadowRadius: 5,
+                  elevation: 3,
                 },
               ]}
             >
@@ -260,6 +304,7 @@ export const LoginScreen: React.FC = () => {
               <Text style={styles.ssoText}>Sign In with UWO Platform (SSO)</Text>
             </TouchableOpacity>
           </GlassCard>
+
 
           {/* Footer note */}
           <Text style={[styles.footerText, { color: colors.textMuted }]}>
@@ -296,25 +341,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   brandTitle: {
-    fontSize: 32,
-    fontWeight: '900',
-    letterSpacing: -0.5,
+    fontSize: FONT_SIZES.hero,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.hero,
+    letterSpacing: -0.3,
   },
   brandTM: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     marginLeft: 4,
     marginTop: -8,
   },
   brandSubtitle: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.body,
     textAlign: 'center',
     marginTop: 4,
     maxWidth: 280,
   },
   formCard: {
     width: '100%',
+    maxWidth: 440,
+    alignSelf: 'center',
     padding: 20,
   },
   segmentContainer: {
@@ -340,8 +390,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   segmentText: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.body,
   },
   errorBox: {
     flexDirection: 'row',
@@ -354,8 +405,9 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#EF4444',
-    fontSize: 12,
+    fontSize: FONT_SIZES.caption,
     fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     flex: 1,
   },
   submitBtn: {
@@ -372,8 +424,9 @@ const styles = StyleSheet.create({
     height: 1,
   },
   dividerText: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     letterSpacing: 0.8,
   },
   ssoButton: {
@@ -395,12 +448,14 @@ const styles = StyleSheet.create({
   },
   ssoText: {
     color: '#B45309',
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.body,
   },
   footerText: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.caption,
     fontWeight: '500',
+    lineHeight: LINE_HEIGHTS.caption,
     textAlign: 'center',
     marginTop: 20,
   },

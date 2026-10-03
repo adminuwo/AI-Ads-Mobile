@@ -45,8 +45,9 @@ export const apiRequest = async <T = any>(
   // Retrieve auth token
   const token = await secureStorage.getItem(STORAGE_KEYS.TOKEN);
 
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     Accept: 'application/json',
     ...(options.headers as Record<string, string>),
   };

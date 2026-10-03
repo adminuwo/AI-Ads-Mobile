@@ -30,6 +30,7 @@ import {
   AccentColorKey,
   ACCENT_PALETTES,
 } from '../../config/theme';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 import {
   getApiBaseUrl,
   setCustomApiUrl,
@@ -262,13 +263,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.heading,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.heading,
     letterSpacing: -0.2,
   },
   sectionSubtitle: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     letterSpacing: 0.5,
     marginTop: 4,
   },
@@ -283,12 +286,14 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   settingLabel: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.body,
     fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.body,
   },
   settingSub: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   accentsGrid: {
     gap: 8,
@@ -307,8 +312,9 @@ const styles = StyleSheet.create({
     borderRadius: 7,
   },
   accentChipText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     flex: 1,
   },
   planHeader: {
@@ -337,18 +343,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   tierName: {
-    fontSize: 15,
-    fontWeight: '900',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.body,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   tierPrice: {
-    fontSize: 22,
-    fontWeight: '900',
+    fontSize: FONT_SIZES.hero,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.hero,
   },
   tierPriceSub: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '500',
+    lineHeight: LINE_HEIGHTS.caption,
     color: '#94A3B8',
   },
   tierFeatureList: {
@@ -356,8 +365,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tierFeature: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   apiPresetsRow: {
     gap: 6,
@@ -370,8 +380,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   presetText: {
-    fontSize: 11,
+    fontSize: FONT_SIZES.caption,
     fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
   },
   apiActions: {
     flexDirection: 'row',

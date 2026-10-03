@@ -10,9 +10,10 @@ export const contentApi = {
     industry?: string;
     tone?: string;
     brandVoiceTone?: any;
+    workspaceId?: string;
     approvedClaims?: string[];
     restrictedClaims?: string[];
-  }): Promise<{ success: boolean; result?: SocialPostDraft; post?: any; error?: string }> =>
+  }): Promise<{ success: boolean; data?: any; result?: SocialPostDraft; post?: any; platform?: string; topic?: string; error?: string }> =>
     apiRequest('/content/social/generate', {
       method: 'POST',
       body: JSON.stringify(payload),

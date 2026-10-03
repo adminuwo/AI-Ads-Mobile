@@ -34,20 +34,45 @@ export const VISUAL_STYLES = [
 ] as const;
 
 export const DEFAULT_WORKSPACE = {
-  id: 'ws_default',
-  _id: 'ws_default',
-  brandName: 'AI Ads™ Official',
-  domainUrl: 'https://aiads.com',
+  id: 'ws_ziva',
+  _id: 'ws_ziva',
+  brandName: 'ZIVA',
+  domainUrl: 'https://ziva.ai',
   logoUrl: '',
-  brandColors: ['#7B61FF', '#6366F1'],
-  industryCategory: 'AI Marketing',
-  missionStatement: 'Turn ideas into impactful brands with AI.',
-  tagline: 'Supercharge Your Advertising',
+  brandColors: ['#7C3AED', '#3B82F6'],
+  industryCategory: 'Fashion, Lifestyle & Creative Retail',
+  missionStatement: 'Turn ideas into impactful brands with AI-driven visual storytelling.',
+  tagline: 'Intelligent Style & Creative Velocity',
   brandVoiceTone: {
     formalityScore: 4,
-    toneKeywords: ['Innovative', 'Authoritative', 'High-Converting', 'Visionary'],
+    toneKeywords: ['Chic', 'Innovative', 'High-Converting', 'Visionary'],
   },
-  contentPillars: ['AI Innovations', 'Marketing Growth', 'Creative Velocity', 'Data Governance'],
-  approvedClaims: ['10x Content Velocity', 'Multi-Model AI Orchestration', 'Immutable Brand DNA'],
-  restrictedClaims: ['100% Guaranteed Sales', 'Zero Human Oversight'],
+  contentPillars: ['Style Trends', 'Creative Campaigns', 'Product Drops', 'Audience Growth'],
+  approvedClaims: ['AI-Powered Creative Strategy', 'Omnichannel Content Velocity'],
+  restrictedClaims: ['100% Guaranteed Sales'],
+  subscriptionTier: 'Agency Pro',
 };
+
+export const INITIAL_WORKSPACES = [
+  DEFAULT_WORKSPACE,
+  {
+    id: 'ws_aiads',
+    _id: 'ws_aiads',
+    brandName: 'AI Ads™ Official',
+    domainUrl: 'https://aiads.com',
+    logoUrl: '',
+    brandColors: ['#7B61FF', '#6366F1'],
+    industryCategory: 'AI Marketing',
+    missionStatement: 'Turn ideas into impactful brands with AI.',
+    tagline: 'Supercharge Your Advertising',
+    brandVoiceTone: {
+      formalityScore: 4,
+      toneKeywords: ['Innovative', 'Authoritative', 'High-Converting', 'Visionary'],
+    },
+    contentPillars: ['AI Innovations', 'Marketing Growth', 'Creative Velocity', 'Data Governance'],
+    approvedClaims: ['10x Content Velocity', 'Multi-Model AI Orchestration', 'Immutable Brand DNA'],
+    restrictedClaims: ['100% Guaranteed Sales', 'Zero Human Oversight'],
+    subscriptionTier: 'Agency Pro',
+  },
+];
+

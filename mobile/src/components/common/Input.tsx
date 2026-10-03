@@ -8,8 +8,10 @@ import {
   TextInputProps,
   ViewStyle,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -42,51 +44,80 @@ export const Input: React.FC<InputProps> = ({
         </Text>
       )}
 
+      {/* Neumorphic Inset Carved Well */}
       <View
         style={[
           styles.inputWrapper,
           {
-            backgroundColor: isDark ? colors.inputBackground : '#FFFFFF',
-            borderColor: error
+            backgroundColor: colors.inputBackground,
+            borderTopColor: error
               ? colors.danger
               : isFocused
               ? colors.accent.primary
-              : colors.border,
-            borderWidth: isFocused ? 1.5 : 1,
+              : colors.neu.borderDark,
+            borderLeftColor: error
+              ? colors.danger
+              : isFocused
+              ? colors.accent.primary
+              : colors.neu.borderDark,
+            borderBottomColor: error
+              ? colors.danger
+              : isFocused
+              ? colors.accent.primary
+              : colors.neu.borderLight,
+            borderRightColor: error
+              ? colors.danger
+              : isFocused
+              ? colors.accent.primary
+              : colors.neu.borderLight,
+            borderWidth: isFocused ? 2 : 1.5,
           },
         ]}
       >
-        {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
+        <LinearGradient
+          colors={colors.neu.insetGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.innerGradientWrapper}
+        >
+          {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
 
-        <TextInput
-          placeholderTextColor={colors.textMuted}
-          secureTextEntry={isPassword && !showPassword}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          style={[
-            styles.input,
-            { color: colors.textPrimary },
-            props.multiline && styles.multilineInput,
-            style,
-          ]}
-          {...props}
-        />
+          <TextInput
+            placeholderTextColor={colors.textMuted}
+            secureTextEntry={isPassword && !showPassword}
+            style={[
+              styles.input,
+              { color: colors.textPrimary },
+              props.multiline && styles.multilineInput,
+              style,
+            ]}
+            {...props}
+            onFocus={(e) => {
+              setIsFocused(true);
+              props.onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              setIsFocused(false);
+              props.onBlur?.(e);
+            }}
+          />
 
-        {isPassword ? (
-          <TouchableOpacity
-            style={styles.iconContainer}
-            onPress={() => setShowPassword(!showPassword)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            {showPassword ? (
-              <EyeOff size={18} color={colors.textMuted} />
-            ) : (
-              <Eye size={18} color={colors.textMuted} />
-            )}
-          </TouchableOpacity>
-        ) : (
-          rightIcon && <View style={styles.iconContainer}>{rightIcon}</View>
-        )}
+          {isPassword ? (
+            <TouchableOpacity
+              style={styles.iconContainer}
+              onPress={() => setShowPassword(!showPassword)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              {showPassword ? (
+                <EyeOff size={18} color={colors.textMuted} />
+              ) : (
+                <Eye size={18} color={colors.textMuted} />
+              )}
+            </TouchableOpacity>
+          ) : (
+            rightIcon && <View style={styles.iconContainer}>{rightIcon}</View>
+          )}
+        </LinearGradient>
       </View>
 
       {error ? (
@@ -102,17 +133,22 @@ const styles = StyleSheet.create({
     marginVertical: 6,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.caption,
     marginBottom: 6,
     letterSpacing: 0.2,
   },
   inputWrapper: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  innerGradientWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 14,
     paddingHorizontal: 12,
     minHeight: 48,
+    borderRadius: 14.5,
   },
   iconContainer: {
     paddingHorizontal: 4,
@@ -121,8 +157,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.body,
     paddingVertical: 10,
     paddingHorizontal: 8,
   },
@@ -131,8 +168,9 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   errorText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '500',
+    lineHeight: LINE_HEIGHTS.caption,
     marginTop: 4,
     marginLeft: 2,
   },

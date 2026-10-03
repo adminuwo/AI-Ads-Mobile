@@ -7,7 +7,7 @@ export type RootStackParamList = {
 
 export type AppTabsParamList = {
   Home: undefined;
-  Studio: { tab?: 'SOCIAL' | 'CREATIVE' | 'BLOG' | 'EMAIL' } | undefined;
+  Studio: { tab?: 'SOCIAL' | 'CREATIVE' | 'CAROUSEL' | 'REEL' | 'STORYBOARD' | 'BRANDKIT' | 'BLOG' | 'EMAIL' } | undefined;
   Strategy: NavigatorScreenParams<StrategyStackParamList> | undefined;
   CalendarTab: NavigatorScreenParams<CalendarStackParamList> | undefined;
   More: NavigatorScreenParams<MoreStackParamList> | undefined;
@@ -30,4 +30,9 @@ export type MoreStackParamList = {
   AssetLibrary: undefined;
   Analytics: undefined;
   SettingsBilling: undefined;
+  WebsiteBuilder: undefined;
+  TeamRbac: undefined;
+  AdminDashboard: undefined;
+  ProductShowcase: undefined;
 };
+

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../context/ThemeContext';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 interface ButtonProps {
   title: string;
@@ -38,6 +39,7 @@ export const Button: React.FC<ButtonProps> = ({
   size = 'md',
 }) => {
   const { colors, isDark } = useTheme();
+  const [isPressed, setIsPressed] = useState(false);
 
   const handlePress = () => {
     if (disabled || loading) return;
@@ -61,31 +63,47 @@ export const Button: React.FC<ButtonProps> = ({
   const getFontSize = () => {
     switch (size) {
       case 'sm':
-        return 12;
+        return FONT_SIZES.caption;
       case 'lg':
-        return 15;
+        return FONT_SIZES.body;
       default:
-        return 14;
+        return FONT_SIZES.body;
     }
   };
 
   if (variant === 'primary') {
     return (
       <TouchableOpacity
-        activeOpacity={0.88}
+        activeOpacity={0.9}
         onPress={handlePress}
+        onPressIn={() => setIsPressed(true)}
+        onPressOut={() => setIsPressed(false)}
         disabled={disabled || loading}
         style={[
           styles.touchable,
-          { opacity: disabled ? 0.6 : 1 },
+          {
+            borderRadius: 16,
+            borderTopColor: colors.neu.borderLight,
+            borderLeftColor: colors.neu.borderLight,
+            borderBottomColor: colors.neu.borderDark,
+            borderRightColor: colors.neu.borderDark,
+            borderWidth: 1.5,
+            shadowColor: colors.accent.primary,
+            shadowOffset: isPressed ? { width: 1, height: 1 } : { width: 4, height: 4 },
+            shadowOpacity: isDark ? 0.6 : 0.45,
+            shadowRadius: isPressed ? 4 : 8,
+            elevation: isPressed ? 2 : 5,
+            opacity: disabled ? 0.6 : 1,
+            transform: [{ scale: isPressed ? 0.98 : 1 }],
+          },
           style,
         ]}
       >
         <LinearGradient
           colors={colors.accent.gradient}
           start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[styles.gradient, getPadding()]}
+          end={{ x: 1, y: 1 }}
+          style={[styles.gradient, getPadding(), { borderRadius: 14.5 }]}
         >
           {loading ? (
             <ActivityIndicator color="#FFFFFF" size="small" />
@@ -113,74 +131,79 @@ export const Button: React.FC<ButtonProps> = ({
   const isDanger = variant === 'danger';
   const isAmber = variant === 'amber';
 
-  let bgColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
-  let borderColor = colors.border;
   let textColor = colors.textPrimary;
+  let gradientColors = isPressed ? colors.neu.insetGradient : colors.neu.surfaceGradient;
 
   if (isOutline) {
-    bgColor = 'transparent';
-    borderColor = colors.accent.primary;
     textColor = colors.accent.primary;
   } else if (isDanger) {
-    bgColor = isDark ? 'rgba(239, 68, 68, 0.15)' : '#FEE2E2';
-    borderColor = 'rgba(239, 68, 68, 0.3)';
     textColor = '#EF4444';
   } else if (isAmber) {
-    bgColor = isDark ? 'rgba(245, 158, 11, 0.15)' : '#FEF3C7';
-    borderColor = 'rgba(245, 158, 11, 0.3)';
     textColor = '#F59E0B';
   }
 
   return (
     <TouchableOpacity
-      activeOpacity={0.8}
+      activeOpacity={0.9}
       onPress={handlePress}
+      onPressIn={() => setIsPressed(true)}
+      onPressOut={() => setIsPressed(false)}
       disabled={disabled || loading}
       style={[
-        styles.secondaryButton,
-        getPadding(),
+        styles.touchable,
         {
-          backgroundColor: bgColor,
-          borderColor,
+          borderRadius: 16,
+          backgroundColor: isPressed ? colors.neu.cardSecondary : colors.neu.card,
+          borderTopColor: isPressed ? colors.neu.borderDark : colors.neu.borderLight,
+          borderLeftColor: isPressed ? colors.neu.borderDark : colors.neu.borderLight,
+          borderBottomColor: isPressed ? colors.neu.borderLight : colors.neu.borderDark,
+          borderRightColor: isPressed ? colors.neu.borderLight : colors.neu.borderDark,
+          borderWidth: 1.5,
+          shadowColor: isDark ? '#000000' : '#A3B1C6',
+          shadowOffset: isPressed ? { width: 1, height: 1 } : { width: 4, height: 4 },
+          shadowOpacity: isDark ? 0.65 : 0.55,
+          shadowRadius: isPressed ? 3 : 6,
+          elevation: isPressed ? 1 : 4,
           opacity: disabled ? 0.6 : 1,
+          transform: [{ scale: isPressed ? 0.98 : 1 }],
         },
         style,
       ]}
     >
-      {loading ? (
-        <ActivityIndicator color={textColor} size="small" />
-      ) : (
-        <View style={styles.contentRow}>
-          {icon && <View style={styles.iconLeft}>{icon}</View>}
-          <Text
-            style={[
-              styles.secondaryText,
-              { fontSize: getFontSize(), color: textColor },
-              textStyle,
-            ]}
-          >
-            {title}
-          </Text>
-          {iconRight && <View style={styles.iconRight}>{iconRight}</View>}
-        </View>
-      )}
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.gradient, getPadding(), { borderRadius: 14.5 }]}
+      >
+        {loading ? (
+          <ActivityIndicator color={textColor} size="small" />
+        ) : (
+          <View style={styles.contentRow}>
+            {icon && <View style={styles.iconLeft}>{icon}</View>}
+            <Text
+              style={[
+                styles.secondaryText,
+                { fontSize: getFontSize(), color: textColor },
+                textStyle,
+              ]}
+            >
+              {title}
+            </Text>
+            {iconRight && <View style={styles.iconRight}>{iconRight}</View>}
+          </View>
+        )}
+      </LinearGradient>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   touchable: {
-    borderRadius: 14,
-    overflow: 'hidden',
+    borderRadius: 16,
+    marginVertical: 4,
   },
   gradient: {
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  secondaryButton: {
-    borderRadius: 14,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -197,11 +220,13 @@ const styles = StyleSheet.create({
   },
   primaryText: {
     color: '#FFFFFF',
-    fontWeight: '800',
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.body,
     letterSpacing: -0.2,
   },
   secondaryText: {
-    fontWeight: '700',
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.body,
     letterSpacing: -0.2,
   },
 });

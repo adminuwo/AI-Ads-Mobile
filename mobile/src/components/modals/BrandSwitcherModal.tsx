@@ -10,12 +10,16 @@ import {
   Pressable,
 } from 'react-native';
 import { X, Plus, Check, Trash2, Globe } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { getBrandLogoUrl } from '../../utils/brandLogoHelper';
+import { ZivaBrandIcon } from '../common/ZivaBrandIcon';
 import { Workspace } from '../../types';
+import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
 export const BrandSwitcherModal: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const {
     workspaces,
@@ -41,6 +45,7 @@ export const BrandSwitcherModal: React.FC = () => {
 
   const renderItem = ({ item }: { item: Workspace }) => {
     const isSelected = item.id === activeWorkspaceId || item._id === activeWorkspaceId;
+    const isZiva = (item.brandName || '').trim().toUpperCase() === 'ZIVA';
     const logoUrl = getBrandLogoUrl({
       brandName: item.brandName,
       domainUrl: item.domainUrl,
@@ -65,14 +70,19 @@ export const BrandSwitcherModal: React.FC = () => {
         ]}
       >
         <View style={styles.rowLeft}>
-          <View style={[styles.logoWrapper, { backgroundColor: '#FFFFFF' }]}>
-            <Image
-              source={{ uri: logoUrl }}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
+          <View style={[styles.logoWrapper, { backgroundColor: isZiva ? '#FAF5FF' : '#FFFFFF' }]}>
+            {isZiva ? (
+              <ZivaBrandIcon size={20} />
+            ) : (
+              <Image
+                source={{ uri: logoUrl }}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            )}
           </View>
           <View style={styles.textColumn}>
+
             <Text
               style={[
                 styles.brandName,
@@ -128,7 +138,11 @@ export const BrandSwitcherModal: React.FC = () => {
         <Pressable
           style={[
             styles.modalContent,
-            { backgroundColor: isDark ? colors.cardBackground : '#FFFFFF', borderColor: colors.border },
+            {
+              backgroundColor: isDark ? colors.cardBackground : '#FFFFFF',
+              borderColor: colors.border,
+              paddingBottom: Math.max(insets.bottom, 20),
+            },
           ]}
           onPress={(e) => e.stopPropagation()}
         >
@@ -168,7 +182,7 @@ export const BrandSwitcherModal: React.FC = () => {
             >
               <Plus size={16} color={colors.accent.primary} />
               <Text style={[styles.addBrandText, { color: colors.accent.primary }]}>
-                Auto Scrape New Brand DNA
+                + Add New Brand
               </Text>
             </TouchableOpacity>
           </View>
@@ -189,7 +203,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     borderTopWidth: 1,
     maxHeight: '75%',
-    paddingBottom: 20,
+    maxWidth: 580,
+    width: '100%',
+    alignSelf: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -201,13 +217,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   title: {
-    fontSize: 17,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.heading,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.heading,
     letterSpacing: -0.2,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.caption,
     fontWeight: '500',
+    lineHeight: LINE_HEIGHTS.caption,
     marginTop: 2,
   },
   closeBtn: {
@@ -250,12 +268,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   brandName: {
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.body,
   },
   domainText: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.caption,
     marginTop: 2,
   },
   rowRight: {
@@ -289,7 +309,8 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   addBrandText: {
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.body,
+    fontWeight: '600',
+    lineHeight: LINE_HEIGHTS.body,
   },
 });
