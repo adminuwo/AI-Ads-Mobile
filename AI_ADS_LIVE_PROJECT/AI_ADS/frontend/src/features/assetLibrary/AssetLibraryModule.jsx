@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { downloadImageToDevice } from '../../utils/downloadHelper';
 import {
@@ -493,10 +493,10 @@ export const AssetLibraryModule = () => {
         </div>
       )}
 
-      <div className="p-6 accent-card rounded-3xl bg-white dark:bg-slate-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
+      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-cyan-500 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-2xl bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-bold">
               <FolderKanban className="w-5 h-5" />
             </div>
             <div>
@@ -531,7 +531,7 @@ export const AssetLibraryModule = () => {
               onClick={() => setActiveSection(sec.id)}
               className={`p-5 rounded-3xl text-left transition-all duration-300 border flex flex-col justify-between group relative overflow-hidden bg-white dark:bg-slate-900/60 shadow-sm ${
                 isSelected
-                  ? 'border-brand-500 dark:border-brand-500 ring-2 ring-brand-500/20 bg-brand-500/5 dark:bg-brand-500/10 shadow-md'
+                  ? 'border-cyan-500 dark:border-cyan-500 ring-2 ring-cyan-500/20 bg-cyan-500/5 dark:bg-cyan-500/10 shadow-md'
                   : `border-slate-200 dark:border-slate-800 ${sec.hoverBorder}`
               }`}
             >
@@ -542,7 +542,7 @@ export const AssetLibraryModule = () => {
                   <div className={`p-3 rounded-2xl ${sec.badgeBg} transition-transform group-hover:scale-110 duration-300`}>
                     <Icon className={`w-5 h-5 ${sec.iconColor}`} />
                   </div>
-                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${isSelected ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${isSelected ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
                     {count}
                   </span>
                 </div>
@@ -553,10 +553,10 @@ export const AssetLibraryModule = () => {
               </div>
 
               <div className="relative z-10 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                <span className={isSelected ? 'text-brand-600 dark:text-brand-400 font-extrabold' : ''}>
+                <span className={isSelected ? 'text-cyan-600 dark:text-cyan-400 font-extrabold' : ''}>
                   {isSelected ? 'Active Vault' : 'Filter Section'}
                 </span>
-                <span className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform text-brand-600 dark:text-brand-400 font-bold">
+                <span className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform text-cyan-600 dark:text-cyan-400 font-bold">
                   View Assets <ArrowRight className="w-3 h-3" />
                 </span>
               </div>
@@ -703,7 +703,7 @@ export const AssetLibraryModule = () => {
           })}
         </div>
       ) : (
-        <div className="p-16 text-center accent-card rounded-3xl bg-white dark:bg-slate-900 space-y-4 flex flex-col items-center justify-center">
+        <div className="p-16 text-center rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-cyan-500 space-y-4 flex flex-col items-center justify-center shadow-sm">
           <div className="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-500">
             <FolderOpen className="w-8 h-8" />
           </div>

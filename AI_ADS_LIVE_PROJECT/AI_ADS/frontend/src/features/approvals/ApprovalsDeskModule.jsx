@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { approvalsAPI } from '../../services/api';
 import { CheckCircle2, ShieldCheck, ShieldAlert, XCircle, UserCheck, Loader2, Lock } from 'lucide-react';
@@ -248,14 +248,16 @@ export const ApprovalsDeskModule = () => {
   return (
     <div className="space-y-6 animate-in fade-in w-full max-w-[1600px] mx-auto p-6">
       {/* Header Bar */}
-      <div className="p-6 rounded-3xl accent-card glass-card border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-amber-500 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
             <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">{t('approvalsTitle', 'Approvals Desk')} & Governance Review Queue</h1>
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-            Role-gated multi-tier approval workflow for <strong className="text-slate-900 dark:text-white">{activeWorkspace?.brandName || 'your brand'}</strong>. Current Role: <span className="text-emerald-600 dark:text-emerald-400 font-bold">{activeRole || 'Admin'}</span>
+            Role-gated multi-tier approval workflow for <strong className="text-slate-900 dark:text-white">{activeWorkspace?.brandName || 'your brand'}</strong>. Current Role: <span className="text-amber-600 dark:text-amber-400 font-bold">{activeRole || 'Admin'}</span>
           </p>
         </div>
 
@@ -269,11 +271,11 @@ export const ApprovalsDeskModule = () => {
       {/* Review Queue & Detail View Stack (Vertical Top & Bottom) */}
       <div className="space-y-6">
         {/* Top: Pending Review Queue Cards Grid */}
-        <div className="p-6 rounded-3xl accent-card glass-card border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-amber-500 space-y-4 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Pending Review Queue</h2>
-              <span className="px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 font-extrabold text-[10px]">
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 font-extrabold text-[10px]">
                 {approvalsQueue.length} Items
               </span>
             </div>
@@ -289,12 +291,12 @@ export const ApprovalsDeskModule = () => {
                   onClick={() => setSelectedItem(item)}
                   className={`p-4 rounded-2xl border cursor-pointer transition-all space-y-2.5 flex flex-col justify-between ${
                     isSelected
-                      ? 'bg-brand-500/10 dark:bg-brand-500/20 border-brand-500 shadow-md ring-2 ring-brand-500/40'
-                      : 'bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-brand-500/40 hover:bg-slate-100 dark:hover:bg-slate-800/80'
+                      ? 'bg-amber-500/10 dark:bg-amber-500/20 border-amber-500 shadow-md ring-2 ring-amber-500/40'
+                      : 'bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-amber-500/40 hover:bg-slate-100 dark:hover:bg-slate-800/80'
                   }`}
                 >
                   <div className="flex items-center justify-between text-[10px]">
-                    <span className="font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-500/10">
+                    <span className="font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/10">
                       {item.type || 'CONTENT'}
                     </span>
                     <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider ${
@@ -323,7 +325,7 @@ export const ApprovalsDeskModule = () => {
         </div>
 
         {/* Bottom: Selected Item Detail View & Approval Actions */}
-        <div className="p-6 rounded-3xl accent-card glass-card border border-slate-200 dark:border-slate-800 space-y-6 shadow-sm">
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-amber-500 space-y-6 shadow-sm">
           {selectedItem ? (
             <div className="space-y-6 text-xs animate-in fade-in">
               {/* 1. Content Details Header */}

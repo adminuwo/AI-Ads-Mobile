@@ -8,8 +8,9 @@ import {
   FlatList,
   Image,
   Pressable,
+  Alert,
 } from 'react-native';
-import { X, Plus, Check, Trash2, Globe } from 'lucide-react-native';
+import { X, Plus, Trash2, Globe } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -41,6 +42,24 @@ export const BrandSwitcherModal: React.FC = () => {
   const handleOpenScraper = () => {
     setIsBrandSwitcherOpen(false);
     setIsScraperOpen(true);
+  };
+
+  const handleDeleteBrand = (item: Workspace) => {
+    Alert.alert(
+      'Delete Brand',
+      `Are you sure you want to delete "${item.brandName || 'this brand'}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const targetId = item.id || item._id || '';
+            await deleteWorkspace(targetId);
+          },
+        },
+      ]
+    );
   };
 
   const renderItem = ({ item }: { item: Workspace }) => {
@@ -104,21 +123,24 @@ export const BrandSwitcherModal: React.FC = () => {
         </View>
 
         <View style={styles.rowRight}>
-          {isSelected && (
-            <View style={[styles.checkCircle, { backgroundColor: colors.accent.primary }]}>
-              <Check size={12} color="#FFFFFF" strokeWidth={3} />
-            </View>
-          )}
-
-          {workspaces.length > 1 && (
-            <TouchableOpacity
-              onPress={() => deleteWorkspace(item.id || item._id || '')}
-              style={styles.deleteButton}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Trash2 size={15} color={colors.textMuted} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            onPress={(e) => {
+              e.stopPropagation();
+              handleDeleteBrand(item);
+            }}
+            style={[
+              styles.deleteButton,
+              {
+                backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.1)',
+                borderColor: isDark ? 'rgba(239, 68, 68, 0.35)' : 'rgba(239, 68, 68, 0.25)',
+              },
+            ]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            activeOpacity={0.7}
+            accessibilityLabel={`Delete ${item.brandName}`}
+          >
+            <Trash2 size={15} color="#EF4444" strokeWidth={2.2} />
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
@@ -171,6 +193,16 @@ export const BrandSwitcherModal: React.FC = () => {
             renderItem={renderItem}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                  No Brand Workspaces Found
+                </Text>
+                <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                  You have not set up any brand workspaces yet. Tap below to create or scrape a new brand profile.
+                </Text>
+              </View>
+            }
           />
 
           {/* Bottom Action: Auto Scrape */}
@@ -182,7 +214,7 @@ export const BrandSwitcherModal: React.FC = () => {
             >
               <Plus size={16} color={colors.accent.primary} />
               <Text style={[styles.addBrandText, { color: colors.accent.primary }]}>
-                + Add New Brand
+                Add New Brand
               </Text>
             </TouchableOpacity>
           </View>
@@ -235,6 +267,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     gap: 10,
+  },
+  emptyContainer: {
+    paddingVertical: 36,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitle: {
+    fontSize: FONT_SIZES.heading,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.heading,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: FONT_SIZES.caption,
+    lineHeight: LINE_HEIGHTS.caption,
+    textAlign: 'center',
+    maxWidth: 290,
   },
   workspaceRow: {
     flexDirection: 'row',
@@ -291,7 +342,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   deleteButton: {
-    padding: 4,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   footer: {
     paddingHorizontal: 20,

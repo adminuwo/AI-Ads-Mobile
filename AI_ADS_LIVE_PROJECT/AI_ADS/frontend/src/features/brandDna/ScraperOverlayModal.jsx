@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { API_BASE } from '../../config/api';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { normalizeBrandDna } from '../../utils/normalizeBrandDna';
-import { X, Dna, Globe, Sparkles, ArrowRight, FileText, Image, Trash2, Building, Upload, CheckCircle2 } from 'lucide-react';
+import { X, Dna, Globe, Sparkles, ArrowRight, FileText, Image, Trash2, Building, Upload, CheckCircle2, Loader2 } from 'lucide-react';
 
 export const ScraperOverlayModal = () => {
-  const { isScraperOpen, setIsScraperOpen, addWorkspace, activeWorkspace, scraperMode, setActiveModule, t } = useWorkspace();
+  const { isScraperOpen, setIsScraperOpen, addWorkspace, updateWorkspace, activeWorkspace, scraperMode, setActiveModule, t } = useWorkspace();
   
   // Single Unified Form State
   const [url, setUrl] = useState('');
@@ -17,6 +17,7 @@ export const ScraperOverlayModal = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [result, setResult] = useState(null);
 
   useEffect(() => {
@@ -168,8 +169,20 @@ export const ScraperOverlayModal = () => {
   };
 
   const confirmSaveWorkspace = async () => {
-    if (result) {
-      await addWorkspace(result);
+    if (!result || isSaving) return;
+    setIsSaving(true);
+    try {
+      if (scraperMode === 'ACTIVE_BRAND' && activeWorkspace && (activeWorkspace.id || activeWorkspace._id)) {
+        const wsId = activeWorkspace.id || activeWorkspace._id;
+        if (updateWorkspace) {
+          await updateWorkspace(wsId, result);
+        } else {
+          await addWorkspace(result);
+        }
+      } else {
+        await addWorkspace(result);
+      }
+
       if (setActiveModule) {
         setActiveModule('brand-dna');
       }
@@ -182,10 +195,11 @@ export const ScraperOverlayModal = () => {
       setDocumentFiles([]);
       setImageFiles([]);
       setImagePreviews([]);
-
-      if (window.location.pathname !== '/brand-dna') {
-        window.location.href = '/brand-dna';
-      }
+    } catch (err) {
+      console.error('Save Brand DNA Error:', err);
+      alert('Failed to save Brand DNA Memory. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -588,10 +602,20 @@ export const ScraperOverlayModal = () => {
 
             <button
               onClick={confirmSaveWorkspace}
-              className="w-full btn-primary py-3.5 rounded-xl font-bold text-xs shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2"
+              disabled={isSaving}
+              className="w-full btn-primary py-3.5 rounded-xl font-bold text-xs shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ArrowRight className="w-4 h-4" />
-              Save & Lock Brand DNA Memory
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving & Locking Brand DNA Memory...
+                </>
+              ) : (
+                <>
+                  <ArrowRight className="w-4 h-4" />
+                  Save & Lock Brand DNA Memory
+                </>
+              )}
             </button>
           </div>
         )}

@@ -3,17 +3,21 @@ import { View, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
-  LayoutGrid,
-  PenTool,
-  Target,
+  House,
   Calendar as CalendarIcon,
-  Menu,
+  Wrench,
+  FolderKanban,
+  User,
+  Target,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useWorkspace } from '../context/WorkspaceContext';
 import { PanchTattvaRibbon } from '../components/common/PanchTattvaRibbon';
 import { FONT_SIZES } from '../config/typography';
 import {
+  CreateStackParamList,
   AppTabsParamList,
   StrategyStackParamList,
   CalendarStackParamList,
@@ -37,18 +41,27 @@ import { AIWebsiteBuilderScreen } from '../screens/websiteBuilder/AIWebsiteBuild
 import { TeamRbacScreen } from '../screens/more/TeamRbacScreen';
 import { AdminDashboardScreen } from '../screens/more/AdminDashboardScreen';
 import { ProductShowcaseScreen } from '../screens/more/ProductShowcaseScreen';
+import { CreativeStudioScreen } from '../screens/studio/CreativeStudioScreen';
 
 const Tab = createBottomTabNavigator<AppTabsParamList>();
+const CreateStack = createNativeStackNavigator<CreateStackParamList>();
 const StrategyStack = createNativeStackNavigator<StrategyStackParamList>();
 const CalendarStack = createNativeStackNavigator<CalendarStackParamList>();
 const MoreStack = createNativeStackNavigator<MoreStackParamList>();
 
-// Nested Strategy Stack
+// Nested Create Stack (Unified Studio, Creative & Web Builder)
+const CreateNavigator = () => (
+  <CreateStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+    <CreateStack.Screen name="CreateHome" component={StudioHomeScreen} />
+    <CreateStack.Screen name="CreativeStudio" component={CreativeStudioScreen} />
+    <CreateStack.Screen name="WebsiteBuilder" component={AIWebsiteBuilderScreen} />
+  </CreateStack.Navigator>
+);
+
+// Strategy Stack: Dedicated Strategy Hub Screen
 const StrategyNavigator = () => (
   <StrategyStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
     <StrategyStack.Screen name="StrategyHome" component={StrategyScreen} />
-    <StrategyStack.Screen name="Seo" component={SeoScreen} />
-    <StrategyStack.Screen name="Campaigns" component={CampaignsScreen} />
   </StrategyStack.Navigator>
 );
 
@@ -57,10 +70,12 @@ const CalendarNavigator = () => (
   <CalendarStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
     <CalendarStack.Screen name="CalendarHome" component={CalendarScreen} />
     <CalendarStack.Screen name="Approvals" component={ApprovalsDeskScreen} />
+    <CalendarStack.Screen name="ApprovalsDesk" component={ApprovalsDeskScreen} />
+    <CalendarStack.Screen name="AssetLibrary" component={AssetLibraryScreen} />
   </CalendarStack.Navigator>
 );
 
-// Nested More Stack
+// Nested More Stack (Dedicated Modules: SEO Intelligence, Ad Campaigns, Brand DNA, Website Builder, etc.)
 const MoreNavigator = () => (
   <MoreStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
     <MoreStack.Screen name="MoreHome" component={MoreMenuScreen} />
@@ -72,114 +87,141 @@ const MoreNavigator = () => (
     <MoreStack.Screen name="TeamRbac" component={TeamRbacScreen} />
     <MoreStack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
     <MoreStack.Screen name="ProductShowcase" component={ProductShowcaseScreen} />
+    <MoreStack.Screen name="CreativeStudio" component={CreativeStudioScreen} />
+    <MoreStack.Screen name="Seo" component={SeoScreen} />
+    <MoreStack.Screen name="SEO" component={SeoScreen} />
+    <MoreStack.Screen name="Campaigns" component={CampaignsScreen} />
   </MoreStack.Navigator>
 );
 
 
 export const AppTabsNavigator: React.FC = () => {
   const { colors, isDark } = useTheme();
+  const { setIsToolkitOpen } = useWorkspace();
   const insets = useSafeAreaInsets();
 
   const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 20 : 8);
-  const tabBarHeight = 56 + bottomInset;
+  const tabBarHeight = 64 + bottomInset;
 
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: colors.accent.primary,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarActiveTintColor: isDark ? colors.accent.primary : '#8B5CF6',
+        tabBarInactiveTintColor: isDark ? colors.textMuted : '#64748B',
         tabBarBackground: () => (
           <View
             style={[
               StyleSheet.absoluteFillObject,
               {
-                backgroundColor: colors.tabBarBackground,
-                borderTopColor: colors.neu.borderLight,
-                borderTopWidth: 1.5,
+                backgroundColor: isDark ? colors.tabBarBackground : '#FFFFFF',
+                borderTopColor: isDark ? colors.neu.borderLight : 'rgba(0,0,0,0.06)',
+                borderTopWidth: 1,
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
               },
             ]}
-          >
-            <PanchTattvaRibbon height={2.5} />
-          </View>
+          />
         ),
         tabBarStyle: {
           backgroundColor: 'transparent',
           borderTopWidth: 0,
           height: tabBarHeight,
-          paddingTop: 8,
-          paddingBottom: bottomInset,
+          paddingTop: 10,
+          paddingBottom: bottomInset + 4,
           position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
-          elevation: 12,
+          elevation: 14,
           shadowColor: isDark ? '#000000' : '#A3B1C6',
           shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: isDark ? 0.6 : 0.35,
+          shadowOpacity: isDark ? 0.6 : 0.2,
           shadowRadius: 10,
         },
         tabBarLabelStyle: {
-          fontSize: FONT_SIZES.caption,
-          fontWeight: '600',
-          marginTop: 2,
+          fontSize: 11.5,
+          fontWeight: '700',
+          marginTop: 3,
         },
       }}
     >
 
+      {/* 1. Home */}
       <Tab.Screen
         name="Home"
         component={DashboardScreen}
         options={{
-          tabBarLabel: 'Dashboard',
+          tabBarLabel: 'Home',
           tabBarIcon: ({ color, focused }) => (
-            <LayoutGrid size={focused ? 22 : 20} color={color} />
+            <House size={focused ? 26 : 24} color={color} strokeWidth={focused ? 2.4 : 2} />
           ),
         }}
       />
 
-      <Tab.Screen
-        name="Studio"
-        component={StudioHomeScreen}
-        options={{
-          tabBarLabel: 'Studio',
-          tabBarIcon: ({ color, focused }) => (
-            <PenTool size={focused ? 22 : 20} color={color} />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Strategy"
-        component={StrategyNavigator}
-        options={{
-          tabBarLabel: 'Strategy',
-          tabBarIcon: ({ color, focused }) => (
-            <Target size={focused ? 22 : 20} color={color} />
-          ),
-        }}
-      />
-
+      {/* 2. Calendar */}
       <Tab.Screen
         name="CalendarTab"
         component={CalendarNavigator}
         options={{
           tabBarLabel: 'Calendar',
           tabBarIcon: ({ color, focused }) => (
-            <CalendarIcon size={focused ? 22 : 20} color={color} />
+            <CalendarIcon size={focused ? 26 : 24} color={color} strokeWidth={focused ? 2.4 : 2} />
           ),
         }}
       />
 
+      {/* 3. ToolKit */}
+      <Tab.Screen
+        name="Studio"
+        component={CreateNavigator}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+            setIsToolkitOpen(true);
+          },
+        }}
+        options={{
+          tabBarLabel: 'ToolKit',
+          tabBarIcon: ({ color, focused }) => (
+            <Wrench size={focused ? 26 : 24} color={color} strokeWidth={focused ? 2.4 : 2} />
+          ),
+        }}
+      />
+
+      {/* 4. Asset Library */}
+      <Tab.Screen
+        name="AssetLibraryTab"
+        component={AssetLibraryScreen}
+        options={{
+          tabBarLabel: 'Asset Library',
+          tabBarIcon: ({ color, focused }) => (
+            <FolderKanban size={focused ? 26 : 24} color={color} strokeWidth={focused ? 2.4 : 2} />
+          ),
+        }}
+      />
+
+      {/* 5. Account */}
       <Tab.Screen
         name="More"
         component={MoreNavigator}
         options={{
-          tabBarLabel: 'More',
+          tabBarLabel: 'Account',
           tabBarIcon: ({ color, focused }) => (
-            <Menu size={focused ? 22 : 20} color={color} />
+            <User size={focused ? 26 : 24} color={color} strokeWidth={focused ? 2.4 : 2} />
           ),
+        }}
+      />
+
+      {/* Hidden Strategy route for backward compatibility with in-app links */}
+      <Tab.Screen
+        name="Strategy"
+        component={StrategyNavigator}
+        options={{
+          tabBarItemStyle: { display: 'none' },
+          tabBarButton: () => null,
         }}
       />
     </Tab.Navigator>

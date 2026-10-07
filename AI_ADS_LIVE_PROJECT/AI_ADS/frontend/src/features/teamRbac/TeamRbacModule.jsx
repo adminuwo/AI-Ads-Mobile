@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Users, UserPlus, ShieldCheck, Check, X, Mail, Plus } from 'lucide-react';
 
@@ -98,7 +98,7 @@ export const TeamRbacModule = () => {
       )}
 
       {/* Header Bar */}
-      <div className="p-6 rounded-3xl accent-card glass-card border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-indigo-500 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-brand-600 dark:text-brand-400" />
@@ -129,7 +129,7 @@ export const TeamRbacModule = () => {
       </div>
 
       {/* Members List */}
-      <div className="p-6 rounded-3xl accent-card glass-card border border-slate-200 dark:border-slate-800 space-y-4">
+      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-indigo-500 space-y-4 shadow-sm">
         <h2 className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Active Workspace Members ({members.length})</h2>
 
         <div className="overflow-x-auto">
@@ -161,7 +161,7 @@ export const TeamRbacModule = () => {
       </div>
 
       {/* RBAC Matrix Table */}
-      <div className="p-6 rounded-3xl accent-card glass-card border border-slate-200 dark:border-slate-800 space-y-4">
+      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-indigo-500 space-y-4 shadow-sm">
         <h2 className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
           Canonical Role-Based Access Control (RBAC) Matrix

@@ -3,7 +3,7 @@ import { Workspace } from '../types';
 import { workspaceApi } from '../api/workspaceApi';
 import { creativeApi } from '../api/creativeApi';
 import { appStorage } from '../utils/storage';
-import { STORAGE_KEYS, DEFAULT_WORKSPACE, INITIAL_WORKSPACES } from '../config/constants';
+import { STORAGE_KEYS, DEFAULT_WORKSPACE, EMPTY_WORKSPACE, INITIAL_WORKSPACES } from '../config/constants';
 import { useAuth } from './AuthContext';
 
 interface WorkspaceContextType {
@@ -36,6 +36,10 @@ interface WorkspaceContextType {
   setIsNotificationOpen: (open: boolean) => void;
   isProfileMenuOpen: boolean;
   setIsProfileMenuOpen: (open: boolean) => void;
+  isAllModulesOpen: boolean;
+  setIsAllModulesOpen: (open: boolean) => void;
+  isToolkitOpen: boolean;
+  setIsToolkitOpen: (open: boolean) => void;
   unreadCount: number;
   setUnreadCount: (count: number) => void;
   studioTarget: any | null;
@@ -59,38 +63,75 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isAISAChatOpen, setIsAISAChatOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isAllModulesOpen, setIsAllModulesOpen] = useState(false);
+  const [isToolkitOpen, setIsToolkitOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(3);
   const [studioTarget, setStudioTarget] = useState<any | null>(null);
 
+
+  // Hydrate local cache on startup
+  useEffect(() => {
+    (async () => {
+      try {
+        const cached = await appStorage.getJSON<Workspace[] | null>(STORAGE_KEYS.WORKSPACES, null);
+        if (cached !== null) {
+          setWorkspaces(cached);
+          if (cached.length > 0) {
+            const savedId = await appStorage.getJSON<string>(STORAGE_KEYS.ACTIVE_WS_ID, '');
+            const exists = cached.some((w: any) => w.id === savedId || w._id === savedId);
+            setActiveWorkspaceIdState(exists ? savedId : (cached[0].id || cached[0]._id || ''));
+          } else {
+            setActiveWorkspaceIdState('');
+          }
+        }
+      } catch {
+        // Fallback
+      }
+    })();
+  }, []);
 
   const fetchWorkspaces = useCallback(async () => {
     if (!isAuthenticated) return;
     setIsLoadingWorkspaces(true);
     try {
       const response = await workspaceApi.list(user?.email);
-      if (response.success && Array.isArray(response.workspaces) && response.workspaces.length > 0) {
-        const formatted = response.workspaces.map((w: any) => ({
-          ...w,
-          id: w._id || w.id,
-          brandName: w.brandName || 'My Brand',
-        }));
-        setWorkspaces(formatted);
-        await appStorage.setJSON(STORAGE_KEYS.WORKSPACES, formatted);
+      if (response.success && Array.isArray(response.workspaces)) {
+        if (response.workspaces.length > 0) {
+          const formatted = response.workspaces.map((w: any) => ({
+            ...w,
+            id: w._id || w.id,
+            brandName: w.brandName || 'My Brand',
+          }));
+          setWorkspaces(formatted);
+          await appStorage.setJSON(STORAGE_KEYS.WORKSPACES, formatted);
 
-        // Keep current or select first
-        const savedId = await appStorage.getJSON<string>(STORAGE_KEYS.ACTIVE_WS_ID, '');
-        const exists = formatted.some((w: any) => w.id === savedId || w._id === savedId);
-        if (exists) {
-          setActiveWorkspaceIdState(savedId);
+          // Keep current or select first
+          const savedId = await appStorage.getJSON<string>(STORAGE_KEYS.ACTIVE_WS_ID, '');
+          const exists = formatted.some((w: any) => w.id === savedId || w._id === savedId);
+          if (exists) {
+            setActiveWorkspaceIdState(savedId);
+          } else {
+            setActiveWorkspaceIdState(formatted[0].id || formatted[0]._id);
+          }
         } else {
-          setActiveWorkspaceIdState(formatted[0].id || formatted[0]._id);
+          setWorkspaces([]);
+          setActiveWorkspaceIdState('');
+          await appStorage.setJSON(STORAGE_KEYS.WORKSPACES, []);
+          await appStorage.setJSON(STORAGE_KEYS.ACTIVE_WS_ID, '');
         }
       }
     } catch (err) {
       console.warn('Workspace fetch note (using cached/fallback):', err);
-      const cached = await appStorage.getJSON<Workspace[]>(STORAGE_KEYS.WORKSPACES, [DEFAULT_WORKSPACE]);
-      if (cached && cached.length > 0) {
+      const cached = await appStorage.getJSON<Workspace[] | null>(STORAGE_KEYS.WORKSPACES, null);
+      if (cached !== null) {
         setWorkspaces(cached);
+        if (cached.length > 0) {
+          const savedId = await appStorage.getJSON<string>(STORAGE_KEYS.ACTIVE_WS_ID, '');
+          const exists = cached.some((w: any) => w.id === savedId || w._id === savedId);
+          setActiveWorkspaceIdState(exists ? savedId : (cached[0].id || cached[0]._id || ''));
+        } else {
+          setActiveWorkspaceIdState('');
+        }
       }
     } finally {
       setIsLoadingWorkspaces(false);
@@ -126,7 +167,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const res = await workspaceApi.create(newWs);
       if (res.success && res.workspace) {
         const created = { ...res.workspace, id: res.workspace._id || res.workspace.id };
-        setWorkspaces((prev) => [created, ...prev]);
+        setWorkspaces((prev) => {
+          const updated = [created, ...prev];
+          appStorage.setJSON(STORAGE_KEYS.WORKSPACES, updated);
+          return updated;
+        });
         setActiveWorkspaceId(created.id);
         return { success: true, workspace: created };
       }
@@ -141,7 +186,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const res = await workspaceApi.update(activeWorkspaceId, updatedData);
       if (res.success && res.workspace) {
         const updated = { ...res.workspace, id: res.workspace._id || res.workspace.id };
-        setWorkspaces((prev) => prev.map((w) => (w.id === activeWorkspaceId ? updated : w)));
+        setWorkspaces((prev) => {
+          const next = prev.map((w) => (w.id === activeWorkspaceId ? updated : w));
+          appStorage.setJSON(STORAGE_KEYS.WORKSPACES, next);
+          return next;
+        });
         return { success: true };
       }
       return { success: false, error: 'Update failed' };
@@ -152,20 +201,36 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const deleteWorkspace = async (id: string) => {
     try {
-      const res = await workspaceApi.delete(id);
-      if (res.success) {
-        setWorkspaces((prev) => {
-          const filtered = prev.filter((w) => w.id !== id);
-          if (activeWorkspaceId === id && filtered.length > 0) {
-            setActiveWorkspaceId(filtered[0].id);
+      await workspaceApi.delete(id).catch(() => {});
+      setWorkspaces((prev) => {
+        const filtered = prev.filter((w) => w.id !== id && w._id !== id);
+        if (filtered.length > 0) {
+          if (activeWorkspaceId === id) {
+            const nextId = filtered[0].id || filtered[0]._id || '';
+            setActiveWorkspaceId(nextId);
           }
-          return filtered;
-        });
-        return { success: true };
-      }
-      return { success: false, error: res.message || 'Delete failed' };
+        } else {
+          setActiveWorkspaceId('');
+        }
+        appStorage.setJSON(STORAGE_KEYS.WORKSPACES, filtered);
+        return filtered;
+      });
+      return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message };
+      setWorkspaces((prev) => {
+        const filtered = prev.filter((w) => w.id !== id && w._id !== id);
+        if (filtered.length > 0) {
+          if (activeWorkspaceId === id) {
+            const nextId = filtered[0].id || filtered[0]._id || '';
+            setActiveWorkspaceId(nextId);
+          }
+        } else {
+          setActiveWorkspaceId('');
+        }
+        appStorage.setJSON(STORAGE_KEYS.WORKSPACES, filtered);
+        return filtered;
+      });
+      return { success: true };
     }
   };
 
@@ -175,10 +240,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return true;
   };
 
-  const activeWorkspace =
+  const activeWorkspace: Workspace =
     workspaces.find((w) => w.id === activeWorkspaceId || w._id === activeWorkspaceId) ||
-    workspaces[0] ||
-    DEFAULT_WORKSPACE;
+    (workspaces.length > 0 ? workspaces[0] : (EMPTY_WORKSPACE as Workspace));
 
   return (
     <WorkspaceContext.Provider
@@ -214,6 +278,10 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsNotificationOpen,
         isProfileMenuOpen,
         setIsProfileMenuOpen,
+        isAllModulesOpen,
+        setIsAllModulesOpen,
+        isToolkitOpen,
+        setIsToolkitOpen,
         unreadCount,
         setUnreadCount,
         studioTarget,

@@ -888,7 +888,7 @@ const styles = StyleSheet.create({
     lineHeight: LINE_HEIGHTS.body,
   },
   adminSub: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '500',
   },
   syncBtn: {
@@ -954,7 +954,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   kpiSub: {
-    fontSize: 10,
+    fontSize: 11,
   },
   healthCard: {
     padding: 14,
@@ -1093,7 +1093,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   userStatLabel: {
-    fontSize: 10,
+    fontSize: 11,
   },
   tierGrid: {
     gap: 10,
@@ -1152,7 +1152,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   ticketCategory: {
-    fontSize: 10,
+    fontSize: 11,
   },
   ticketTitle: {
     fontSize: FONT_SIZES.body,
@@ -1236,7 +1236,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   quickAddText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
   formInput: {

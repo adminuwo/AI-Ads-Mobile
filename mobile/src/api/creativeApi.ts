@@ -30,4 +30,17 @@ export const creativeApi = {
       body: JSON.stringify(payload),
       timeoutMs: 60000,
     }),
+
+  imageEditingAgent: (payload: {
+    prompt: string;
+    imageUrl?: string;
+    imageBase64?: string;
+    style?: string;
+  }): Promise<{ success: boolean; imageUrl: string; asset?: any; error?: string }> =>
+    apiRequest('/creative/image-editing-agent/generate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      timeoutMs: 60000,
+    }),
 };
+

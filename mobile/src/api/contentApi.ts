@@ -70,4 +70,24 @@ export const contentApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+
+  saveAsset: (payload: {
+    workspaceId?: string;
+    title?: string;
+    name?: string;
+    type?: string;
+    content?: string;
+    url?: string;
+    metadata?: any;
+  }): Promise<{ success: boolean; asset?: any; error?: string }> =>
+    apiRequest('/content/save-asset', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  listAssets: (workspaceId?: string): Promise<{ success: boolean; assets: any[]; error?: string }> =>
+    apiRequest('/content/list-assets', {
+      method: 'GET',
+      params: workspaceId ? { workspaceId } : {},
+    }),
 };

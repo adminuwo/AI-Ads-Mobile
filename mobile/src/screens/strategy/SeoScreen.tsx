@@ -34,11 +34,16 @@ import {
   Lock,
   ChevronRight,
   ChevronDown,
+  ChevronUp,
   Share2,
   X,
   BookOpen,
   CheckCircle,
   ExternalLink,
+  TrendingUp,
+  Folder,
+  MoreVertical,
+  SlidersHorizontal,
 } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -276,14 +281,14 @@ const buildFallbackSeoData = (brandName: string, domainUrl: string, topic: strin
 
   const quickWins: QuickWinItem[] = [
     {
-      term: `${brand} ai ad copy generator`,
+      term: brand && brand !== 'Brand' ? `${brand} ai ad copy generator` : 'Dark Fantasy ai ad copy generator',
       currentPosition: 'Position #8',
       bestCompetitorPosition: 'Position #2',
       existingRankingPage: '/features',
       recommendedOptimization: 'Add H2 section comparing performance velocity and embed FAQ schema markup.',
     },
     {
-      term: 'centralized brand guidelines in advertising',
+      term: 'Centralized brand guidelines in advertising',
       currentPosition: 'Position #12',
       bestCompetitorPosition: 'Position #3',
       existingRankingPage: '/brand-dna',
@@ -452,7 +457,124 @@ export const SeoScreen: React.FC<SeoScreenProps> = ({ navigation }) => {
   const [repurposeLoading, setRepurposeLoading] = useState(false);
 
   // Tab controls
-  const [activeTab, setActiveTab] = useState<'all' | 'onSite' | 'rankings' | 'competitors' | 'opportunities' | 'clusters'>('all');
+  const [activeTab, setActiveTab] = useState<
+    'all' | 'onSite' | 'rankings' | 'competitors' | 'opportunities' | 'clusters' | 'blueprint'
+  >('all');
+  const [subCategoryFilter, setSubCategoryFilter] = useState<string>('all');
+
+  const getSubCategories = () => {
+    switch (activeTab) {
+      case 'onSite': {
+        const htmlCount = onSiteKeywords.filter(k => k.tagSource && k.tagSource !== 'a[href]').length || onSiteKeywords.length;
+        const linksCount = onSiteKeywords.filter(k => k.tagSource === 'a[href]' || k.isCollectionLink).length;
+        const metaCount = onSiteKeywords.filter(k => /meta|title|head/i.test(k.source || '') || /h[1-6]|title/i.test(k.tagSource || '')).length;
+        return [
+          { id: 'all', label: 'All Terms', count: onSiteKeywords.length, icon: '📋' },
+          { id: 'html', label: 'HTML Tags', count: htmlCount, icon: '📄' },
+          { id: 'links', label: 'Links & Collections', count: linksCount, icon: '🔗' },
+          { id: 'meta', label: 'Meta & Headers', count: metaCount, icon: '🏷️' },
+        ];
+      }
+      case 'rankings': {
+        const top3Count = validRankings.filter(k => parseInt((k.rankingPosition || '').replace(/[^0-9]/g, ''), 10) <= 3).length;
+        const top10Count = validRankings.filter(k => parseInt((k.rankingPosition || '').replace(/[^0-9]/g, ''), 10) <= 10).length;
+        const commCount = validRankings.filter(k => k.searchIntent?.toLowerCase() === 'commercial').length;
+        const infoCount = validRankings.filter(k => k.searchIntent?.toLowerCase() === 'informational').length;
+        return [
+          { id: 'all', label: 'All Rankings', count: validRankings.length, icon: '🏆' },
+          { id: 'top3', label: 'Top 3', count: top3Count, icon: '🥇' },
+          { id: 'top10', label: 'Top 10', count: top10Count, icon: '📈' },
+          { id: 'commercial', label: 'Commercial', count: commCount, icon: '🎯' },
+          { id: 'informational', label: 'Informational', count: infoCount, icon: '💡' },
+        ];
+      }
+      case 'competitors': {
+        const gapsCount = competitorGaps.length;
+        const rivalCount = competitors.length;
+        const contentGapCount = competitorGaps.filter(k => /content/i.test(k.gapType || '')).length;
+        const featureGapCount = competitorGaps.filter(k => /feature/i.test(k.gapType || '')).length;
+        return [
+          { id: 'all', label: 'All Intelligence', count: gapsCount + rivalCount, icon: '⚔️' },
+          { id: 'gaps', label: 'Keyword Gaps', count: gapsCount, icon: '🎯' },
+          { id: 'domains', label: 'Rival Domains', count: rivalCount, icon: '🏢' },
+          { id: 'content', label: 'Content Gaps', count: contentGapCount, icon: '📝' },
+          { id: 'features', label: 'Feature Gaps', count: featureGapCount, icon: '🔍' },
+        ];
+      }
+      case 'opportunities': {
+        const winsCount = quickWins.length;
+        const lowDiffCount = opportunityKeywords.filter(k => k.difficulty === 'Low').length;
+        const medDiffCount = opportunityKeywords.filter(k => k.difficulty === 'Medium').length;
+        const transCount = opportunityKeywords.filter(k => k.intent === 'Transactional' || k.intent === 'Commercial').length;
+        return [
+          { id: 'all', label: 'All Opportunities', count: winsCount + opportunityKeywords.length, icon: '✨' },
+          { id: 'quickWins', label: 'Quick Wins', count: winsCount, icon: '⚡' },
+          { id: 'lowDiff', label: 'Low Difficulty', count: lowDiffCount, icon: '🟢' },
+          { id: 'medDiff', label: 'Medium Diff', count: medDiffCount, icon: '🟡' },
+          { id: 'transactional', label: 'High Intent', count: transCount, icon: '🛒' },
+        ];
+      }
+      case 'clusters': {
+        const linkedCount = keywordClusters.filter(c => c.existingPage).length;
+        const deepCount = keywordClusters.filter(c => (c.relatedKeywords?.length || 0) >= 4).length;
+        return [
+          { id: 'all', label: 'All Clusters', count: keywordClusters.length, icon: '🗂️' },
+          { id: 'linked', label: 'Live Page Hubs', count: linkedCount, icon: '🔗' },
+          { id: 'deep', label: 'Deep Clusters (4+)', count: deepCount, icon: '🔥' },
+        ];
+      }
+      case 'blueprint': {
+        if (!brief) return [];
+        return [
+          { id: 'all', label: 'Full Blueprint', count: 0, icon: '📑' },
+          { id: 'titles', label: 'Titles & Meta', count: (brief.suggestedTitles?.length || 0) + (brief.metaDescription ? 1 : 0), icon: '📝' },
+          { id: 'outline', label: 'Heading Outline', count: brief.headingOutline?.length || 0, icon: '📋' },
+          { id: 'links', label: 'Internal Links', count: brief.internalLinkingSuggestions?.length || 0, icon: '🔗' },
+          { id: 'schema', label: 'Schema & Article', count: brief.jsonLdSchema ? 1 : 0, icon: '</>' },
+        ];
+      }
+      default:
+        return [];
+    }
+  };
+
+  // Compact audit setup bar toggle (default collapsed once initialized to save scrolling)
+  const [showConfig, setShowConfig] = useState(false);
+
+  // Section collapse state for Overview mode (minimizes scrolling; user expands any section on demand)
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    quickWins: false,
+    onSite: false,
+    rankings: false,
+    competitors: true,
+    opportunities: true,
+    marketCompetitors: true,
+    clusters: true,
+    blueprint: true,
+  });
+
+  const toggleSectionCollapse = (key: string) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const allSectionsCollapsed = Object.values(collapsedSections).every(Boolean);
+
+  const handleToggleAllSections = () => {
+    const nextVal = !allSectionsCollapsed;
+    setCollapsedSections({
+      quickWins: nextVal,
+      onSite: nextVal,
+      rankings: nextVal,
+      competitors: nextVal,
+      opportunities: nextVal,
+      marketCompetitors: nextVal,
+      clusters: nextVal,
+      blueprint: nextVal,
+    });
+  };
 
   // Active data
   const [onSiteKeywords, setOnSiteKeywords] = useState<OnPageKeywordItem[]>([]);
@@ -596,6 +718,7 @@ export const SeoScreen: React.FC<SeoScreenProps> = ({ navigation }) => {
       showToast('Live crawl completed (governed backup active)');
     } finally {
       setLoading(false);
+      setShowConfig(false);
     }
   };
 
@@ -790,160 +913,199 @@ Elevate your search authority with governed workflows designed for scalable exec
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* ═════════ HEADER HERO & PROVENANCE LEGEND ═════════ */}
-          <GlassCard style={styles.heroCard} glow>
-            <View style={styles.heroHeaderRow}>
-              <View style={styles.botIconWrapper}>
-                <Bot size={20} color="#FFFFFF" />
-              </View>
-              <View style={styles.heroTitleContainer}>
-                <Text style={[styles.heroTitle, { color: colors.textPrimary }]}>
-                  SEO Keyword Intelligence & Competitor Gap Engine
-                </Text>
-                <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
-                  Real-time verified on-page scraping, Google SERP rankings, and dynamic competitor keyword gap analysis.
-                </Text>
-              </View>
-            </View>
+          {/* ═════════ AUDIT ENGINE SETUP (COMPACT/EXPANDABLE) ═════════ */}
+          {!showConfig ? (
+            <GlassCard style={styles.compactEngineBar} variant="raised">
+              <View style={styles.compactEngineContent}>
+                <View style={styles.compactEngineLeft}>
+                  <View style={styles.botIconWrapperSmall}>
+                    <Bot size={15} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.compactEngineDomainCol}>
+                    <Text style={[styles.compactEngineDomain, { color: colors.textPrimary }]} numberOfLines={1}>
+                      {websiteUrl.replace(/^https?:\/\//i, '').replace(/\/$/, '') || 'Target Domain'}
+                    </Text>
+                    <Text style={[styles.compactEngineSub, { color: colors.textMuted }]} numberOfLines={1}>
+                      {seedKeyword} • {intent}
+                    </Text>
+                  </View>
+                </View>
 
-            {/* Provenance Badges Legend */}
-            <View style={styles.legendContainer}>
-              <View style={[styles.legendPill, { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
-                <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-                <Text style={[styles.legendText, { color: '#10B981' }]}>VERIFIED ON-PAGE</Text>
+                <View style={styles.compactEngineActions}>
+                  <TouchableOpacity
+                    onPress={() => setShowConfig(true)}
+                    activeOpacity={0.7}
+                    style={[styles.compactActionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <SlidersHorizontal size={13} color={colors.textSecondary} />
+                    <Text style={[styles.compactActionBtnText, { color: colors.textSecondary }]}>Edit</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={handleRunAudit}
+                    disabled={loading}
+                    activeOpacity={0.8}
+                    style={[styles.compactRunBtn, { opacity: loading ? 0.7 : 1 }]}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <RefreshCw size={13} color="#FFFFFF" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </GlassCard>
+          ) : (
+            <GlassCard style={styles.cleanCard} variant="raised">
+              <View style={styles.heroHeaderRow}>
+                <View style={styles.botIconWrapper}>
+                  <Bot size={18} color="#FFFFFF" />
+                </View>
+                <View style={styles.heroTitleContainer}>
+                  <Text style={[styles.heroTitle, { color: colors.textPrimary }]}>
+                    SEO Target Configuration
+                  </Text>
+                  <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
+                    Set target URL, focus topic and search intent
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setShowConfig(false)}
+                  style={styles.closeBtn}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <X size={18} color={colors.textMuted} />
+                </TouchableOpacity>
               </View>
 
-              <View style={[styles.legendPill, { backgroundColor: 'rgba(13, 148, 136, 0.12)', borderColor: 'rgba(13, 148, 136, 0.3)' }]}>
-                <View style={[styles.legendDot, { backgroundColor: '#0D9488' }]} />
-                <Text style={[styles.legendText, { color: '#0D9488' }]}>SEARCH RANKINGS</Text>
+              <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+
+              {/* Target Website URL */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>TARGET WEBSITE URL</Text>
+                <View
+                  style={[
+                    styles.inputFieldWrapper,
+                    {
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                    },
+                  ]}
+                >
+                  <Globe size={15} color="#10B981" style={styles.inputIcon} />
+                  <TextInput
+                    value={websiteUrl}
+                    onChangeText={setWebsiteUrl}
+                    placeholder="https://example.com"
+                    placeholderTextColor={colors.textMuted}
+                    autoCapitalize="none"
+                    keyboardType="url"
+                    style={[styles.textInput, { color: colors.textPrimary }]}
+                  />
+                </View>
               </View>
 
-              <View style={[styles.legendPill, { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
-                <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-                <Text style={[styles.legendText, { color: '#10B981' }]}>COMPETITOR GAP</Text>
+              {/* Target Focus Topic */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>TARGET FOCUS TOPIC</Text>
+                <View
+                  style={[
+                    styles.inputFieldWrapper,
+                    {
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                    },
+                  ]}
+                >
+                  <Layers size={15} color="#10B981" style={styles.inputIcon} />
+                  <TextInput
+                    value={seedKeyword}
+                    onChangeText={setSeedKeyword}
+                    placeholder="e.g. AI marketing automation"
+                    placeholderTextColor={colors.textMuted}
+                    style={[styles.textInput, { color: colors.textPrimary }]}
+                  />
+                </View>
               </View>
 
-              <View style={[styles.legendPill, { backgroundColor: 'rgba(13, 148, 136, 0.12)', borderColor: 'rgba(13, 148, 136, 0.3)' }]}>
-                <View style={[styles.legendDot, { backgroundColor: '#0D9488' }]} />
-                <Text style={[styles.legendText, { color: '#0D9488' }]}>AI OPPORTUNITY</Text>
+              {/* Search Intent */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>SEARCH INTENT</Text>
+                <View style={styles.intentGrid}>
+                  {[
+                    ['Commercial', 'Transactional'] as const,
+                    ['Informational', 'Navigational'] as const,
+                  ].map((row, rowIdx) => (
+                    <View key={`intent-row-${rowIdx}`} style={styles.intentGridRow}>
+                      {row.map((it) => {
+                        const isSelected = intent === it;
+                        return (
+                          <TouchableOpacity
+                            key={it}
+                            onPress={() => setIntent(it)}
+                            activeOpacity={0.7}
+                            style={[
+                              styles.intentChip,
+                              {
+                                backgroundColor: isSelected
+                                  ? '#10B981'
+                                  : isDark
+                                  ? 'rgba(255,255,255,0.05)'
+                                  : 'rgba(0,0,0,0.04)',
+                                borderColor: isSelected
+                                  ? '#059669'
+                                  : isDark
+                                  ? 'rgba(255,255,255,0.08)'
+                                  : 'rgba(0,0,0,0.06)',
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.intentChipText,
+                                {
+                                  color: isSelected ? '#FFFFFF' : colors.textSecondary,
+                                  fontWeight: isSelected ? '700' : '500',
+                                },
+                              ]}
+                            >
+                              {it}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  ))}
+                </View>
               </View>
-            </View>
-          </GlassCard>
 
-          {/* ═════════ TOP CONTROL INPUT BAR ═════════ */}
-          <GlassCard style={styles.controlCard}>
-            {/* Target Website URL */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>TARGET WEBSITE URL</Text>
-              <View
+              {/* Audit Trigger Action Button */}
+              <TouchableOpacity
+                onPress={() => {
+                  setShowConfig(false);
+                  handleRunAudit();
+                }}
+                disabled={loading}
+                activeOpacity={0.8}
                 style={[
-                  styles.inputFieldWrapper,
-                  {
-                    backgroundColor: colors.neu.card,
-                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                  },
+                  styles.auditButton,
+                  { opacity: loading ? 0.7 : 1 },
                 ]}
               >
-                <Globe size={16} color="#10B981" style={styles.inputIcon} />
-                <TextInput
-                  value={websiteUrl}
-                  onChangeText={setWebsiteUrl}
-                  placeholder="https://example.com"
-                  placeholderTextColor={colors.textMuted}
-                  autoCapitalize="none"
-                  keyboardType="url"
-                  style={[styles.textInput, { color: colors.textPrimary }]}
-                />
-              </View>
-            </View>
-
-            {/* Target Focus Topic / Seed Keyword */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>TARGET FOCUS TOPIC</Text>
-              <View
-                style={[
-                  styles.inputFieldWrapper,
-                  {
-                    backgroundColor: colors.neu.card,
-                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                  },
-                ]}
-              >
-                <Layers size={16} color="#10B981" style={styles.inputIcon} />
-                <TextInput
-                  value={seedKeyword}
-                  onChangeText={setSeedKeyword}
-                  placeholder="e.g. AI marketing automation"
-                  placeholderTextColor={colors.textMuted}
-                  style={[styles.textInput, { color: colors.textPrimary }]}
-                />
-              </View>
-            </View>
-
-            {/* Search Intent Selector */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>SEARCH INTENT</Text>
-              <View style={styles.intentChipsRow}>
-                {(['Commercial', 'Transactional', 'Informational', 'Navigational'] as const).map((it) => {
-                  const isSelected = intent === it;
-                  return (
-                    <TouchableOpacity
-                      key={it}
-                      onPress={() => setIntent(it)}
-                      activeOpacity={0.7}
-                      style={[
-                        styles.intentChip,
-                        {
-                          backgroundColor: isSelected
-                            ? '#10B981'
-                            : isDark
-                            ? 'rgba(255,255,255,0.05)'
-                            : 'rgba(0,0,0,0.04)',
-                          borderColor: isSelected
-                            ? '#059669'
-                            : isDark
-                            ? 'rgba(255,255,255,0.1)'
-                            : 'rgba(0,0,0,0.08)',
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.intentChipText,
-                          {
-                            color: isSelected ? '#FFFFFF' : colors.textSecondary,
-                            fontWeight: isSelected ? '700' : '500',
-                          },
-                        ]}
-                      >
-                        {it}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-
-            {/* Audit Trigger Action Button */}
-            <TouchableOpacity
-              onPress={handleRunAudit}
-              disabled={loading}
-              activeOpacity={0.8}
-              style={[
-                styles.auditButton,
-                { opacity: loading ? 0.7 : 1 },
-              ]}
-            >
-              {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <RefreshCw size={16} color="#FFFFFF" />
-              )}
-              <Text style={styles.auditButtonText}>
-                {loading ? 'Orchestrating Autonomous Audit...' : 'Run Verified SEO Analysis'}
-              </Text>
-            </TouchableOpacity>
-          </GlassCard>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <RefreshCw size={15} color="#FFFFFF" />
+                )}
+                <Text style={styles.auditButtonText}>
+                  {loading ? 'Analyzing SEO Signals...' : 'Run Verified SEO Analysis'}
+                </Text>
+              </TouchableOpacity>
+            </GlassCard>
+          )}
 
           {/* ═════════ NAVIGATION TABS ═════════ */}
           <ScrollView
@@ -953,7 +1115,7 @@ Elevate your search authority with governed workflows designed for scalable exec
             style={styles.tabsScrollWrapper}
           >
             <TouchableOpacity
-              onPress={() => setActiveTab('all')}
+              onPress={() => { setActiveTab('all'); setSubCategoryFilter('all'); }}
               style={[
                 styles.tabPill,
                 activeTab === 'all' && styles.tabPillActive,
@@ -973,7 +1135,7 @@ Elevate your search authority with governed workflows designed for scalable exec
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => setActiveTab('onSite')}
+              onPress={() => { setActiveTab('onSite'); setSubCategoryFilter('all'); }}
               style={[
                 styles.tabPill,
                 activeTab === 'onSite' && styles.tabPillActive,
@@ -989,12 +1151,12 @@ Elevate your search authority with governed workflows designed for scalable exec
             >
               <View style={[styles.tabDot, { backgroundColor: '#10B981' }]} />
               <Text style={[styles.tabText, { color: activeTab === 'onSite' ? '#FFFFFF' : colors.textSecondary }]}>
-                1. On-Page ({onSiteKeywords.length})
+                On-Page ({onSiteKeywords.length})
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => setActiveTab('rankings')}
+              onPress={() => { setActiveTab('rankings'); setSubCategoryFilter('all'); }}
               style={[
                 styles.tabPill,
                 activeTab === 'rankings' && styles.tabPillActive,
@@ -1010,12 +1172,12 @@ Elevate your search authority with governed workflows designed for scalable exec
             >
               <View style={[styles.tabDot, { backgroundColor: '#0D9488' }]} />
               <Text style={[styles.tabText, { color: activeTab === 'rankings' ? '#FFFFFF' : colors.textSecondary }]}>
-                2. Rankings ({validRankings.length})
+                Rankings ({validRankings.length})
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => setActiveTab('competitors')}
+              onPress={() => { setActiveTab('competitors'); setSubCategoryFilter('all'); }}
               style={[
                 styles.tabPill,
                 activeTab === 'competitors' && styles.tabPillActive,
@@ -1031,12 +1193,12 @@ Elevate your search authority with governed workflows designed for scalable exec
             >
               <View style={[styles.tabDot, { backgroundColor: '#10B981' }]} />
               <Text style={[styles.tabText, { color: activeTab === 'competitors' ? '#FFFFFF' : colors.textSecondary }]}>
-                3. Gaps ({competitorGaps.length})
+                Gaps ({competitorGaps.length})
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => setActiveTab('opportunities')}
+              onPress={() => { setActiveTab('opportunities'); setSubCategoryFilter('all'); }}
               style={[
                 styles.tabPill,
                 activeTab === 'opportunities' && styles.tabPillActive,
@@ -1052,13 +1214,13 @@ Elevate your search authority with governed workflows designed for scalable exec
             >
               <View style={[styles.tabDot, { backgroundColor: '#0D9488' }]} />
               <Text style={[styles.tabText, { color: activeTab === 'opportunities' ? '#FFFFFF' : colors.textSecondary }]}>
-                4. AI Opportunities ({opportunityKeywords.length})
+                AI Opps ({opportunityKeywords.length})
               </Text>
             </TouchableOpacity>
 
             {keywordClusters.length > 0 && (
               <TouchableOpacity
-                onPress={() => setActiveTab('clusters')}
+                onPress={() => { setActiveTab('clusters'); setSubCategoryFilter('all'); }}
                 style={[
                   styles.tabPill,
                   activeTab === 'clusters' && styles.tabPillActive,
@@ -1077,342 +1239,663 @@ Elevate your search authority with governed workflows designed for scalable exec
                 </Text>
               </TouchableOpacity>
             )}
+
+            {brief && (
+              <TouchableOpacity
+                onPress={() => { setActiveTab('blueprint'); setSubCategoryFilter('all'); }}
+                style={[
+                  styles.tabPill,
+                  activeTab === 'blueprint' && styles.tabPillActive,
+                  {
+                    backgroundColor:
+                      activeTab === 'blueprint'
+                        ? '#10B981'
+                        : isDark
+                        ? 'rgba(255,255,255,0.06)'
+                        : 'rgba(0,0,0,0.04)',
+                  },
+                ]}
+              >
+                <Code2 size={12} color={activeTab === 'blueprint' ? '#FFFFFF' : '#10B981'} />
+                <Text style={[styles.tabText, { color: activeTab === 'blueprint' ? '#FFFFFF' : colors.textSecondary }]}>
+                  Blueprint
+                </Text>
+              </TouchableOpacity>
+            )}
           </ScrollView>
 
-          {/* ═════════ QUICK WINS BANNER ═════════ */}
-          {quickWins.length > 0 && (activeTab === 'all' || activeTab === 'opportunities') && (
-            <GlassCard style={styles.quickWinsCard}>
-              <View style={styles.quickWinsHeader}>
-                <View style={styles.quickWinsTitleRow}>
-                  <Zap size={16} color="#10B981" />
-                  <Text style={[styles.quickWinsHeading, { color: colors.textPrimary }]}>
-                    Quick Wins (AI-Suggested Ranking Opportunities)
+          {/* ═════════ SUB-CATEGORY CONTEXT CHIPS (INTERACTIVE) ═════════ */}
+          {activeTab !== 'all' && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.subCatScrollContent}
+              style={styles.subCatScrollWrapper}
+            >
+              {getSubCategories().map((cat) => {
+                const isSelected = subCategoryFilter === cat.id;
+                return (
+                  <TouchableOpacity
+                    key={`subcat-${cat.id}`}
+                    onPress={() => setSubCategoryFilter(cat.id)}
+                    activeOpacity={0.7}
+                    style={[
+                      styles.subCatChip,
+                      isSelected
+                        ? {
+                            backgroundColor: '#10B981',
+                            borderColor: '#10B981',
+                          }
+                        : {
+                            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+                            borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                          },
+                    ]}
+                  >
+                    <Text style={styles.subCatChipIcon}>{cat.icon}</Text>
+                    <Text
+                      style={[
+                        styles.subCatChipText,
+                        { color: isSelected ? '#FFFFFF' : colors.textSecondary },
+                      ]}
+                    >
+                      {cat.label}
+                    </Text>
+                    {cat.count > 0 && (
+                      <View
+                        style={[
+                          styles.subCatChipBadge,
+                          isSelected
+                            ? { backgroundColor: 'rgba(255, 255, 255, 0.25)' }
+                            : { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.07)' },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.subCatChipBadgeText,
+                            { color: isSelected ? '#FFFFFF' : colors.textPrimary },
+                          ]}
+                        >
+                          {cat.count}
+                        </Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
+
+
+          {/* ═════════ QUICK WINS (CLEAN LIST, NO BOX CLUTTER) ═════════ */}
+          {quickWins.length > 0 && (activeTab === 'all' || (activeTab === 'opportunities' && (subCategoryFilter === 'all' || subCategoryFilter === 'quickWins'))) && (
+            <GlassCard style={styles.cleanCard} variant="raised">
+              <TouchableOpacity
+                activeOpacity={activeTab === 'all' ? 0.7 : 1}
+                disabled={activeTab !== 'all'}
+                onPress={() => activeTab === 'all' && toggleSectionCollapse('quickWins')}
+                style={styles.sectionHeaderRow}
+              >
+                <View
+                  style={[
+                    styles.sectionIconBadge,
+                    {
+                      backgroundColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5',
+                      width: 32,
+                      height: 32,
+                      borderRadius: 9,
+                    },
+                  ]}
+                >
+                  <Zap size={15} color={isDark ? '#34D399' : '#059669'} strokeWidth={2.3} />
+                </View>
+                <View style={styles.sectionHeaderInfo}>
+                  <View style={styles.sectionTitleTopRow}>
+                    <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                      Quick Wins
+                    </Text>
+                    {activeTab === 'all' ? (
+                      <View style={styles.chevronWrap}>
+                        {collapsedSections.quickWins ? (
+                          <ChevronDown size={18} color={colors.textPrimary} />
+                        ) : (
+                          <ChevronUp size={18} color={colors.textPrimary} />
+                        )}
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => setActiveTab('all')}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                        style={[
+                          styles.cardCloseBtn,
+                          {
+                            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                          },
+                        ]}
+                        accessibilityLabel="Back to Overview"
+                      >
+                        <X size={15} color={colors.textPrimary} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
+                    Low-hanging ranking improvements ready to optimize.
                   </Text>
                 </View>
-                <View style={[styles.quickWinsCountBadge, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                  <Text style={[styles.quickWinsCountText, { color: '#10B981' }]}>
-                    {quickWins.length} Available
+              </TouchableOpacity>
+
+              {(!collapsedSections.quickWins || activeTab !== 'all') && (
+                <View style={styles.unifiedListContainer}>
+                  {quickWins.map((qw, i) => {
+                    const isSelected = selectedKeyword === qw.term;
+                    const rivalPos = (qw.bestCompetitorPosition || '#2').replace(/Position\s*/i, '').trim();
+                    const cleanPos = (qw.currentPosition || 'Page 2').replace(/Position\s*#?/i, 'Position #');
+                    const pagePath = qw.existingRankingPage || '';
+
+                    return (
+                      <React.Fragment key={`qw-${i}`}>
+                        {i > 0 && (
+                          <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                        )}
+                        <TouchableOpacity
+                          onPress={() => handleGenerateBrief(qw.term)}
+                          activeOpacity={0.75}
+                          style={[
+                            styles.qwCardItem,
+                            isSelected && { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.05)' },
+                          ]}
+                        >
+                          {/* Row 1: Badges (Left: Position & Rival, Right: Path & More) */}
+                          <View style={styles.qwHeaderRow}>
+                            <View style={styles.qwBadgesLeft}>
+                              <View style={[styles.qwPosPill, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5' }]}>
+                                <Text style={[styles.qwPosText, { color: isDark ? '#34D399' : '#059669' }]}>
+                                  {cleanPos}
+                                </Text>
+                              </View>
+
+                              <View style={[styles.qwRivalPill, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#EEF2F6' }]}>
+                                <Text style={styles.qwEmoji}>🏆</Text>
+                                <Text style={[styles.qwRivalText, { color: colors.textSecondary }]}>
+                                  Best Rival: {rivalPos.startsWith('#') ? rivalPos : `#${rivalPos}`}
+                                </Text>
+                              </View>
+                            </View>
+
+                            <View style={styles.qwBadgesRight}>
+                              {pagePath ? (
+                                <View style={[styles.qwUrlPill, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#EEF2F6' }]}>
+                                  <Folder size={12} color={colors.textMuted} />
+                                  <Text style={[styles.qwUrlText, { color: colors.textSecondary }]} numberOfLines={1}>
+                                    {pagePath}
+                                  </Text>
+                                </View>
+                              ) : null}
+
+                              <TouchableOpacity
+                                onPress={() => handleCopyText(qw.term, `qw-${i}`)}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                style={styles.qwMoreBtn}
+                                accessibilityLabel="Copy keyword"
+                              >
+                                {copiedKey === `qw-${i}` ? (
+                                  <Check size={14} color="#10B981" />
+                                ) : (
+                                  <Copy size={15} color={colors.textSecondary} />
+                                )}
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+
+                          {/* Row 2: Keyword Title */}
+                          <Text style={[styles.qwTitleText, { color: colors.textPrimary }]} numberOfLines={2}>
+                            {qw.term}
+                          </Text>
+
+                          {/* Row 3: Action Line */}
+                          <View style={styles.qwActionBottomRow}>
+                            <Text style={styles.qwActionCombinedText}>
+                              <Text style={[styles.qwActionPrefix, { color: isDark ? '#34D399' : '#059669' }]}>
+                                Action:{' '}
+                              </Text>
+                              <Text style={[styles.qwActionBody, { color: colors.textSecondary }]}>
+                                {qw.recommendedOptimization}
+                              </Text>
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      </React.Fragment>
+                    );
+                  })}
+                </View>
+              )}
+            </GlassCard>
+          )}
+
+          {/* ═════════ OVERVIEW SEO MODULES DIRECTORY (LOW-SCROLL ARCHITECTURE) ═════════ */}
+          {activeTab === 'all' && (
+            <GlassCard style={styles.cleanCard} variant="raised">
+              <View style={styles.sectionHeaderRow}>
+                <View
+                  style={[
+                    styles.sectionIconBadge,
+                    {
+                      backgroundColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5',
+                      width: 32,
+                      height: 32,
+                      borderRadius: 9,
+                    },
+                  ]}
+                >
+                  <Layers size={15} color={isDark ? '#34D399' : '#059669'} strokeWidth={2.3} />
+                </View>
+                <View style={styles.sectionHeaderInfo}>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                    SEO Intelligence Modules
+                  </Text>
+                  <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
+                    Tap any module to view in-depth signals & directives
                   </Text>
                 </View>
               </View>
 
-              <View style={[styles.responsiveGrid, isTablet && styles.responsiveGridTablet]}>
-                {quickWins.map((qw, i) => (
-                  <TouchableOpacity
-                    key={`qw-${i}`}
-                    onPress={() => handleGenerateBrief(qw.term)}
-                    activeOpacity={0.75}
-                    style={[
-                      styles.quickWinItem,
-                      isTablet && styles.quickWinItemTablet,
-                      {
-                        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-                        borderColor:
-                          selectedKeyword === qw.term
-                            ? '#10B981'
-                            : isDark
-                            ? 'rgba(16, 185, 129, 0.25)'
-                            : 'rgba(16, 185, 129, 0.2)',
-                      },
-                    ]}
-                  >
-                    <View style={styles.quickWinTopRow}>
-                      <Text style={[styles.quickWinTerm, { color: colors.textPrimary }]} numberOfLines={1}>
-                        {qw.term}
-                      </Text>
-                      <View style={[styles.posBadge, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                        <Text style={[styles.posBadgeText, { color: '#10B981' }]}>
-                          {qw.currentPosition || 'Page 2'}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <Text style={[styles.quickWinMeta, { color: colors.textMuted }]}>
-                      Best Competitor: {qw.bestCompetitorPosition || 'Position 1-3'} • {qw.existingRankingPage || '/'}
-                    </Text>
-
-                    <Text style={[styles.quickWinRec, { color: colors.textSecondary }]}>
-                      Action: {qw.recommendedOptimization}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+              <View style={styles.unifiedListContainer}>
+                {[
+                  {
+                    id: 'onSite',
+                    label: 'On-Page Terms & Tags',
+                    sub: 'Titles, meta tags, H1/H2 headings & internal links',
+                    count: onSiteKeywords.length,
+                    icon: BookOpen,
+                    badgeColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5',
+                    iconColor: isDark ? '#34D399' : '#059669',
+                  },
+                  {
+                    id: 'rankings',
+                    label: 'Search Rankings & Positions',
+                    sub: 'SERP snippets, search volume & rank changes',
+                    count: validRankings.length,
+                    icon: Search,
+                    badgeColor: isDark ? 'rgba(13, 148, 136, 0.16)' : '#CCFBF1',
+                    iconColor: isDark ? '#2DD4BF' : '#0D9488',
+                  },
+                  {
+                    id: 'competitors',
+                    label: 'Competitor Gap Analysis',
+                    sub: 'Market competitor overlap & missed opportunities',
+                    count: competitorGaps.length,
+                    icon: Users,
+                    badgeColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5',
+                    iconColor: isDark ? '#34D399' : '#059669',
+                  },
+                  {
+                    id: 'opportunities',
+                    label: 'AI Content Opportunities',
+                    sub: 'High-intent search clusters & 1-click briefs',
+                    count: opportunityKeywords.length,
+                    icon: Sparkles,
+                    badgeColor: isDark ? 'rgba(13, 148, 136, 0.16)' : '#CCFBF1',
+                    iconColor: isDark ? '#2DD4BF' : '#0D9488',
+                  },
+                  ...(keywordClusters.length > 0 ? [{
+                    id: 'clusters',
+                    label: 'Topic Clusters & Hubs',
+                    sub: 'Core pillar pages, subtopics & linking matrix',
+                    count: keywordClusters.length,
+                    icon: Layers,
+                    badgeColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5',
+                    iconColor: isDark ? '#34D399' : '#059669',
+                  }] : []),
+                  ...(brief ? [{
+                    id: 'blueprint',
+                    label: 'Technical Blueprint & Schema',
+                    sub: 'Structured schema, canonicals & robots directives',
+                    count: 1,
+                    icon: Code2,
+                    badgeColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5',
+                    iconColor: isDark ? '#34D399' : '#059669',
+                  }] : []),
+                ].map((item, idx) => {
+                  const Icon = item.icon;
+                  return (
+                    <React.Fragment key={item.id}>
+                      {idx > 0 && (
+                        <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                      )}
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          setActiveTab(item.id as any);
+                          setSubCategoryFilter('all');
+                        }}
+                        style={styles.directoryRowItem}
+                      >
+                        <View style={[styles.sectionIconBadge, { backgroundColor: item.badgeColor, width: 32, height: 32, borderRadius: 9 }]}>
+                          <Icon size={15} color={item.iconColor} strokeWidth={2.3} />
+                        </View>
+                        <View style={styles.directoryInfoCol}>
+                          <Text style={[styles.directoryRowTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                            {item.label}
+                          </Text>
+                          <Text style={[styles.directoryRowSub, { color: colors.textSecondary }]} numberOfLines={1}>
+                            {item.sub}
+                          </Text>
+                        </View>
+                        <View style={styles.directoryRightCol}>
+                          {item.count > 0 && (
+                            <View style={[styles.cleanPill, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5', marginRight: 6 }]}>
+                              <Text style={[styles.cleanPillText, { color: isDark ? '#34D399' : '#059669', fontWeight: '700' }]}>
+                                {item.count}
+                              </Text>
+                            </View>
+                          )}
+                          <ChevronRight size={18} color={colors.textPrimary} />
+                        </View>
+                      </TouchableOpacity>
+                    </React.Fragment>
+                  );
+                })}
               </View>
             </GlassCard>
           )}
 
           {/* ═════════ SECTION 1: ON-PAGE TERMS & COLLECTIONS ═════════ */}
-          {(activeTab === 'all' || activeTab === 'onSite') && (
-            <GlassCard style={styles.sectionCard}>
+          {activeTab === 'onSite' && (
+            <GlassCard style={styles.cleanCard} variant="raised">
               <View style={styles.sectionHeaderRow}>
-                <View style={styles.sectionNumBadge}>
-                  <Text style={styles.sectionNumText}>1</Text>
+                <View style={[styles.sectionIconBadge, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5', width: 32, height: 32, borderRadius: 9 }]}>
+                  <BookOpen size={15} color={isDark ? '#34D399' : '#059669'} strokeWidth={2.3} />
                 </View>
                 <View style={styles.sectionHeaderInfo}>
-                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                    On-Page Terms & Collections
-                  </Text>
+                  <View style={styles.sectionTitleTopRow}>
+                    <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                      On-Page Terms & Tags
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setActiveTab('all')}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      style={[
+                        styles.cardCloseBtn,
+                        {
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                        },
+                      ]}
+                      accessibilityLabel="Back to Overview"
+                    >
+                      <X size={15} color={colors.textPrimary} />
+                    </TouchableOpacity>
+                  </View>
                   <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
-                    Verified from live HTML tags, body & collection links
-                  </Text>
-                </View>
-                <View style={[styles.countBadge, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                  <Text style={[styles.countBadgeText, { color: '#10B981' }]}>
-                    {onSiteKeywords.length} Verified
+                    Verified HTML tags, body copy & category links
                   </Text>
                 </View>
               </View>
 
-              <View style={styles.itemsList}>
-                {onSiteKeywords.length === 0 ? (
-                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                    No on-page terms found. Tap "Run Verified SEO Analysis" to crawl live HTML.
-                  </Text>
-                ) : (
-                  onSiteKeywords.map((kw, idx) => {
-                    const isCollection = Boolean(
-                      kw.isCollectionLink ||
-                        kw.badge === 'VERIFIED COLLECTION LINK' ||
-                        /collection|link/i.test(kw.source || '') ||
-                        kw.tagSource === 'a[href]'
-                    );
-                    const isSelected = selectedKeyword === kw.term;
+              <View style={styles.unifiedListContainer}>
+                  {onSiteKeywords.length === 0 ? (
+                    <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                      No on-page terms found. Tap "Run Verified SEO Analysis" to crawl live HTML.
+                    </Text>
+                  ) : (
+                    onSiteKeywords
+                      .filter((kw) => {
+                        if (activeTab !== 'onSite' || subCategoryFilter === 'all') return true;
+                        if (subCategoryFilter === 'html') return kw.tagSource && kw.tagSource !== 'a[href]';
+                        if (subCategoryFilter === 'links') return kw.tagSource === 'a[href]' || kw.isCollectionLink;
+                        if (subCategoryFilter === 'meta') return /meta|title|head/i.test(kw.source || '') || /h[1-6]|title/i.test(kw.tagSource || '');
+                        return true;
+                      })
+                      .map((kw, idx) => {
+                      const isCollection = Boolean(
+                        kw.isCollectionLink ||
+                          kw.badge === 'VERIFIED COLLECTION LINK' ||
+                          /collection|link/i.test(kw.source || '') ||
+                          kw.tagSource === 'a[href]'
+                      );
+                      const isSelected = selectedKeyword === kw.term;
 
-                    return (
-                      <TouchableOpacity
-                        key={`onsite-${idx}`}
-                        onPress={() => handleGenerateBrief(kw.term, kw.intent as any)}
-                        activeOpacity={0.8}
-                        style={[
-                          styles.keywordItemCard,
-                          {
-                            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
-                            borderColor: isSelected
-                              ? '#10B981'
-                              : isDark
-                              ? 'rgba(255, 255, 255, 0.08)'
-                              : 'rgba(0, 0, 0, 0.06)',
-                            borderWidth: isSelected ? 1.5 : 1,
-                          },
-                        ]}
-                      >
-                        <View style={styles.itemTopRow}>
-                          <View style={styles.badgesWrapper}>
-                            <View
-                              style={[
-                                styles.pillBadge,
-                                {
-                                  backgroundColor: isCollection
-                                    ? 'rgba(13, 148, 136, 0.12)'
-                                    : 'rgba(16, 185, 129, 0.12)',
-                                  borderColor: isCollection
-                                    ? 'rgba(13, 148, 136, 0.3)'
-                                    : 'rgba(16, 185, 129, 0.3)',
-                                },
-                              ]}
-                            >
-                              <Text
-                                style={[
-                                  styles.pillBadgeText,
-                                  { color: isCollection ? '#0D9488' : '#10B981' },
-                                ]}
-                              >
-                                {isCollection ? 'COLLECTION LINK' : 'VERIFIED ON-PAGE'}
-                              </Text>
-                            </View>
-
-                            <View
-                              style={[
-                                styles.pillBadge,
-                                {
-                                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
-                                },
-                              ]}
-                            >
-                              <Text style={[styles.pillBadgeText, { color: colors.textSecondary }]}>
-                                {kw.source || 'HTML Tag'}
-                              </Text>
-                            </View>
-                          </View>
-
+                      return (
+                        <React.Fragment key={`onsite-${idx}`}>
+                          {idx > 0 && (
+                            <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                          )}
                           <TouchableOpacity
-                            onPress={() => handleCopyText(kw.term, `onsite-${idx}`)}
-                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                            style={styles.copyBtn}
-                          >
-                            {copiedKey === `onsite-${idx}` ? (
-                              <Check size={14} color="#10B981" />
-                            ) : (
-                              <Copy size={14} color={colors.textMuted} />
-                            )}
-                          </TouchableOpacity>
-                        </View>
-
-                        <View style={styles.termTitleRow}>
-                          <Text style={[styles.termText, { color: colors.textPrimary }]} numberOfLines={2}>
-                            {kw.term}
-                          </Text>
-                          <ArrowUpRight size={14} color="#10B981" />
-                        </View>
-
-                        {kw.evidenceSnippet ? (
-                          <View
+                            onPress={() => handleGenerateBrief(kw.term, kw.intent as any)}
+                            activeOpacity={0.7}
                             style={[
-                              styles.evidenceBox,
-                              {
-                                backgroundColor: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(248, 250, 252, 0.9)',
-                                borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
-                              },
+                              styles.unifiedListItem,
+                              isSelected && { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.05)' },
                             ]}
                           >
-                            <Text style={[styles.evidenceSnippetText, { color: colors.textSecondary }]} numberOfLines={2}>
-                              Evidence: {kw.evidenceSnippet}
-                            </Text>
-                          </View>
-                        ) : null}
+                            {/* Row Top: Source pill & Copy action */}
+                            <View style={styles.itemHeaderLine}>
+                              <View style={styles.tagWrap}>
+                                <View
+                                  style={[
+                                    styles.cleanPill,
+                                    {
+                                      backgroundColor: isCollection
+                                        ? 'rgba(13, 148, 136, 0.12)'
+                                        : 'rgba(16, 185, 129, 0.12)',
+                                    },
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.cleanPillText,
+                                      { color: isCollection ? '#0D9488' : '#10B981' },
+                                    ]}
+                                  >
+                                    {isCollection ? 'Collection Link' : kw.source || 'Page Title'}
+                                  </Text>
+                                </View>
+                                {kw.pageUrl ? (
+                                  <Text style={[styles.itemUrlSnippet, { color: colors.textMuted }]} numberOfLines={1}>
+                                    {kw.pageUrl.replace(/^https?:\/\/[^/]+/i, '') || '/'}
+                                  </Text>
+                                ) : null}
+                              </View>
 
-                        <View style={[styles.itemFooterRow, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
-                          <Text style={[styles.footerText, { color: colors.textMuted }]} numberOfLines={1}>
-                            URL: {kw.pageUrl || websiteUrl}
-                          </Text>
-                          <Text style={[styles.footerText, { color: colors.textMuted }]}>
-                            Checked: Verified
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })
-                )}
-              </View>
-            </GlassCard>
-          )}
-
-          {/* ═════════ SECTION 2: CURRENT SEARCH RANKINGS ═════════ */}
-          {(activeTab === 'all' || activeTab === 'rankings') && (
-            <GlassCard style={styles.sectionCard}>
-              <View style={styles.sectionHeaderRow}>
-                <View style={styles.sectionNumBadge}>
-                  <Text style={styles.sectionNumText}>2</Text>
-                </View>
-                <View style={styles.sectionHeaderInfo}>
-                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                    Current Search Rankings
-                  </Text>
-                  <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
-                    Organic search engine positions verified via Google SERP
-                  </Text>
-                </View>
-                <View style={[styles.countBadge, { backgroundColor: 'rgba(13, 148, 136, 0.12)' }]}>
-                  <Text style={[styles.countBadgeText, { color: '#0D9488' }]}>
-                    {validRankings.length} Ranked
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.itemsList}>
-                {validRankings.length === 0 ? (
-                  <View style={styles.emptyRankContainer}>
-                    <Text style={[styles.emptyRankTitle, { color: colors.textPrimary }]}>
-                      No verified ranking data available
-                    </Text>
-                    <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                      Domain has no verified Top 10 Google search rankings for current query index.
-                    </Text>
-                  </View>
-                ) : (
-                  validRankings.map((kw, idx) => {
-                    const intentColors = getIntentColors(kw.searchIntent, isDark);
-                    const isSelected = selectedKeyword === kw.term;
-                    const displayPos = kw.rankingPosition || (kw.score ? `Score: ${kw.score}` : 'Position #1');
-
-                    return (
-                      <TouchableOpacity
-                        key={`rank-${idx}`}
-                        onPress={() => handleGenerateBrief(kw.term, kw.searchIntent as any)}
-                        activeOpacity={0.8}
-                        style={[
-                          styles.keywordItemCard,
-                          {
-                            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
-                            borderColor: isSelected
-                              ? '#0D9488'
-                              : isDark
-                              ? 'rgba(255, 255, 255, 0.08)'
-                              : 'rgba(0, 0, 0, 0.06)',
-                            borderWidth: isSelected ? 1.5 : 1,
-                          },
-                        ]}
-                      >
-                        <View style={styles.itemTopRow}>
-                          <View style={styles.badgesWrapper}>
-                            <View style={[styles.posPill, { backgroundColor: isDark ? '#1E293B' : '#0F172A' }]}>
-                              <Text style={styles.posPillText}>{displayPos}</Text>
+                              <TouchableOpacity
+                                onPress={() => handleCopyText(kw.term, `onsite-${idx}`)}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                style={styles.fieldActionBtn}
+                              >
+                                {copiedKey === `onsite-${idx}` ? (
+                                  <Check size={13} color="#10B981" />
+                                ) : (
+                                  <Copy size={13} color={colors.textMuted} />
+                                )}
+                              </TouchableOpacity>
                             </View>
 
-                            {kw.searchIntent ? (
+                            {/* Term Title */}
+                            <View style={styles.termTitleRow}>
+                              <Text style={[styles.itemPrimaryText, { color: colors.textPrimary }]} numberOfLines={2}>
+                                {kw.term}
+                              </Text>
+                              <ArrowUpRight size={14} color="#10B981" />
+                            </View>
+
+                            {/* Evidence snippet */}
+                            {kw.evidenceSnippet ? (
                               <View
                                 style={[
-                                  styles.pillBadge,
+                                  styles.cleanEvidenceQuote,
                                   {
-                                    backgroundColor: intentColors.bg,
-                                    borderColor: intentColors.border,
+                                    borderLeftColor: '#10B981',
+                                    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.05)',
                                   },
                                 ]}
                               >
-                                <Text style={[styles.pillBadgeText, { color: intentColors.text }]}>
-                                  {kw.searchIntent}
+                                <Text style={[styles.cleanEvidenceText, { color: colors.textSecondary }]} numberOfLines={2}>
+                                  {kw.evidenceSnippet}
                                 </Text>
                               </View>
                             ) : null}
-                          </View>
-
-                          <TouchableOpacity
-                            onPress={() => handleCopyText(kw.term, `rank-${idx}`)}
-                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                            style={styles.copyBtn}
-                          >
-                            {copiedKey === `rank-${idx}` ? (
-                              <Check size={14} color="#10B981" />
-                            ) : (
-                              <Copy size={14} color={colors.textMuted} />
-                            )}
                           </TouchableOpacity>
-                        </View>
+                        </React.Fragment>
+                      );
+                    })
+                  )}
+                </View>
 
-                        <View style={styles.termTitleRow}>
-                          <Text style={[styles.termText, { color: colors.textPrimary }]} numberOfLines={2}>
-                            {kw.term}
-                          </Text>
-                          <ArrowUpRight size={14} color="#0D9488" />
-                        </View>
+                <TouchableOpacity
+                  onPress={() => setActiveTab('all')}
+                  style={styles.viewTabJumpBtn}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.viewTabJumpText, { color: '#10B981' }]}>
+                    ← Back to All Overview Sections
+                  </Text>
+                </TouchableOpacity>
+              </GlassCard>
+            )}
 
-                        {kw.rankingUrl ? (
-                          <Text style={[styles.evidenceUrlText, { color: colors.textSecondary }]} numberOfLines={1}>
-                            Source: {kw.rankingUrl}
-                          </Text>
-                        ) : null}
-
-                        <View style={[styles.itemFooterRow, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
-                          <Text style={[styles.footerText, { color: colors.textMuted }]}>
-                            Google Organic Search
-                          </Text>
-                          <Text style={[styles.footerText, { color: colors.textMuted }]}>
-                            Verified
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })
-                )}
+          {/* ═════════ SECTION 2: CURRENT SEARCH RANKINGS ═════════ */}
+          {activeTab === 'rankings' && (
+            <GlassCard style={styles.cleanCard} variant="raised">
+              <View style={styles.sectionHeaderRow}>
+                <View style={[styles.sectionIconBadge, { backgroundColor: isDark ? 'rgba(13, 148, 136, 0.18)' : '#CCFBF1', width: 32, height: 32, borderRadius: 9 }]}>
+                  <Search size={15} color={isDark ? '#2DD4BF' : '#0D9488'} strokeWidth={2.3} />
+                </View>
+                <View style={styles.sectionHeaderInfo}>
+                  <View style={styles.sectionTitleTopRow}>
+                    <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                      Search Rankings
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setActiveTab('all')}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      style={[
+                        styles.cardCloseBtn,
+                        {
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                        },
+                      ]}
+                      accessibilityLabel="Back to Overview"
+                    >
+                      <X size={15} color={colors.textPrimary} />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
+                    Organic positions verified via Google SERP
+                  </Text>
+                </View>
               </View>
-            </GlassCard>
-          )}
+
+              <View style={styles.unifiedListContainer}>
+                  {validRankings.length === 0 ? (
+                    <View style={styles.emptyRankContainer}>
+                      <Text style={[styles.emptyRankTitle, { color: colors.textPrimary }]}>
+                        No verified ranking data available
+                      </Text>
+                      <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                        Domain has no verified Top 10 Google search rankings for current query index.
+                      </Text>
+                    </View>
+                  ) : (
+                    validRankings
+                      .filter((kw) => {
+                        if (activeTab !== 'rankings' || subCategoryFilter === 'all') return true;
+                        const pos = parseInt((kw.rankingPosition || '').replace(/[^0-9]/g, ''), 10);
+                        if (subCategoryFilter === 'top3') return pos <= 3;
+                        if (subCategoryFilter === 'top10') return pos <= 10;
+                        if (subCategoryFilter === 'commercial') return kw.searchIntent?.toLowerCase() === 'commercial';
+                        if (subCategoryFilter === 'informational') return kw.searchIntent?.toLowerCase() === 'informational';
+                        return true;
+                      })
+                      .map((kw, idx) => {
+                      const intentColors = getIntentColors(kw.searchIntent, isDark);
+                      const isSelected = selectedKeyword === kw.term;
+                      const displayPos = kw.rankingPosition || (kw.score ? `Score: ${kw.score}` : 'Position #1');
+
+                      return (
+                        <React.Fragment key={`rank-${idx}`}>
+                          {idx > 0 && (
+                            <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                          )}
+                          <TouchableOpacity
+                            onPress={() => handleGenerateBrief(kw.term, kw.searchIntent as any)}
+                            activeOpacity={0.7}
+                            style={[
+                              styles.unifiedListItem,
+                              isSelected && { backgroundColor: isDark ? 'rgba(13, 148, 136, 0.08)' : 'rgba(13, 148, 136, 0.05)' },
+                            ]}
+                          >
+                            <View style={styles.rankRowContent}>
+                              {/* Left Rank Badge */}
+                              <View style={[styles.rankNumberBadge, { backgroundColor: isDark ? '#1E293B' : '#0F172A' }]}>
+                                <Text style={styles.rankNumberText}>{displayPos.replace(/Position\s*/i, '')}</Text>
+                              </View>
+
+                              {/* Middle Details */}
+                              <View style={styles.rankDetailsCol}>
+                                <Text style={[styles.itemPrimaryText, { color: colors.textPrimary }]} numberOfLines={2}>
+                                  {kw.term}
+                                </Text>
+
+                                <View style={styles.rankMetaLine}>
+                                  {kw.searchIntent ? (
+                                    <View
+                                      style={[
+                                        styles.cleanPill,
+                                        {
+                                          backgroundColor: intentColors.bg,
+                                        },
+                                      ]}
+                                    >
+                                      <Text style={[styles.cleanPillText, { color: intentColors.text }]}>
+                                        {kw.searchIntent}
+                                      </Text>
+                                    </View>
+                                  ) : null}
+
+                                  {kw.rankingUrl ? (
+                                    <Text style={[styles.itemUrlSnippet, { color: colors.textMuted }]} numberOfLines={1}>
+                                      {kw.rankingUrl.replace(/^https?:\/\/[^/]+/i, '') || '/'}
+                                    </Text>
+                                  ) : null}
+                                </View>
+                              </View>
+
+                              {/* Right Action */}
+                              <TouchableOpacity
+                                onPress={() => handleCopyText(kw.term, `rank-${idx}`)}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                style={styles.fieldActionBtn}
+                              >
+                                {copiedKey === `rank-${idx}` ? (
+                                  <Check size={13} color="#10B981" />
+                                ) : (
+                                  <Copy size={13} color={colors.textMuted} />
+                                )}
+                              </TouchableOpacity>
+                            </View>
+                          </TouchableOpacity>
+                        </React.Fragment>
+                      );
+                    })
+                  )}
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => setActiveTab('all')}
+                  style={styles.viewTabJumpBtn}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.viewTabJumpText, { color: '#0D9488' }]}>
+                    ← Back to All Overview Sections
+                  </Text>
+                </TouchableOpacity>
+              </GlassCard>
+            )}
 
           {/* ═════════ SECTION 3: COMPETITOR KEYWORD GAPS ═════════ */}
-          {(activeTab === 'all' || activeTab === 'competitors') && (
+          {(activeTab === 'competitors' && subCategoryFilter !== 'domains') && (
             isCampaignLocked ? (
-              <GlassCard style={styles.lockedCard}>
-                <Lock size={28} color="#10B981" />
+              <GlassCard style={styles.lockedCard} variant="raised">
+                <Lock size={24} color="#10B981" />
                 <Text style={[styles.lockedTitle, { color: colors.textPrimary }]}>
                   Competitor Gaps Locked
                 </Text>
@@ -1421,151 +1904,132 @@ Elevate your search authority with governed workflows designed for scalable exec
                 </Text>
               </GlassCard>
             ) : (
-              <GlassCard style={styles.sectionCard}>
+              <GlassCard style={styles.cleanCard} variant="raised">
                 <View style={styles.sectionHeaderRow}>
-                  <View style={styles.sectionNumBadge}>
-                    <Text style={styles.sectionNumText}>3</Text>
+                  <View style={[styles.sectionIconBadge, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5', width: 32, height: 32, borderRadius: 9 }]}>
+                    <Users size={15} color={isDark ? '#34D399' : '#059669'} strokeWidth={2.3} />
                   </View>
                   <View style={styles.sectionHeaderInfo}>
-                    <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                      Competitor Keyword Gaps
-                    </Text>
+                    <View style={styles.sectionTitleTopRow}>
+                      <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                        Competitor Gaps
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setActiveTab('all')}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                        style={[
+                          styles.cardCloseBtn,
+                          {
+                            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                          },
+                        ]}
+                        accessibilityLabel="Back to Overview"
+                      >
+                        <X size={15} color={colors.textPrimary} />
+                      </TouchableOpacity>
+                    </View>
                     <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
-                      Where competitors outrank target domain on organic search
-                    </Text>
-                  </View>
-                  <View style={[styles.countBadge, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                    <Text style={[styles.countBadgeText, { color: '#10B981' }]}>
-                      {competitorGaps.length} Gaps
+                      Where rivals outrank your domain on organic search
                     </Text>
                   </View>
                 </View>
 
-                <View style={styles.itemsList}>
-                  {competitorGaps.length === 0 ? (
-                    <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                      No verified competitor gaps discovered for this domain.
-                    </Text>
-                  ) : (
-                    competitorGaps.map((kw, idx) => {
-                      const isSelected = selectedKeyword === kw.term;
-                      return (
-                        <TouchableOpacity
-                          key={`gap-${idx}`}
-                          onPress={() => handleGenerateBrief(kw.term, kw.searchIntent as any)}
-                          activeOpacity={0.8}
-                          style={[
-                            styles.keywordItemCard,
-                            {
-                              backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
-                              borderColor: isSelected
-                                ? '#10B981'
-                                : isDark
-                                ? 'rgba(255, 255, 255, 0.08)'
-                                : 'rgba(0, 0, 0, 0.06)',
-                              borderWidth: isSelected ? 1.5 : 1,
-                            },
-                          ]}
-                        >
-                          <View style={styles.itemTopRow}>
-                            <View style={styles.badgesWrapper}>
-                              <View
-                                style={[
-                                  styles.pillBadge,
-                                  {
-                                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                                    borderColor: 'rgba(16, 185, 129, 0.3)',
-                                  },
-                                ]}
-                              >
-                                <Text style={[styles.pillBadgeText, { color: '#10B981' }]}>
-                                  COMPETITOR GAP
-                                </Text>
-                              </View>
-
-                              <View
-                                style={[
-                                  styles.pillBadge,
-                                  {
-                                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
-                                  },
-                                ]}
-                              >
-                                <Text style={[styles.pillBadgeText, { color: colors.textSecondary }]}>
-                                  {kw.gapType || 'Content Gap'}
-                                </Text>
-                              </View>
-                            </View>
-
+                <View style={styles.unifiedListContainer}>
+                    {competitorGaps.length === 0 ? (
+                      <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                        No verified competitor gaps discovered for this domain.
+                      </Text>
+                    ) : (
+                      competitorGaps
+                        .filter((kw) => {
+                          if (activeTab !== 'competitors' || subCategoryFilter === 'all' || subCategoryFilter === 'gaps') return true;
+                          if (subCategoryFilter === 'content') return /content/i.test(kw.gapType || '');
+                          if (subCategoryFilter === 'features') return /feature/i.test(kw.gapType || '');
+                          return true;
+                        })
+                        .map((kw, idx) => {
+                        const isSelected = selectedKeyword === kw.term;
+                        return (
+                          <React.Fragment key={`gap-${idx}`}>
+                            {idx > 0 && (
+                              <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                            )}
                             <TouchableOpacity
-                              onPress={() => handleCopyText(kw.term, `gap-${idx}`)}
-                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                              style={styles.copyBtn}
+                              onPress={() => handleGenerateBrief(kw.term, kw.searchIntent as any)}
+                              activeOpacity={0.7}
+                              style={[
+                                styles.unifiedListItem,
+                                isSelected && { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.05)' },
+                              ]}
                             >
-                              {copiedKey === `gap-${idx}` ? (
-                                <Check size={14} color="#10B981" />
-                              ) : (
-                                <Copy size={14} color={colors.textMuted} />
-                              )}
+                              <View style={styles.itemHeaderLine}>
+                                <View style={styles.tagWrap}>
+                                  <View style={[styles.cleanPill, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
+                                    <Text style={[styles.cleanPillText, { color: '#10B981' }]}>
+                                      {kw.competitor} ({kw.competitorPosition || 'Top 3'})
+                                    </Text>
+                                  </View>
+                                  <View style={[styles.cleanPill, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+                                    <Text style={[styles.cleanPillText, { color: colors.textSecondary }]}>
+                                      {kw.gapType || 'Content Gap'}
+                                    </Text>
+                                  </View>
+                                </View>
+
+                                <TouchableOpacity
+                                  onPress={() => handleCopyText(kw.term, `gap-${idx}`)}
+                                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                  style={styles.fieldActionBtn}
+                                >
+                                  {copiedKey === `gap-${idx}` ? (
+                                    <Check size={13} color="#10B981" />
+                                  ) : (
+                                    <Copy size={13} color={colors.textMuted} />
+                                  )}
+                                </TouchableOpacity>
+                              </View>
+
+                              <View style={styles.termTitleRow}>
+                                <Text style={[styles.itemPrimaryText, { color: colors.textPrimary }]} numberOfLines={2}>
+                                  {kw.term}
+                                </Text>
+                                <ArrowUpRight size={14} color="#10B981" />
+                              </View>
+
+                              {kw.gapReason ? (
+                                <Text style={[styles.gapReasonText, { color: colors.textSecondary }]} numberOfLines={2}>
+                                  {kw.gapReason}
+                                </Text>
+                              ) : null}
+
+                              <Text style={[styles.itemSubMeta, { color: colors.textMuted }]}>
+                                Target: {kw.userPosition || 'Not Ranking'} • {kw.rankingUrl || 'Category Index'}
+                              </Text>
                             </TouchableOpacity>
-                          </View>
+                          </React.Fragment>
+                        );
+                      })
+                    )}
+                  </View>
 
-                          <View style={styles.termTitleRow}>
-                            <Text style={[styles.termText, { color: colors.textPrimary }]} numberOfLines={2}>
-                              {kw.term}
-                            </Text>
-                            <ArrowUpRight size={14} color="#10B981" />
-                          </View>
-
-                          {/* Evidence Chain Box */}
-                          <View
-                            style={[
-                              styles.evidenceBox,
-                              {
-                                backgroundColor: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(248, 250, 252, 0.9)',
-                                borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
-                              },
-                            ]}
-                          >
-                            <View style={styles.evidenceChainRow}>
-                              <Text style={[styles.evidenceLabel, { color: colors.textMuted }]}>
-                                Competitor: <Text style={{ color: colors.textPrimary, fontWeight: '700' }}>{kw.competitor}</Text>
-                              </Text>
-                              <Text style={[styles.evidenceVal, { color: '#10B981' }]}>
-                                {kw.competitorPosition || 'Position #1'}
-                              </Text>
-                            </View>
-
-                            <View style={styles.evidenceChainRow}>
-                              <Text style={[styles.evidenceLabel, { color: colors.textMuted }]}>
-                                Target Status: <Text style={{ color: colors.textSecondary }}>{kw.userPosition || 'Not Ranking'}</Text>
-                              </Text>
-                              <Text style={[styles.evidenceVal, { color: colors.textMuted }]} numberOfLines={1}>
-                                {kw.rankingUrl || 'Category Index'}
-                              </Text>
-                            </View>
-                          </View>
-
-                          {kw.gapReason ? (
-                            <Text style={[styles.gapReasonText, { color: colors.textSecondary }]} numberOfLines={3}>
-                              Reason: {kw.gapReason}
-                            </Text>
-                          ) : null}
-                        </TouchableOpacity>
-                      );
-                    })
-                  )}
-                </View>
-              </GlassCard>
+                  <TouchableOpacity
+                    onPress={() => setActiveTab('all')}
+                    style={styles.viewTabJumpBtn}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.viewTabJumpText, { color: '#10B981' }]}>
+                      ← Back to All Overview Sections
+                    </Text>
+                  </TouchableOpacity>
+                </GlassCard>
             )
           )}
 
           {/* ═════════ SECTION 4: AI OPPORTUNITIES ═════════ */}
-          {(activeTab === 'all' || activeTab === 'opportunities') && (
+          {(activeTab === 'opportunities' && subCategoryFilter !== 'quickWins') && (
             isAiOpportunitiesLocked ? (
-              <GlassCard style={styles.lockedCard}>
-                <Lock size={28} color="#10B981" />
+              <GlassCard style={styles.lockedCard} variant="raised">
+                <Lock size={24} color="#10B981" />
                 <Text style={[styles.lockedTitle, { color: colors.textPrimary }]}>
                   AI Opportunities Locked
                 </Text>
@@ -1575,346 +2039,471 @@ Elevate your search authority with governed workflows designed for scalable exec
               </GlassCard>
             ) : (
               opportunityKeywords.length > 0 && (
-                <GlassCard style={styles.sectionCard}>
+                <GlassCard style={styles.cleanCard} variant="raised">
                   <View style={styles.sectionHeaderRow}>
-                    <View style={styles.sectionNumBadge}>
-                      <Text style={styles.sectionNumText}>4</Text>
+                    <View style={[styles.sectionIconBadge, { backgroundColor: isDark ? 'rgba(13, 148, 136, 0.18)' : '#CCFBF1', width: 32, height: 32, borderRadius: 9 }]}>
+                      <Sparkles size={15} color={isDark ? '#2DD4BF' : '#0D9488'} strokeWidth={2.3} />
                     </View>
                     <View style={styles.sectionHeaderInfo}>
-                      <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                        AI Opportunities & Recommended Actions
-                      </Text>
-                      <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
-                        Synthesized from website content, ranking data & competitor gaps
-                      </Text>
-                    </View>
-                    <View style={[styles.countBadge, { backgroundColor: 'rgba(13, 148, 136, 0.12)' }]}>
-                      <Text style={[styles.countBadgeText, { color: '#0D9488' }]}>
-                        {opportunityKeywords.length} AI Opportunities
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={[styles.responsiveGrid, isTablet && styles.responsiveGridTablet]}>
-                    {opportunityKeywords.map((opp, idx) => (
-                      <TouchableOpacity
-                        key={`opp-${idx}`}
-                        onPress={() => handleGenerateBrief(opp.term)}
-                        activeOpacity={0.8}
-                        style={[
-                          styles.oppCard,
-                          isTablet && styles.oppCardTablet,
-                          {
-                            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
-                            borderColor:
-                              selectedKeyword === opp.term
-                                ? '#10B981'
-                                : isDark
-                                ? 'rgba(255, 255, 255, 0.08)'
-                                : 'rgba(0, 0, 0, 0.06)',
-                            borderWidth: selectedKeyword === opp.term ? 1.5 : 1,
-                          },
-                        ]}
-                      >
-                        <View style={styles.oppTopRow}>
-                          <View style={[styles.pillBadge, { backgroundColor: 'rgba(13, 148, 136, 0.12)', borderColor: 'rgba(13, 148, 136, 0.3)' }]}>
-                            <Text style={[styles.pillBadgeText, { color: '#0D9488' }]}>
-                              AI OPPORTUNITY
-                            </Text>
-                          </View>
-                          <Text style={[styles.diffBadge, { color: colors.textMuted }]}>
-                            {opp.difficulty || 'Medium'} Difficulty
-                          </Text>
-                        </View>
-
-                        <Text style={[styles.oppTermText, { color: colors.textPrimary }]} numberOfLines={2}>
-                          {opp.term}
+                      <View style={styles.sectionTitleTopRow}>
+                        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                          AI Opportunities
                         </Text>
-
-                        {opp.whyOpportunity ? (
-                          <Text style={[styles.oppWhyText, { color: colors.textSecondary }]} numberOfLines={3}>
-                            {opp.whyOpportunity}
-                          </Text>
-                        ) : null}
-
-                        <View style={[styles.oppActionBox, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
-                          <Text style={[styles.oppActionLabel, { color: '#10B981' }]}>
-                            Action:
-                          </Text>
-                          <Text style={[styles.oppActionText, { color: colors.textPrimary }]} numberOfLines={2}>
-                            {opp.recommendedAction || 'Create new high-conversion landing page'}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
+                        <TouchableOpacity
+                          onPress={() => setActiveTab('all')}
+                          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                          style={[
+                            styles.cardCloseBtn,
+                            {
+                              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                            },
+                          ]}
+                          accessibilityLabel="Back to Overview"
+                        >
+                          <X size={15} color={colors.textPrimary} />
+                        </TouchableOpacity>
+                      </View>
+                      <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
+                        Synthesized high-ROI search queries and actions
+                      </Text>
+                    </View>
                   </View>
+
+                  <View style={styles.unifiedListContainer}>
+                    {opportunityKeywords
+                    .filter((opp) => {
+                      if (activeTab !== 'opportunities' || subCategoryFilter === 'all') return true;
+                      if (subCategoryFilter === 'lowDiff') return opp.difficulty === 'Low';
+                      if (subCategoryFilter === 'medDiff') return opp.difficulty === 'Medium';
+                      if (subCategoryFilter === 'transactional') return opp.intent === 'Transactional' || opp.intent === 'Commercial';
+                      return true;
+                    })
+                    .map((opp, idx) => {
+                        const isSelected = selectedKeyword === opp.term;
+                        return (
+                          <React.Fragment key={`opp-${idx}`}>
+                            {idx > 0 && (
+                              <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                            )}
+                            <TouchableOpacity
+                              onPress={() => handleGenerateBrief(opp.term)}
+                              activeOpacity={0.7}
+                              style={[
+                                styles.unifiedListItem,
+                                isSelected && { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.05)' },
+                              ]}
+                            >
+                              <View style={styles.itemHeaderLine}>
+                                <View style={[styles.cleanPill, { backgroundColor: 'rgba(13, 148, 136, 0.12)' }]}>
+                                  <Text style={[styles.cleanPillText, { color: '#0D9488' }]}>
+                                    {opp.difficulty || 'Medium'} Difficulty
+                                  </Text>
+                                </View>
+                                <Text style={[styles.itemSubMeta, { color: colors.textMuted }]}>
+                                  {opp.intent || 'Commercial'}
+                                </Text>
+                              </View>
+
+                              <View style={styles.termTitleRow}>
+                                <Text style={[styles.itemPrimaryText, { color: colors.textPrimary }]} numberOfLines={2}>
+                                  {opp.term}
+                                </Text>
+                                <ArrowUpRight size={14} color="#10B981" />
+                              </View>
+
+                              {opp.whyOpportunity ? (
+                                <Text style={[styles.gapReasonText, { color: colors.textSecondary }]} numberOfLines={2}>
+                                  {opp.whyOpportunity}
+                                </Text>
+                              ) : null}
+
+                              <View style={styles.itemActionLine}>
+                                <ArrowUpRight size={14} color="#10B981" />
+                                <Text style={[styles.itemActionText, { color: isDark ? '#34D399' : '#059669' }]} numberOfLines={2}>
+                                  Action: <Text style={{ color: colors.textPrimary, fontWeight: '500' }}>{opp.recommendedAction || 'Create new high-conversion landing page'}</Text>
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </React.Fragment>
+                        );
+                      })}
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => setActiveTab('all')}
+                    style={styles.viewTabJumpBtn}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.viewTabJumpText, { color: '#0D9488' }]}>
+                      ← Back to All Overview Sections
+                    </Text>
+                  </TouchableOpacity>
                 </GlassCard>
               )
             )
           )}
 
-          {/* ═════════ SECTION 5: DISCOVERED MARKET COMPETITOR INTELLIGENCE ═════════ */}
-          {(activeTab === 'all' || activeTab === 'competitors') && competitors.length > 0 && (
-            <GlassCard style={styles.sectionCard}>
+          {/* ═════════ SECTION 5: MARKET COMPETITOR INTELLIGENCE ═════════ */}
+          {(activeTab === 'competitors' && (subCategoryFilter === 'all' || subCategoryFilter === 'domains')) && competitors.length > 0 && (
+            <GlassCard style={styles.cleanCard} variant="raised">
               <View style={styles.sectionHeaderRow}>
-                <View style={styles.compHeaderIcon}>
-                  <Users size={16} color="#10B981" />
+                <View style={[styles.sectionIconBadge, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5', width: 32, height: 32, borderRadius: 9 }]}>
+                  <Globe size={15} color={isDark ? '#34D399' : '#059669'} strokeWidth={2.3} />
                 </View>
                 <View style={styles.sectionHeaderInfo}>
-                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                    Market Competitor Intelligence
-                  </Text>
+                  <View style={styles.sectionTitleTopRow}>
+                    <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                      Competitor Intelligence
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setActiveTab('all')}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      style={[
+                        styles.cardCloseBtn,
+                        {
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                        },
+                      ]}
+                      accessibilityLabel="Back to Overview"
+                    >
+                      <X size={15} color={colors.textPrimary} />
+                    </TouchableOpacity>
+                  </View>
                   <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
                     Direct category competitors & search ranking rivals
                   </Text>
                 </View>
               </View>
 
-              <View style={[styles.responsiveGrid, isTablet && styles.responsiveGridTablet]}>
+              <View style={styles.unifiedListContainer}>
                 {competitors.map((comp, idx) => (
-                  <View
-                    key={`comp-${idx}`}
-                    style={[
-                      styles.compCard,
-                      isTablet && styles.compCardTablet,
-                      {
-                        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
-                        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
-                      },
-                    ]}
-                  >
-                    <View style={styles.compTopRow}>
-                      <View style={styles.compDomainRow}>
-                        <Globe size={14} color="#10B981" />
-                        <Text style={[styles.compDomainText, { color: colors.textPrimary }]} numberOfLines={1}>
-                          {comp.competitorDomain}
-                        </Text>
+                  <React.Fragment key={`comp-${idx}`}>
+                    {idx > 0 && (
+                      <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                    )}
+                    <View style={styles.unifiedListItem}>
+                      <View style={styles.itemHeaderLine}>
+                        <View style={styles.tagWrap}>
+                          <Globe size={14} color="#10B981" />
+                          <Text style={[styles.itemPrimaryText, { color: colors.textPrimary }]}>
+                            {comp.competitorDomain}
+                          </Text>
+                        </View>
                       </View>
-                      <View style={[styles.pillBadge, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
-                        <Text style={[styles.pillBadgeText, { color: colors.textMuted }]}>
-                          {comp.isDiscoveredSearch ? 'Discovered' : 'AI-Suggested'}
+
+                      <Text style={[styles.gapReasonText, { color: colors.textSecondary }]}>
+                        {comp.whyCompetitor}
+                      </Text>
+
+                      <View style={styles.compMetricsRow}>
+                        <Text style={[styles.compMetricText, { color: colors.textMuted }]}>
+                          Overlap: <Text style={{ color: colors.textPrimary, fontWeight: '700' }}>{comp.keywordOverlap || '30%'}</Text>
+                        </Text>
+                        <Text style={[styles.compMetricText, { color: colors.textMuted }]}>
+                          Advantage: <Text style={{ color: '#10B981', fontWeight: '700' }}>{comp.rankingAdvantage || 'Top 5'}</Text>
                         </Text>
                       </View>
                     </View>
-
-                    <Text style={[styles.compWhyText, { color: colors.textSecondary }]}>
-                      {comp.whyCompetitor}
-                    </Text>
-
-                    <View style={[styles.compStatsRow, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
-                      <Text style={[styles.compStatText, { color: colors.textMuted }]}>
-                        Overlap: <Text style={{ color: colors.textPrimary, fontWeight: '700' }}>{comp.keywordOverlap || '30%'}</Text>
-                      </Text>
-                      <Text style={[styles.compStatText, { color: colors.textMuted }]}>
-                        Advantage: <Text style={{ color: '#10B981', fontWeight: '700' }}>{comp.rankingAdvantage || 'Top 5'}</Text>
-                      </Text>
-                    </View>
-                  </View>
+                  </React.Fragment>
                 ))}
               </View>
+
+              <TouchableOpacity
+                onPress={() => setActiveTab('all')}
+                style={styles.viewTabJumpBtn}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.viewTabJumpText, { color: '#059669' }]}>
+                  ← Back to All Overview Sections
+                </Text>
+              </TouchableOpacity>
             </GlassCard>
           )}
 
           {/* ═════════ SECTION 6: STRATEGIC TOPIC CLUSTERS ═════════ */}
-          {(activeTab === 'all' || activeTab === 'clusters') && keywordClusters.length > 0 && (
-            <GlassCard style={styles.sectionCard}>
+          {activeTab === 'clusters' && keywordClusters.length > 0 && (
+            <GlassCard style={styles.cleanCard} variant="raised">
               <View style={styles.sectionHeaderRow}>
-                <View style={styles.compHeaderIcon}>
-                  <Layers size={16} color="#10B981" />
+                <View style={[styles.sectionIconBadge, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5', width: 32, height: 32, borderRadius: 9 }]}>
+                  <Layers size={15} color={isDark ? '#34D399' : '#059669'} strokeWidth={2.3} />
                 </View>
                 <View style={styles.sectionHeaderInfo}>
-                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                    Strategic Topic Clusters
-                  </Text>
+                  <View style={styles.sectionTitleTopRow}>
+                    <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                      Topic Clusters
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setActiveTab('all')}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      style={[
+                        styles.cardCloseBtn,
+                        {
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                        },
+                      ]}
+                      accessibilityLabel="Back to Overview"
+                    >
+                      <X size={15} color={colors.textPrimary} />
+                    </TouchableOpacity>
+                  </View>
                   <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
                     AI-suggested semantic content mapping & pillar hubs
                   </Text>
                 </View>
               </View>
 
-              <View style={[styles.responsiveGrid, isTablet && styles.responsiveGridTablet]}>
-                {keywordClusters.map((cluster, i) => (
-                  <View
-                    key={`cluster-${i}`}
-                    style={[
-                      styles.clusterCard,
-                      isTablet && styles.clusterCardTablet,
-                      {
-                        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
-                        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
-                      },
-                    ]}
-                  >
-                    <View style={styles.clusterPillarRow}>
-                      <Text style={[styles.clusterPillarText, { color: colors.textPrimary }]} numberOfLines={1}>
-                        Pillar: {cluster.primaryTopic}
-                      </Text>
-                      <Text style={[styles.clusterTargetPageText, { color: colors.textMuted }]}>
-                        {cluster.existingPage || '/'}
+              <View style={styles.unifiedListContainer}>
+                {keywordClusters
+                  .filter((c) => {
+                    if (activeTab !== 'clusters' || subCategoryFilter === 'all') return true;
+                    if (subCategoryFilter === 'linked') return Boolean(c.existingPage);
+                    if (subCategoryFilter === 'deep') return (c.relatedKeywords?.length || 0) >= 4;
+                    return true;
+                  })
+                  .map((cluster, i) => (
+                  <React.Fragment key={`cluster-${i}`}>
+                    {i > 0 && (
+                      <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                    )}
+                    <View style={styles.unifiedListItem}>
+                      <View style={styles.itemHeaderLine}>
+                        <Text style={[styles.itemPrimaryText, { color: colors.textPrimary, flex: 1 }]} numberOfLines={1}>
+                          {cluster.primaryTopic}
+                        </Text>
+                        <Text style={[styles.itemSubMeta, { color: colors.textMuted }]}>
+                          {cluster.existingPage || '/'}
+                        </Text>
+                      </View>
+
+                      <View style={styles.clusterChipsWrapper}>
+                        {(cluster.relatedKeywords || []).map((rk, j) => (
+                          <View
+                            key={`rk-${j}`}
+                            style={[
+                              styles.cleanPill,
+                              {
+                                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                              },
+                            ]}
+                          >
+                            <Text style={[styles.cleanPillText, { color: colors.textSecondary }]}>
+                              {rk}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+
+                      <Text style={[styles.gapReasonText, { color: colors.textSecondary }]}>
+                        Action: {cluster.recommendedAction}
                       </Text>
                     </View>
-
-                    <View style={styles.clusterChipsWrapper}>
-                      {(cluster.relatedKeywords || []).map((rk, j) => (
-                        <View
-                          key={`rk-${j}`}
-                          style={[
-                            styles.clusterChip,
-                            {
-                              backgroundColor: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(241, 245, 249, 1)',
-                              borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                            },
-                          ]}
-                        >
-                          <Text style={[styles.clusterChipText, { color: colors.textSecondary }]}>
-                            {rk}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-
-                    <Text style={[styles.clusterActionText, { color: colors.textSecondary }]}>
-                      Action: {cluster.recommendedAction}
-                    </Text>
-                  </View>
+                  </React.Fragment>
                 ))}
               </View>
+
+              <TouchableOpacity
+                onPress={() => setActiveTab('all')}
+                style={styles.viewTabJumpBtn}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.viewTabJumpText, { color: '#10B981' }]}>
+                  ← Back to All Overview Sections
+                </Text>
+              </TouchableOpacity>
             </GlassCard>
           )}
 
           {/* ═════════ SECTION 7: TECHNICAL SEO BLUEPRINT & SCHEMA ═════════ */}
-          {brief && (
-            <GlassCard style={styles.blueprintCard} glow>
-              <View style={styles.blueprintHeaderRow}>
-                <View style={styles.blueprintIcon}>
-                  <Code2 size={18} color="#10B981" />
+          {activeTab === 'blueprint' && brief && (
+            <GlassCard style={styles.cleanCard} variant="raised">
+              <View style={styles.sectionHeaderRow}>
+                <View style={[styles.sectionIconBadge, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#D1FAE5', width: 32, height: 32, borderRadius: 9 }]}>
+                  <Code2 size={15} color={isDark ? '#34D399' : '#059669'} strokeWidth={2.3} />
                 </View>
-                <View style={styles.blueprintTitleInfo}>
-                  <Text style={[styles.blueprintTitle, { color: colors.textPrimary }]}>
-                    Technical Strategy & Rich Schema Blueprint
-                  </Text>
-                  <Text style={[styles.blueprintSub, { color: colors.textSecondary }]}>
-                    Optimized for: <Text style={{ color: '#10B981', fontWeight: '700' }}>{brief.primaryKeyword}</Text> ({brief.searchIntent || intent} Intent)
+                <View style={styles.sectionHeaderInfo}>
+                  <View style={styles.sectionTitleTopRow}>
+                    <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                      Technical Blueprint
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setActiveTab('all')}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      style={[
+                        styles.cardCloseBtn,
+                        {
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                        },
+                      ]}
+                      accessibilityLabel="Back to Overview"
+                    >
+                      <X size={15} color={colors.textPrimary} />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
+                    Optimized for: <Text style={{ color: '#10B981', fontWeight: '700' }}>{brief.primaryKeyword}</Text> ({brief.searchIntent || intent})
                   </Text>
                 </View>
               </View>
 
-              {/* Title & Meta Preview */}
-              <View style={[styles.blueprintSubCard, { backgroundColor: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(248, 250, 252, 0.9)' }]}>
-                <Text style={[styles.subCardLabel, { color: colors.textMuted }]}>
-                  SUGGESTED HIGH-CTR TITLE TAGS
-                </Text>
-                {(brief.suggestedTitles || []).map((titleItem, i) => (
-                  <View key={`title-${i}`} style={styles.titleItemRow}>
-                    <View style={styles.titleNumDot}>
-                      <Text style={styles.titleNumText}>{i + 1}</Text>
-                    </View>
-                    <Text style={[styles.titleItemText, { color: colors.textPrimary }]}>
-                      {titleItem}
-                    </Text>
-                  </View>
-                ))}
-              </View>
+              <View style={styles.unifiedListContainer}>
+                  {/* 1. Suggested High-CTR Titles & Meta */}
+                  {(subCategoryFilter === 'all' || subCategoryFilter === 'titles') && (
+                    <>
+                      <View style={styles.blueprintBlock}>
+                        <Text style={[styles.subCardLabel, { color: colors.textMuted }]}>
+                          SUGGESTED HIGH-CTR TITLE TAGS
+                        </Text>
+                        {(brief.suggestedTitles || []).map((titleItem, i) => (
+                          <View key={`title-${i}`} style={styles.titleItemRow}>
+                            <View style={styles.titleNumDot}>
+                              <Text style={styles.titleNumText}>{i + 1}</Text>
+                            </View>
+                            <Text style={[styles.titleItemText, { color: colors.textPrimary }]}>
+                              {titleItem}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
 
-              {/* Meta Description */}
-              <View style={[styles.blueprintSubCard, { backgroundColor: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(248, 250, 252, 0.9)' }]}>
-                <View style={styles.metaTopRow}>
-                  <Text style={[styles.subCardLabel, { color: colors.textMuted }]}>
-                    META DESCRIPTION (155 CHARS)
-                  </Text>
-                  <View style={[styles.pillBadge, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                    <Text style={[styles.pillBadgeText, { color: '#10B981' }]}>
-                      SERP CTR Optimized
-                    </Text>
-                  </View>
-                </View>
-                <Text style={[styles.metaDescText, { color: colors.textSecondary }]}>
-                  {brief.metaDescription}
-                </Text>
-              </View>
+                      <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
 
-              {/* H2 / H3 Editorial Outline */}
-              <View style={[styles.blueprintSubCard, { backgroundColor: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(248, 250, 252, 0.9)' }]}>
-                <Text style={[styles.subCardLabel, { color: colors.textMuted }]}>
-                  EDITORIAL HEADING OUTLINE (H2 / H3)
-                </Text>
-                {(brief.headingOutline || []).map((heading, i) => (
-                  <View key={`heading-${i}`} style={styles.headingBlock}>
-                    <Text style={[styles.h2Text, { color: colors.textPrimary }]}>
-                      H2: {heading.h2}
-                    </Text>
-                    {(heading.h3s || []).map((h3, j) => (
-                      <Text key={`h3-${j}`} style={[styles.h3Text, { color: colors.textSecondary }]}>
-                        • H3: {h3}
-                      </Text>
-                    ))}
-                  </View>
-                ))}
-              </View>
-
-              {/* Internal Linking Blueprint */}
-              {brief.internalLinkingSuggestions && brief.internalLinkingSuggestions.length > 0 ? (
-                <View style={[styles.blueprintSubCard, { backgroundColor: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(248, 250, 252, 0.9)' }]}>
-                  <Text style={[styles.subCardLabel, { color: colors.textMuted }]}>
-                    INTERNAL LINKING BLUEPRINT
-                  </Text>
-                  <View style={styles.internalLinksList}>
-                    {brief.internalLinkingSuggestions.map((link, i) => {
-                      const text =
-                        typeof link === 'string'
-                          ? link
-                          : `${link.anchorText || 'Link'} → ${link.targetPage || '/features'}`;
-                      return (
-                        <View key={`link-${i}`} style={styles.internalLinkPill}>
-                          <Text style={[styles.internalLinkText, { color: colors.textPrimary }]}>
-                            {text}
+                      <View style={styles.blueprintBlock}>
+                        <View style={styles.metaTopRow}>
+                          <Text style={[styles.subCardLabel, { color: colors.textMuted }]}>
+                            META DESCRIPTION (155 CHARS)
+                          </Text>
+                          <View style={[styles.cleanPill, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
+                            <Text style={[styles.cleanPillText, { color: '#10B981' }]}>
+                              SERP CTR Optimized
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={[
+                            styles.cleanEvidenceQuote,
+                            {
+                              borderLeftColor: '#10B981',
+                              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+                              marginTop: 4,
+                            },
+                          ]}
+                        >
+                          <Text style={[styles.metaDescText, { color: colors.textPrimary }]}>
+                            {brief.metaDescription}
                           </Text>
                         </View>
-                      );
-                    })}
-                  </View>
-                </View>
-              ) : null}
+                      </View>
+                    </>
+                  )}
 
-              {/* Action Buttons: Schema Copy & Generate Full Article */}
-              <View style={styles.blueprintActionsRow}>
-                {brief.jsonLdSchema ? (
-                  <TouchableOpacity
-                    onPress={() => handleCopyText(brief.jsonLdSchema!, 'schema', 'Schema JSON-LD copied')}
-                    activeOpacity={0.7}
-                    style={[
-                      styles.actionOutlineBtn,
-                      { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' },
-                    ]}
-                  >
-                    {copiedKey === 'schema' ? (
-                      <Check size={14} color="#10B981" />
-                    ) : (
-                      <Copy size={14} color={colors.textPrimary} />
-                    )}
-                    <Text style={[styles.actionOutlineBtnText, { color: colors.textPrimary }]}>
-                      Copy JSON-LD Schema
-                    </Text>
-                  </TouchableOpacity>
-                ) : null}
+                  {/* 2. Heading Outline */}
+                  {(subCategoryFilter === 'all' || subCategoryFilter === 'outline') && (
+                    <>
+                      {subCategoryFilter === 'all' && (
+                        <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                      )}
+                      <View style={styles.blueprintBlock}>
+                        <Text style={[styles.subCardLabel, { color: colors.textMuted }]}>
+                          EDITORIAL HEADING OUTLINE (H2 / H3)
+                        </Text>
+                        {(brief.headingOutline || []).map((heading, i) => (
+                          <View key={`heading-${i}`} style={styles.headingBlock}>
+                            <Text style={[styles.h2Text, { color: colors.textPrimary }]}>
+                              H2: {heading.h2}
+                            </Text>
+                            {(heading.h3s || []).map((h3, j) => (
+                              <Text key={`h3-${j}`} style={[styles.h3Text, { color: colors.textSecondary }]}>
+                                • H3: {h3}
+                              </Text>
+                            ))}
+                          </View>
+                        ))}
+                      </View>
+                    </>
+                  )}
+
+                  {/* 3. Internal Links */}
+                  {(subCategoryFilter === 'all' || subCategoryFilter === 'links') && brief.internalLinkingSuggestions && brief.internalLinkingSuggestions.length > 0 ? (
+                    <>
+                      <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                      <View style={styles.blueprintBlock}>
+                        <Text style={[styles.subCardLabel, { color: colors.textMuted }]}>
+                          INTERNAL LINKING BLUEPRINT
+                        </Text>
+                        <View style={styles.internalLinksList}>
+                          {brief.internalLinkingSuggestions.map((link, i) => {
+                            const text =
+                              typeof link === 'string'
+                                ? link
+                                : `${link.anchorText || 'Link'} → ${link.targetPage || '/features'}`;
+                            return (
+                              <View key={`link-${i}`} style={[styles.cleanPill, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
+                                <Text style={[styles.cleanPillText, { color: '#10B981' }]}>
+                                  {text}
+                                </Text>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    </>
+                  ) : null}
+
+                  {/* 4. Action Buttons: Schema Copy & Generate Full Article */}
+                  {(subCategoryFilter === 'all' || subCategoryFilter === 'schema') && (
+                    <>
+                      <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                      <View style={styles.blueprintActionsRow}>
+                        {brief.jsonLdSchema ? (
+                          <TouchableOpacity
+                            onPress={() => handleCopyText(brief.jsonLdSchema!, 'schema', 'Schema JSON-LD copied')}
+                            activeOpacity={0.7}
+                            style={[
+                              styles.actionOutlineBtn,
+                              { borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' },
+                            ]}
+                          >
+                            {copiedKey === 'schema' ? (
+                              <Check size={14} color="#10B981" />
+                            ) : (
+                              <Copy size={14} color={colors.textPrimary} />
+                            )}
+                            <Text style={[styles.actionOutlineBtnText, { color: colors.textPrimary }]}>
+                              Copy JSON-LD Schema
+                            </Text>
+                          </TouchableOpacity>
+                        ) : null}
+
+                        <TouchableOpacity
+                          onPress={handleGenerateArticle}
+                          disabled={articleLoading}
+                          activeOpacity={0.8}
+                          style={styles.actionPrimaryBtn}
+                        >
+                          {articleLoading ? (
+                            <ActivityIndicator size="small" color="#FFFFFF" />
+                          ) : (
+                            <Sparkles size={14} color="#FFFFFF" />
+                          )}
+                          <Text style={styles.actionPrimaryBtnText}>
+                            {articleLoading ? 'Writing 1,500+ Word Article...' : 'Generate Full AI Blog Article'}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </>
+                  )}
+                </View>
 
                 <TouchableOpacity
-                  onPress={handleGenerateArticle}
-                  disabled={articleLoading}
-                  activeOpacity={0.8}
-                  style={styles.actionPrimaryBtn}
+                  onPress={() => setActiveTab('all')}
+                  style={styles.viewTabJumpBtn}
+                  activeOpacity={0.7}
                 >
-                  {articleLoading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Sparkles size={14} color="#FFFFFF" />
-                  )}
-                  <Text style={styles.actionPrimaryBtnText}>
-                    {articleLoading ? 'Writing 1,500+ Word Article...' : 'Generate Full AI Blog Article'}
+                  <Text style={[styles.viewTabJumpText, { color: '#10B981' }]}>
+                    ← Back to All Overview Sections
                   </Text>
                 </TouchableOpacity>
-              </View>
-            </GlassCard>
+              </GlassCard>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -1940,8 +2529,8 @@ Elevate your search authority with governed workflows designed for scalable exec
             <View style={[styles.modalHeader, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
               <View style={styles.modalTitleBlock}>
                 <View style={styles.articleBadgeRow}>
-                  <View style={[styles.pillBadge, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                    <Text style={[styles.pillBadgeText, { color: '#10B981' }]}>
+                  <View style={[styles.cleanPill, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
+                    <Text style={[styles.cleanPillText, { color: '#10B981' }]}>
                       {generatedArticle?.status || 'PUBLISHED DRAFT'}
                     </Text>
                   </View>
@@ -1981,7 +2570,7 @@ Elevate your search authority with governed workflows designed for scalable exec
                       style={[
                         styles.faqItem,
                         {
-                          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(248, 250, 252, 0.9)',
+                          backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
                           borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
                         },
                       ]}
@@ -2109,7 +2698,7 @@ Elevate your search authority with governed workflows designed for scalable exec
             {/* Repurpose Content Preview */}
             <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
               {activeRepurposeTab === 'linkedin' && (
-                <View style={styles.repurposeContentBox}>
+                <View style={[styles.repurposeContentBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}>
                   <Text style={[styles.repurposeText, { color: colors.textPrimary }]}>
                     {repurposedData?.linkedInPost}
                   </Text>
@@ -2124,7 +2713,7 @@ Elevate your search authority with governed workflows designed for scalable exec
                       style={[
                         styles.tweetItem,
                         {
-                          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(248, 250, 252, 0.9)',
+                          backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
                           borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
                         },
                       ]}
@@ -2136,7 +2725,7 @@ Elevate your search authority with governed workflows designed for scalable exec
               )}
 
               {activeRepurposeTab === 'newsletter' && (
-                <View style={styles.repurposeContentBox}>
+                <View style={[styles.repurposeContentBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }]}>
                   <Text style={[styles.repurposeText, { color: colors.textPrimary }]}>
                     {repurposedData?.newsletterEmail}
                   </Text>
@@ -2151,7 +2740,7 @@ Elevate your search authority with governed workflows designed for scalable exec
                       style={[
                         styles.slideItem,
                         {
-                          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(248, 250, 252, 0.9)',
+                          backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
                           borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
                         },
                       ]}
@@ -2209,25 +2798,93 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 14,
-    gap: 16,
+    gap: 14,
+    width: '100%',
+    maxWidth: 680,
+    alignSelf: 'center',
+  },
+
+  // Clean Section Card
+  cleanCard: {
+    padding: 16,
+    borderRadius: 16,
+    gap: 12,
+  },
+
+  // Compact Audit Engine Bar (low scroll)
+  compactEngineBar: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+  },
+  compactEngineContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  compactEngineLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  botIconWrapperSmall: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compactEngineDomainCol: {
+    flex: 1,
+    gap: 1,
+  },
+  compactEngineDomain: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  compactEngineSub: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  compactEngineActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  compactActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 7,
+  },
+  compactActionBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  compactRunBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 7,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // Hero Section
-  heroCard: {
-    padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
-    gap: 12,
-  },
   heroHeaderRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 12,
   },
   botIconWrapper: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 10,
     backgroundColor: '#10B981',
     alignItems: 'center',
     justifyContent: 'center',
@@ -2237,60 +2894,30 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   heroTitle: {
-    fontSize: FONT_SIZES.body,
-    fontWeight: '800',
-    lineHeight: LINE_HEIGHTS.body + 2,
+    fontSize: 16.5,
+    fontWeight: '700',
+    lineHeight: 22,
+    letterSpacing: -0.2,
   },
   heroSubtitle: {
-    fontSize: FONT_SIZES.caption,
+    fontSize: 12.5,
     fontWeight: '400',
-    lineHeight: LINE_HEIGHTS.caption + 2,
-  },
-  legendContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    paddingTop: 4,
-  },
-  legendPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 6,
-    borderWidth: 1,
-  },
-  legendDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  legendText: {
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.3,
+    lineHeight: 17,
   },
 
-  // Control Bar
-  controlCard: {
-    padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
-    gap: 12,
-  },
+  // Inputs
   inputGroup: {
-    gap: 6,
+    gap: 5,
   },
   inputLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
   },
   inputFieldWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
     paddingHorizontal: 12,
     height: 44,
@@ -2300,23 +2927,30 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    fontSize: FONT_SIZES.caption,
-    fontWeight: '600',
+    fontSize: 13.5,
+    fontWeight: '500',
     paddingVertical: 0,
   },
-  intentChipsRow: {
+  intentGrid: {
+    gap: 8,
+  },
+  intentGridRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
+    gap: 8,
   },
   intentChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    flex: 1,
+    paddingVertical: 9,
+    paddingHorizontal: 8,
     borderRadius: 8,
     borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   intentChipText: {
-    fontSize: 11,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   auditButton: {
     flexDirection: 'row',
@@ -2324,41 +2958,82 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     backgroundColor: '#10B981',
-    borderRadius: 12,
+    borderRadius: 10,
     height: 44,
     marginTop: 4,
     shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
     elevation: 3,
   },
   auditButtonText: {
     color: '#FFFFFF',
-    fontSize: FONT_SIZES.caption,
-    fontWeight: '800',
+    fontSize: 13.5,
+    fontWeight: '700',
   },
 
   // Tabs
+  subCatScrollWrapper: {
+    marginHorizontal: -16,
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  subCatScrollContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  subCatChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  subCatChipIcon: {
+    fontSize: 12,
+  },
+  subCatChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  subCatChipBadge: {
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+  },
+  subCatChipBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+  },
+
   tabsScrollWrapper: {
     marginHorizontal: -16,
   },
   tabsScrollContent: {
     paddingHorizontal: 16,
-    gap: 8,
+    gap: 6,
   },
   tabPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 12,
+    borderRadius: 10,
   },
   tabPillActive: {
     shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -2368,217 +3043,316 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   tabText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-
-  // Quick Wins
-  quickWinsCard: {
-    padding: 14,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
-    gap: 10,
-  },
-  quickWinsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  quickWinsTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flex: 1,
-  },
-  quickWinsHeading: {
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  quickWinsCountBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  quickWinsCountText: {
-    fontSize: 9,
-    fontWeight: '700',
-  },
-  quickWinItem: {
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 4,
-  },
-  quickWinItemTablet: {
-    flex: 1,
-    minWidth: 260,
-  },
-  quickWinTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  quickWinTerm: {
     fontSize: 12,
     fontWeight: '700',
-    flex: 1,
-    marginRight: 6,
-  },
-  posBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  posBadgeText: {
-    fontSize: 9,
-    fontWeight: '800',
-  },
-  quickWinMeta: {
-    fontSize: 10,
-    fontWeight: '500',
-  },
-  quickWinRec: {
-    fontSize: 10,
-    fontWeight: '500',
-    marginTop: 2,
   },
 
-  // Sections
-  sectionCard: {
-    padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
-    gap: 14,
-  },
-  sectionHeaderRow: {
+  // Expand / Collapse All Bar
+  expandCollapseRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+    marginTop: -2,
+    marginBottom: 2,
   },
-  sectionNumBadge: {
-    width: 24,
-    height: 24,
+  expandCollapseCount: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  expandCollapseBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    borderWidth: 1,
+  },
+  expandCollapseBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  // Section Headers
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  sectionIconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  sectionNumText: {
-    fontSize: 11,
-    fontWeight: '900',
-    color: '#10B981',
+    marginTop: 1,
   },
   sectionHeaderInfo: {
     flex: 1,
-    gap: 1,
+    gap: 3,
   },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  sectionSub: {
-    fontSize: 10,
-    fontWeight: '400',
-  },
-  countBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-  },
-  countBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-  },
-
-  // Items List
-  itemsList: {
-    gap: 10,
-  },
-  keywordItemCard: {
-    padding: 12,
-    borderRadius: 14,
-    gap: 6,
-  },
-  itemTopRow: {
+  sectionTitleTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 8,
   },
-  badgesWrapper: {
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    lineHeight: 24,
+    flex: 1,
+  },
+  sectionSub: {
+    fontSize: 12.5,
+    fontWeight: '400',
+    lineHeight: 17,
+  },
+  chevronWrap: {
+    padding: 2,
+  },
+  cardCloseBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewTabJumpBtn: {
+    paddingTop: 10,
+    paddingBottom: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewTabJumpText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  // Unified List Container & Rows (NO BOX-IN-BOX)
+  unifiedListContainer: {
+    gap: 0,
+  },
+
+  // Quick Wins (Matching New Clean UI Mockup)
+  qwCardItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 2,
+    gap: 10,
+    borderRadius: 10,
+  },
+  qwHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  qwBadgesLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+    flexShrink: 1,
+  },
+  qwBadgesRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    flexShrink: 0,
+  },
+  qwPosPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    flexShrink: 0,
+  },
+  qwPosText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+  },
+  qwRivalPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    flexShrink: 0,
+  },
+  qwEmoji: {
+    fontSize: 12,
+  },
+  qwRivalText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  qwUrlPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 14,
+    maxWidth: 130,
+  },
+  qwUrlText: {
+    fontSize: 11.5,
+    fontWeight: '500',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  qwMoreBtn: {
+    padding: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qwTitleText: {
+    fontSize: 15.5,
+    fontWeight: '800',
+    lineHeight: 22,
+    letterSpacing: -0.2,
+  },
+  qwActionBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  qwActionCombinedText: {
+    fontSize: 13,
+    lineHeight: 19,
+    flex: 1,
+  },
+  qwActionPrefix: {
+    fontWeight: '700',
+  },
+  qwActionBody: {
+    fontWeight: '400',
+  },
+  unifiedListItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    gap: 6,
+    borderRadius: 8,
+  },
+  hairlineDivider: {
+    height: StyleSheet.hairlineWidth,
+    width: '100%',
+    marginVertical: 4,
+  },
+  itemHeaderLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  tagWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
     flexWrap: 'wrap',
   },
-  pillBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 5,
-    borderWidth: 1,
-  },
-  pillBadgeText: {
-    fontSize: 9,
-    fontWeight: '800',
-  },
-  copyBtn: {
-    padding: 4,
+  itemPrimaryText: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    lineHeight: 21,
+    letterSpacing: -0.1,
+    flex: 1,
   },
   termTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 6,
+    gap: 8,
   },
-  termText: {
+  itemSubMeta: {
     fontSize: 12,
-    fontWeight: '800',
-    flex: 1,
+    fontWeight: '500',
+    lineHeight: 16,
   },
-  evidenceBox: {
-    padding: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginTop: 2,
-  },
-  evidenceSnippetText: {
-    fontSize: 10,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-  },
-  itemFooterRow: {
+  itemActionLine: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 6,
-    marginTop: 2,
-    borderTopWidth: 1,
+    gap: 6,
+    marginTop: 4,
   },
-  footerText: {
-    fontSize: 9,
+  itemActionText: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  cleanPill: {
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+    flexShrink: 0,
+  },
+  cleanPillText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  itemUrlSnippet: {
+    fontSize: 12,
     fontWeight: '500',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  cleanEvidenceQuote: {
+    borderLeftWidth: 3,
+    paddingLeft: 10,
+    paddingRight: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginVertical: 4,
+  },
+  cleanEvidenceText: {
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    lineHeight: 18,
+  },
+  fieldActionBtn: {
+    padding: 4,
+  },
+  gapReasonText: {
+    fontSize: 12.5,
+    lineHeight: 18,
+    fontWeight: '400',
   },
   emptyText: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '400',
     textAlign: 'center',
     paddingVertical: 14,
+    lineHeight: 18,
   },
 
   // Rankings
-  posPill: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 4,
+  rankRowContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  posPillText: {
+  rankNumberBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rankNumberText: {
     color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '800',
+    fontSize: 13.5,
+    fontWeight: '900',
   },
-  evidenceUrlText: {
-    fontSize: 10,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  rankDetailsCol: {
+    flex: 1,
+    gap: 3,
+  },
+  rankMetaLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
   },
   emptyRankContainer: {
     alignItems: 'center',
@@ -2586,236 +3360,63 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   emptyRankTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
   },
 
-  // Competitor Gaps
-  evidenceChainRow: {
+  // Competitor Metrics
+  compMetricsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginVertical: 1,
+    gap: 16,
+    marginTop: 4,
   },
-  evidenceLabel: {
-    fontSize: 10,
-  },
-  evidenceVal: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  gapReasonText: {
-    fontSize: 10,
-    lineHeight: 14,
-    fontWeight: '500',
-  },
-
-  // AI Opportunities
-  oppCard: {
-    padding: 12,
-    borderRadius: 14,
-    gap: 6,
-  },
-  oppCardTablet: {
-    flex: 1,
-    minWidth: 260,
-  },
-  oppTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  diffBadge: {
-    fontSize: 9,
-    fontWeight: '600',
-  },
-  oppTermText: {
+  compMetricText: {
     fontSize: 12,
-    fontWeight: '800',
-  },
-  oppWhyText: {
-    fontSize: 10,
-    lineHeight: 14,
-  },
-  oppActionBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 4,
-    paddingTop: 6,
-    marginTop: 2,
-    borderTopWidth: 1,
-  },
-  oppActionLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  oppActionText: {
-    fontSize: 10,
-    fontWeight: '600',
-    flex: 1,
-  },
-
-  // Competitors
-  compHeaderIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 8,
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  compCard: {
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 6,
-  },
-  compCardTablet: {
-    flex: 1,
-    minWidth: 260,
-  },
-  compTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  compDomainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flex: 1,
-  },
-  compDomainText: {
-    fontSize: 12,
-    fontWeight: '800',
-    flex: 1,
-  },
-  compWhyText: {
-    fontSize: 10,
-    lineHeight: 14,
-  },
-  compStatsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 6,
-    marginTop: 2,
-    borderTopWidth: 1,
-  },
-  compStatText: {
-    fontSize: 10,
   },
 
   // Clusters
-  clusterCard: {
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 8,
-  },
-  clusterCardTablet: {
-    flex: 1,
-    minWidth: 260,
-  },
-  clusterPillarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  clusterPillarText: {
-    fontSize: 12,
-    fontWeight: '800',
-    flex: 1,
-  },
-  clusterTargetPageText: {
-    fontSize: 10,
-    fontWeight: '500',
-  },
   clusterChipsWrapper: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
-  },
-  clusterChip: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 1,
-  },
-  clusterChipText: {
-    fontSize: 9,
-    fontWeight: '700',
-  },
-  clusterActionText: {
-    fontSize: 10,
-    fontWeight: '600',
+    gap: 5,
+    marginVertical: 3,
   },
 
-  // Blueprint & Schema
-  blueprintCard: {
-    padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
-    gap: 12,
-  },
-  blueprintHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  blueprintIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  blueprintTitleInfo: {
-    flex: 1,
-  },
-  blueprintTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  blueprintSub: {
-    fontSize: 10,
-    fontWeight: '500',
-    marginTop: 1,
-  },
-  blueprintSubCard: {
-    padding: 12,
-    borderRadius: 12,
+  // Blueprint & Schema (NO BOXES)
+  blueprintBlock: {
     gap: 8,
+    paddingVertical: 8,
   },
   subCardLabel: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   titleItemRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
+    gap: 10,
+    paddingVertical: 2,
   },
   titleNumDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: 'rgba(16, 185, 129, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2,
+    marginTop: 1,
   },
   titleNumText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '900',
     color: '#10B981',
   },
   titleItemText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 13.5,
+    fontWeight: '600',
+    lineHeight: 20,
     flex: 1,
   },
   metaTopRow: {
@@ -2824,24 +3425,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   metaDescText: {
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 13,
+    lineHeight: 19,
     fontWeight: '500',
   },
   headingBlock: {
-    borderLeftWidth: 2,
+    borderLeftWidth: 3,
     borderLeftColor: '#10B981',
-    paddingLeft: 8,
-    gap: 2,
-    marginBottom: 4,
+    paddingLeft: 10,
+    gap: 3,
+    marginBottom: 6,
   },
   h2Text: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: 13.5,
+    fontWeight: '700',
   },
   h3Text: {
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: 12.5,
+    lineHeight: 18,
     paddingLeft: 8,
   },
   internalLinksList: {
@@ -2849,33 +3450,23 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6,
   },
-  internalLinkPill: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  internalLinkText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
   blueprintActionsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    paddingTop: 4,
+    paddingTop: 8,
   },
   actionOutlineBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 9,
+    borderRadius: 8,
     borderWidth: 1,
   },
   actionOutlineBtnText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
   },
   actionPrimaryBtn: {
@@ -2886,41 +3477,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: 8,
     flex: 1,
     minWidth: 180,
   },
   actionPrimaryBtnText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
   },
 
   // Locked Card
   lockedCard: {
     padding: 24,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
   },
   lockedTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '800',
   },
   lockedSub: {
-    fontSize: 10,
+    fontSize: 12.5,
     textAlign: 'center',
-  },
-
-  // Responsive Grid
-  responsiveGrid: {
-    gap: 10,
-  },
-  responsiveGridTablet: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    lineHeight: 18,
   },
 
   // Modals
@@ -2931,8 +3513,11 @@ const styles = StyleSheet.create({
   },
   modalSheet: {
     maxHeight: '90%',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     paddingTop: 16,
     paddingHorizontal: 18,
   },
@@ -2954,13 +3539,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   articleMetaPill: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600',
   },
   modalSheetTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '800',
-    lineHeight: 18,
+    lineHeight: 22,
   },
   closeBtn: {
     padding: 4,
@@ -2969,31 +3554,31 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   articleBodyText: {
-    fontSize: 12,
-    lineHeight: 20,
+    fontSize: 13.5,
+    lineHeight: 22,
     fontWeight: '400',
   },
   faqSection: {
     marginTop: 20,
-    gap: 10,
+    gap: 8,
   },
   faqHeading: {
-    fontSize: 13,
+    fontSize: 14.5,
     fontWeight: '800',
   },
   faqItem: {
     padding: 10,
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: 1,
-    gap: 4,
+    gap: 3,
   },
   faqQ: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
   },
   faqA: {
-    fontSize: 10,
-    lineHeight: 15,
+    fontSize: 12.5,
+    lineHeight: 18,
   },
   modalActionsRow: {
     flexDirection: 'row',
@@ -3006,13 +3591,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 11,
+    paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
   },
   modalActionBtnText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
   },
   modalActionBtnPrimary: {
@@ -3022,13 +3607,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     backgroundColor: '#10B981',
-    paddingVertical: 11,
+    paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 12,
+    borderRadius: 10,
   },
   modalActionBtnPrimaryText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
   },
 
@@ -3040,50 +3625,50 @@ const styles = StyleSheet.create({
   },
   repurposeTabBtn: {
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingVertical: 5,
+    borderRadius: 7,
   },
   repurposeTabText: {
-    fontSize: 10,
+    fontSize: 12,
   },
   repurposeContentBox: {
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: 'rgba(15, 23, 42, 0.04)',
+    padding: 12,
+    borderRadius: 10,
   },
   repurposeText: {
-    fontSize: 11,
-    lineHeight: 18,
+    fontSize: 13,
+    lineHeight: 20,
     fontWeight: '500',
   },
   threadContainer: {
-    gap: 8,
+    gap: 6,
   },
   tweetItem: {
-    padding: 12,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
   },
   tweetText: {
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 13,
+    lineHeight: 19,
   },
   slideItem: {
-    padding: 12,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
     gap: 2,
   },
   slideNumber: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
   },
   slideTitle: {
-    fontSize: 12,
+    fontSize: 13.5,
     fontWeight: '700',
   },
   slideSubtitle: {
-    fontSize: 10,
+    fontSize: 12,
+    lineHeight: 17,
   },
 
   // Floating Toast
@@ -3099,8 +3684,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 24,
+    paddingVertical: 9,
+    borderRadius: 20,
     borderWidth: 1,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
@@ -3113,4 +3698,30 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
+  directoryRowItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  directoryInfoCol: {
+    flex: 1,
+    gap: 2,
+  },
+  directoryRowTitle: {
+    fontSize: FONT_SIZES.body,
+    fontWeight: '700',
+    lineHeight: LINE_HEIGHTS.body,
+  },
+  directoryRowSub: {
+    fontSize: FONT_SIZES.caption,
+    fontWeight: '400',
+    lineHeight: LINE_HEIGHTS.caption,
+  },
+  directoryRightCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 });
+

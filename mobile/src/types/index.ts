@@ -42,6 +42,8 @@ export interface Workspace {
   restrictedClaims?: string[];
   subscriptionTier?: string;
   userEmail?: string;
+  companyDescription?: string;
+  currentStrategy?: any;
   profile?: {
     website?: string;
     logoUrl?: string;
@@ -96,24 +98,124 @@ export interface GeneratedVisual {
 
 export interface StrategyCard {
   id: string;
-  phase: string;
+  phase?: string;
+  title?: string;
+  objective?: string;
+  tactics?: string[];
+  channels?: string[];
+  budget?: string;
+  kpis?: string[];
+  timeframe?: string;
+  day?: number;
+  week?: number;
+  platform?: string;
+  pillar?: string;
+  topic?: string;
+  actionItem?: string;
+  action?: string;
+  status?: string;
+  gtmStage?: string;
+  geoTarget?: string;
+  seoKeywords?: string;
+}
+
+export interface CustomStrategyPost {
+  day: number;
+  week: number;
+  weekTag: string;
+  weekName?: string;
+  platform: string;
+  format: string;
   title: string;
-  objective: string;
-  tactics: string[];
-  channels: string[];
-  budget: string;
-  kpis: string[];
-  timeframe: string;
+  visualDirective: string;
+  hook: string;
+  caption: string;
+  cta: string;
+  hashtags: string;
+}
+
+export interface CustomImageBrief {
+  id: string;
+  imageUrl?: string | null;
+  fileName?: string;
+  fileSize?: string;
+  directive?: string;
+  timestamp: string;
+}
+
+export interface CustomStrategy {
+  id: string;
+  imagePreviewUrl?: string | null;
+  fileName?: string;
+  directive: string;
+  timestamp: string;
+  engine?: string;
+  posts: CustomStrategyPost[];
+}
+
+export interface ChannelMixItem {
+  label: string;
+  pct: number;
+  icon: string;
+}
+
+export interface GtmStrategy {
+  idealCustomerProfile?: string;
+  launchPhases?: Array<{ phase: string; title: string; focus: string; duration: string }>;
+  keyMilestones?: string[];
+  beachheadSegment?: string;
+}
+
+export interface SeoStrategy {
+  highIntentKeywords?: string[];
+  longTailKeywords?: string[];
+  searchIntentMix?: Array<{ intent: string; percentage: number; description: string }>;
+  onPageDirectives?: string;
+}
+
+export interface GeoStrategy {
+  priorityRegions?: string[];
+  regionalHooks?: Array<{ region: string; hook: string }>;
+  geoDistributionTactics?: string;
+}
+
+export interface StrategyData {
+  businessGoal?: string;
+  leadMagnet?: string;
+  primaryCta?: string;
+  postingFrequency?: string;
+  budgetSuggestions?: string;
+  bestPlatforms?: string[];
+  contentPillars?: string[];
+  campaignIdeas?: Array<{ title: string; desc?: string; description?: string }>;
+  thirtyDayPlan?: StrategyCard[];
+  funnel?: {
+    awareness: string;
+    nurturing: string;
+    conversion: string;
+  };
+  audience?: string[];
+  channelMix?: ChannelMixItem[];
+  gtmStrategy?: GtmStrategy;
+  seoStrategy?: SeoStrategy;
+  geoStrategy?: GeoStrategy;
+  customImageBriefs?: CustomImageBrief[];
+  customStrategy?: CustomStrategy;
+  activeStrategyType?: 'campaign' | 'custom' | 'aiBrand';
+  campaignName?: string;
+  campaignId?: string;
+  posts?: CustomStrategyPost[];
 }
 
 export interface MarketingStrategy {
   workspaceId: string;
   brandName: string;
-  roadmapTitle: string;
-  overview: string;
-  cards: StrategyCard[];
-  phases: string[];
-  generatedAt: string;
+  roadmapTitle?: string;
+  overview?: string;
+  cards?: StrategyCard[];
+  phases?: string[];
+  generatedAt?: string;
+  data?: StrategyData;
 }
 
 export interface KeywordCluster {
@@ -179,6 +281,64 @@ export interface AnalyticsSummary {
   contentVelocity?: number;
   creditsBalance?: number;
 }
+
+export interface Campaign {
+  _id?: string;
+  id?: string;
+  workspaceId: string;
+  campaignName: string;
+  campaignGoal: string;
+  campaignMonth?: string;
+  startDate: string;
+  endDate: string;
+  postingFrequency: string;
+  platforms: string[];
+  budget?: number;
+  currency?: string;
+  targetAudience?: string;
+  status: 'Draft' | 'Active' | 'Paused' | 'Completed' | 'Archived';
+  aiGeneratedStrategy?: any;
+  totalPosts?: number;
+  generatedPosts?: number;
+  approvedPosts?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CampaignPost {
+  _id?: string;
+  id?: string;
+  campaignId: string;
+  workspaceId: string;
+  date: string;
+  day: string;
+  platform: string;
+  contentType: string;
+  campaignStage: string;
+  postObjective: string;
+  prompt?: string;
+  postType?: string;
+  carouselImages?: number;
+  postFor?: string;
+  imagePrompt?: string;
+  captionPrompt?: string;
+  caption?: string;
+  hashtags?: string[];
+  cta?: string;
+  generatedImage?: string | null;
+  generatedImages?: string[];
+  status: 'Draft' | 'Generated' | 'Approved' | 'Scheduled' | 'Published' | 'Failed';
+  aiScore?: number;
+  expectedReach?: number;
+  expectedEngagement?: number;
+  bestPostingTime?: string;
+  approvalStatus?: 'Pending' | 'Approved' | 'Rejected';
+  notes?: string;
+  scheduledAt?: string;
+  publishedAt?: string;
+  imageUrl?: string;
+}
+
 
 export type {
   ProvenanceInfo,

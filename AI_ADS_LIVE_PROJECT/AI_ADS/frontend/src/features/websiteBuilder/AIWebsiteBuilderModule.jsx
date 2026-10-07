@@ -524,7 +524,7 @@ export const AIWebsiteBuilderModule = () => {
   if (builderState === 'FAILED') {
     return (
       <div className="flex h-screen w-screen bg-[#F8F9FD] dark:bg-[#070A11] items-center justify-center p-4">
-        <div className="max-w-md w-full p-8 accent-card rounded-3xl bg-white dark:bg-slate-900 text-center space-y-4 shadow-xl">
+        <div className="max-w-md w-full p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-pink-500 text-center space-y-4 shadow-xl">
           <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 border border-rose-500/20 flex items-center justify-center mx-auto">
             <RefreshCw className="w-6 h-6 animate-spin" />
           </div>
@@ -705,7 +705,7 @@ export const AIWebsiteBuilderModule = () => {
                       Manage global images, logos, icons, and theme fonts for your generated websites.
                     </p>
                   </div>
-                  <div className="p-8 accent-card rounded-3xl bg-white dark:bg-slate-900 text-center space-y-3 shadow-sm">
+                  <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-pink-500 text-center space-y-3 shadow-sm">
                     <ImageIcon className="w-10 h-10 text-slate-400 mx-auto" />
                     <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Brand Assets Synchronized</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
@@ -724,7 +724,7 @@ export const AIWebsiteBuilderModule = () => {
                       Customize your workspace branding, default typography, color themes, and voice tones.
                     </p>
                   </div>
-                  <div className="p-6 accent-card rounded-3xl bg-white dark:bg-slate-900 space-y-4 shadow-sm">
+                  <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-pink-500 space-y-4 shadow-sm">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Current Workspace Brand</span>
@@ -754,7 +754,7 @@ export const AIWebsiteBuilderModule = () => {
                       Export, deploy, and host your generated websites with zero configuration.
                     </p>
                   </div>
-                  <div className="p-6 accent-card rounded-3xl bg-white dark:bg-slate-900 space-y-3 shadow-sm">
+                  <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-pink-500 space-y-3 shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                         <CheckCircle2 className="w-5 h-5" />

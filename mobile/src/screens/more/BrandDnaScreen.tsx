@@ -41,6 +41,12 @@ import {
   X,
   ExternalLink,
   ChevronRight,
+  Building2,
+  Briefcase,
+  MapPin,
+  Quote,
+  Mail,
+  Eye,
 } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -362,7 +368,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       setSavedMsg('Brand Profile saved! Redirecting to Campaign Strategy...');
       setTimeout(() => {
         setSavedMsg('');
-        navigation.navigate('Strategy', { screen: 'Campaigns' });
+        navigation.navigate('More', { screen: 'Campaigns' });
       }, 900);
     } catch (err: any) {
       setError(err.message || 'Failed to save Brand Profile');
@@ -536,22 +542,62 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header Banner */}
-        <GlassCard style={styles.headerBannerCard} variant="raised">
-          <View style={styles.bannerRow}>
-            <LinearGradient
-              colors={['#D97706', '#F59E0B']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.bannerIconBox}
+        {/* ── UNIFIED BRAND HERO CARD (Combines Identity & Actions) ── */}
+        <GlassCard style={styles.heroCard} variant="raised">
+          <View style={styles.heroTopRow}>
+            {/* Logo Avatar (Tap to Zoom) */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setShowLogoModal(true)}
+              style={styles.heroLogoWrap}
             >
-              <Dna size={18} color="#FFFFFF" />
-            </LinearGradient>
-            <View style={styles.bannerTextCol}>
-              <Text style={[styles.bannerTitle, { color: colors.textPrimary }]}>
-                Brand Intelligence & Brand DNA
-              </Text>
-              <Text style={[styles.bannerSubtitle, { color: colors.textSecondary }]}>
+              <Image
+                source={{ uri: resolvedLogoUrl }}
+                style={styles.heroLogoImage as any}
+                resizeMode="contain"
+              />
+              <View style={styles.heroLogoZoomBadge}>
+                <Maximize2 size={10} color="#FFFFFF" />
+              </View>
+            </TouchableOpacity>
+
+            {/* Brand Title & Details */}
+            <View style={styles.heroTitleCol}>
+              <View style={styles.heroNameRow}>
+                <Text style={[styles.heroBrandName, { color: colors.textPrimary }]} numberOfLines={1}>
+                  {effectiveProfile.companyName || activeWorkspace?.brandName || 'Your Brand'}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => toggleEdit('identity')}
+                  style={[styles.heroEditBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}
+                >
+                  {editState['identity'] ? (
+                    <Check size={13} color="#10B981" />
+                  ) : (
+                    <Edit3 size={13} color={colors.textSecondary} />
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {effectiveProfile.website ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    const url = effectiveProfile.website.startsWith('http')
+                      ? effectiveProfile.website
+                      : `https://${effectiveProfile.website}`;
+                    Linking.openURL(url).catch(() => {});
+                  }}
+                  style={styles.heroWebsiteRow}
+                >
+                  <Globe size={11} color="#10B981" />
+                  <Text style={styles.heroWebsiteText} numberOfLines={1}>
+                    {effectiveProfile.website}
+                  </Text>
+                  <ExternalLink size={9} color="#10B981" />
+                </TouchableOpacity>
+              ) : null}
+
+              <Text style={[styles.heroBrandSubtitle, { color: colors.textSecondary }]} numberOfLines={2}>
                 Immutable brand memory governing voice, positioning, and content rules for{' '}
                 <Text style={{ color: '#F59E0B', fontWeight: '700' }}>
                   {effectiveProfile.companyName || activeWorkspace?.brandName || 'your brand'}
@@ -560,26 +606,83 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
             </View>
           </View>
 
-          {/* Banner Action Buttons */}
-          <View style={styles.bannerActionsRow}>
+          {/* Identity Edit Panel (Shown when editing) */}
+          {editState['identity'] && (
+            <View style={[styles.heroEditInputsBox, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
+              <Text style={[styles.inputFieldLabel, { color: colors.textSecondary }]}>Company Name</Text>
+              <TextInput
+                value={effectiveProfile.companyName}
+                onChangeText={(text) => handleFieldChangeLocal('companyName', text)}
+                placeholder="Company Name..."
+                placeholderTextColor={colors.textMuted}
+                style={[styles.cleanInput, { color: colors.textPrimary }]}
+              />
+
+              <Text style={[styles.inputFieldLabel, { color: colors.textSecondary }]}>Website URL</Text>
+              <TextInput
+                value={effectiveProfile.website || effectiveProfile.domainUrl}
+                onChangeText={(text) => handleFieldChangeLocal('website', text)}
+                placeholder="https://yourbrand.com"
+                placeholderTextColor={colors.textMuted}
+                style={[styles.cleanInput, { color: '#F59E0B' }]}
+              />
+
+              <TouchableOpacity
+                onPress={() => setShowLogoInput((prev) => !prev)}
+                style={[styles.toggleLogoUrlBtn, { borderColor: 'rgba(245,158,11,0.3)' }]}
+              >
+                <ImageIcon size={13} color="#F59E0B" />
+                <Text style={styles.toggleLogoUrlBtnText}>
+                  {showLogoInput ? 'Hide Logo URL Input' : 'Update Brand Logo URL'}
+                </Text>
+              </TouchableOpacity>
+
+              {showLogoInput && (
+                <View style={styles.logoInputRow}>
+                  <TextInput
+                    value={logoUrlInput}
+                    onChangeText={setLogoUrlInput}
+                    placeholder="Paste direct image URL..."
+                    placeholderTextColor={colors.textMuted}
+                    style={[styles.cleanInput, { flex: 1, color: colors.textPrimary }]}
+                  />
+                  <TouchableOpacity
+                    onPress={async () => {
+                      if (!logoUrlInput.trim()) return;
+                      handleFieldChangeLocal('logoUrl', logoUrlInput.trim());
+                      await updateProfileField('logoUrl', logoUrlInput.trim());
+                      setLogoUrlInput('');
+                      setShowLogoInput(false);
+                    }}
+                    style={styles.logoApplyBtn}
+                  >
+                    <Text style={styles.logoApplyBtnText}>Apply</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Hero Action Buttons */}
+          <View style={styles.heroActionsRow}>
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={handleRunAiAnalysis}
               disabled={analyzing}
-              style={[styles.analysisBtn, analyzing && { opacity: 0.6 }]}
+              style={[styles.heroAnalysisBtn, analyzing && { opacity: 0.6 }]}
             >
               <LinearGradient
                 colors={['#D97706', '#F59E0B']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={styles.analysisBtnGrad}
+                style={styles.heroAnalysisBtnGrad}
               >
                 {analyzing ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <Sparkles size={13} color="#FFFFFF" />
                 )}
-                <Text style={styles.analysisBtnText}>
+                <Text style={styles.heroAnalysisBtnText}>
                   {analyzing ? 'Analyzing...' : 'Run Deep AI Analysis'}
                 </Text>
               </LinearGradient>
@@ -589,20 +692,20 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               activeOpacity={0.8}
               onPress={handleSaveProfile}
               disabled={saving}
-              style={styles.saveProfileBtn}
+              style={styles.heroSaveBtn}
             >
               <LinearGradient
                 colors={['#D97706', '#F59E0B']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={styles.saveProfileBtnGrad}
+                style={styles.heroSaveBtnGrad}
               >
                 {saving ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <Save size={13} color="#FFFFFF" />
                 )}
-                <Text style={styles.saveProfileBtnText}>Save Profile</Text>
+                <Text style={styles.heroSaveBtnText}>Save Profile</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -634,498 +737,429 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           </View>
         ) : (
           <>
-            {/* ── CARD 1: Brand Identity ── */}
-            <GlassCard style={styles.sectionCard} variant="raised">
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.cardTitleBox}>
-                  <View style={[styles.cardHeaderIconBox, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
-                    <Globe size={12} color="#F59E0B" />
+
+            {/* ── SECTION 1: THEME COLOR PALETTE (Clean Swatches, No Box Clutter) ── */}
+            <GlassCard style={styles.cleanCard} variant="raised">
+              <View style={styles.sectionHeaderRow}>
+                <View style={styles.sectionTitleBox}>
+                  <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
+                    <Palette size={14} color="#F59E0B" />
                   </View>
-                  <Text style={[styles.cardHeaderTitle, { color: colors.textPrimary }]}>
-                    Brand Identity
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => toggleEdit('identity')}
-                  style={[styles.editIconButton, { backgroundColor: isDark ? '#1F2532' : '#E2E8F0' }]}
-                >
-                  {editState['identity'] ? (
-                    <Check size={12} color="#10B981" />
-                  ) : (
-                    <Edit3 size={12} color={colors.textSecondary} />
-                  )}
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.identityInnerBox}>
-                <View style={styles.identityRow}>
-                  {/* Logo Squircle (Tap to Zoom) */}
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => setShowLogoModal(true)}
-                    style={styles.logoSquircle}
-                  >
-                    <Image
-                      source={{ uri: resolvedLogoUrl }}
-                      style={styles.logoImage as any}
-                      resizeMode="contain"
-                    />
-                    <View style={styles.logoZoomOverlay}>
-                      <Maximize2 size={9} color="#FFFFFF" />
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* Company Name & Domain */}
-                  <View style={styles.identityDetailsCol}>
-                    {editState['identity'] ? (
-                      <View style={styles.identityInputsCol}>
-                        <TextInput
-                          value={effectiveProfile.companyName}
-                          onChangeText={(text) => handleFieldChangeLocal('companyName', text)}
-                          placeholder="Company Name..."
-                          placeholderTextColor={colors.textMuted}
-                          style={[styles.inlineInput, { color: colors.textPrimary, borderColor: '#F59E0B' }]}
-                        />
-                        <TextInput
-                          value={effectiveProfile.website || effectiveProfile.domainUrl}
-                          onChangeText={(text) => handleFieldChangeLocal('website', text)}
-                          placeholder="https://yourbrand.com"
-                          placeholderTextColor={colors.textMuted}
-                          style={[styles.inlineInput, { color: '#F59E0B', borderColor: '#F59E0B' }]}
-                        />
-                      </View>
-                    ) : (
-                      <>
-                        <Text style={[styles.identityCompanyName, { color: colors.textPrimary }]}>
-                          {effectiveProfile.companyName}
-                        </Text>
-                        {effectiveProfile.website ? (
-                          <TouchableOpacity
-                            onPress={() => {
-                              const url = effectiveProfile.website.startsWith('http')
-                                ? effectiveProfile.website
-                                : `https://${effectiveProfile.website}`;
-                              Linking.openURL(url).catch(() => {});
-                            }}
-                            style={styles.websiteLinkRow}
-                          >
-                            <Globe size={11} color="#10B981" />
-                            <Text style={styles.websiteLinkText} numberOfLines={1}>
-                              {effectiveProfile.website}
-                            </Text>
-                            <ExternalLink size={9} color="#10B981" />
-                          </TouchableOpacity>
-                        ) : null}
-                      </>
-                    )}
-                  </View>
-                </View>
-
-                {/* Edit Mode: Logo URL Input Panel */}
-                {editState['identity'] && (
-                  <View style={styles.logoEditPanel}>
-                    <TouchableOpacity
-                      onPress={() => setShowLogoInput((prev) => !prev)}
-                      style={[styles.toggleLogoInputBtn, { borderColor: 'rgba(245,158,11,0.4)' }]}
-                    >
-                      <ImageIcon size={13} color="#F59E0B" />
-                      <Text style={styles.toggleLogoInputBtnText}>
-                        {showLogoInput ? 'Hide Logo URL Input' : 'Change Brand Logo URL'}
-                      </Text>
-                    </TouchableOpacity>
-
-                    {showLogoInput && (
-                      <View style={styles.logoInputRow}>
-                        <TextInput
-                          value={logoUrlInput}
-                          onChangeText={setLogoUrlInput}
-                          placeholder="Paste image URL..."
-                          placeholderTextColor={colors.textMuted}
-                          style={[styles.logoUrlInput, { color: colors.textPrimary }]}
-                        />
-                        <TouchableOpacity
-                          onPress={async () => {
-                            if (!logoUrlInput.trim()) return;
-                            handleFieldChangeLocal('logoUrl', logoUrlInput.trim());
-                            await updateProfileField('logoUrl', logoUrlInput.trim());
-                            setLogoUrlInput('');
-                            setShowLogoInput(false);
-                          }}
-                          style={styles.logoApplyBtn}
-                        >
-                          <Text style={styles.logoApplyBtnText}>Apply</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </View>
-                )}
-              </View>
-            </GlassCard>
-
-            {/* ── CARD 2: Theme Color Palette ── */}
-            <GlassCard style={styles.sectionCard} variant="raised">
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.cardTitleBox}>
-                  <View style={[styles.cardHeaderIconBox, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
-                    <Palette size={12} color="#F59E0B" />
-                  </View>
-                  <Text style={[styles.cardHeaderTitle, { color: colors.textPrimary }]}>
+                  <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
                     Theme Color Palette
                   </Text>
                 </View>
 
-                <View style={styles.paletteHeaderActions}>
-                  <Badge
-                    label={`${effectiveProfile.brandColors.length} Fetched`}
-                    variant="warning"
-                  />
-                  <TouchableOpacity
-                    onPress={toggleEditBrandColors}
-                    style={[styles.editIconButton, { backgroundColor: isDark ? '#1F2532' : '#E2E8F0' }]}
-                  >
-                    {editState['brandColors'] ? (
-                      <Check size={12} color="#10B981" />
-                    ) : (
-                      <Edit3 size={12} color={colors.textSecondary} />
-                    )}
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  onPress={toggleEditBrandColors}
+                  style={[styles.cleanEditBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  {editState['brandColors'] ? (
+                    <Check size={13} color="#10B981" />
+                  ) : (
+                    <Edit3 size={13} color={colors.textSecondary} />
+                  )}
+                </TouchableOpacity>
               </View>
 
-              {/* Swatch Grid */}
-              <View style={styles.colorSwatchesGrid}>
+              {/* Palette List (Clean vertical-aligned cards, no text wrapping) */}
+              <View style={styles.paletteContainer}>
                 {(() => {
                   const isEditingColors = editState['brandColors'];
                   const rawList = isEditingColors && colorDrafts
                     ? colorDrafts
                     : effectiveProfile.brandColors;
 
-                  return rawList.map((hex, idx) => {
-                    const colorLabel =
-                      idx === 0
-                        ? 'Primary'
-                        : idx === 1
-                        ? 'Secondary'
-                        : idx === 2
-                        ? 'Accent'
-                        : idx === 3
-                        ? 'Neutral'
-                        : `#${idx + 1}`;
-                    const isCopied = copiedColor === hex;
+                  return (
+                    <View style={styles.paletteWrap}>
+                      {rawList.map((hex, idx) => {
+                        const colorLabel =
+                          idx === 0
+                            ? 'Primary'
+                            : idx === 1
+                            ? 'Secondary'
+                            : idx === 2
+                            ? 'Accent'
+                            : idx === 3
+                            ? 'Neutral'
+                            : `#${idx + 1}`;
+                        const isCopied = copiedColor === hex;
 
-                    return (
-                      <View
-                        key={idx}
-                        style={[
-                          styles.colorSwatchCard,
-                          {
-                            backgroundColor: isDark ? '#11151D' : '#DFE5EF',
-                            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-                          },
-                        ]}
-                      >
-                        <TouchableOpacity
-                          activeOpacity={0.8}
-                          onPress={() => !isEditingColors && handleCopyColor(hex)}
-                          style={[styles.swatchColorBar, { backgroundColor: hex || '#F59E0B' }]}
-                        >
-                          {isCopied ? (
-                            <View style={styles.copiedBadge}>
-                              <Check size={8} color="#10B981" />
-                              <Text style={styles.copiedBadgeText}>Copied</Text>
-                            </View>
-                          ) : (
-                            <View style={styles.copyIconBadge}>
-                              <Copy size={9} color="#FFFFFF" />
-                            </View>
-                          )}
-                        </TouchableOpacity>
+                        return (
+                          <TouchableOpacity
+                            key={idx}
+                            activeOpacity={isEditingColors ? 1 : 0.75}
+                            onPress={() => !isEditingColors && handleCopyColor(hex)}
+                            style={[
+                              styles.colorCard,
+                              {
+                                backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                                borderColor: isCopied ? '#10B981' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                              },
+                            ]}
+                          >
+                            {/* Color Dot Swatch */}
+                            <View style={[styles.colorDot, { backgroundColor: hex || '#F59E0B' }]} />
 
-                        <Text style={[styles.swatchLabel, { color: colors.textMuted }]}>
-                          {colorLabel}
-                        </Text>
+                            {/* Role Label */}
+                            <Text
+                              style={[styles.colorRoleText, { color: colors.textSecondary }]}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {colorLabel}
+                            </Text>
 
-                        {isEditingColors ? (
-                          <TextInput
-                            value={hex}
-                            onChangeText={(text) => handleColorDraftChange(idx, text)}
-                            placeholder="#000000"
-                            placeholderTextColor={colors.textMuted}
-                            style={[styles.hexInput, { color: colors.textPrimary }]}
-                          />
-                        ) : (
-                          <Text style={[styles.hexText, { color: colors.textPrimary }]}>
-                            {hex}
-                          </Text>
-                        )}
-                      </View>
-                    );
-                  });
+                            {/* Hex Code (or Input if editing) */}
+                            {isEditingColors ? (
+                              <TextInput
+                                value={hex}
+                                onChangeText={(text) => handleColorDraftChange(idx, text)}
+                                placeholder="#000000"
+                                placeholderTextColor={colors.textMuted}
+                                style={[styles.colorHexInput, { color: colors.textPrimary }]}
+                                autoCapitalize="characters"
+                              />
+                            ) : (
+                              <Text
+                                style={[styles.colorHexText, { color: colors.textPrimary }]}
+                                numberOfLines={1}
+                              >
+                                {hex}
+                              </Text>
+                            )}
+
+                            {/* Copy Action Indicator */}
+                            {!isEditingColors && (
+                              <View
+                                style={[
+                                  styles.colorCopyPill,
+                                  {
+                                    backgroundColor: isCopied
+                                      ? 'rgba(16,185,129,0.14)'
+                                      : isDark
+                                      ? 'rgba(255,255,255,0.06)'
+                                      : 'rgba(0,0,0,0.04)',
+                                  },
+                                ]}
+                              >
+                                {isCopied ? (
+                                  <>
+                                    <Check size={9} color="#10B981" />
+                                    <Text style={styles.colorCopiedText}>Copied</Text>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy size={9} color={colors.textMuted} />
+                                    <Text style={[styles.colorCopyText, { color: colors.textMuted }]}>
+                                      Copy
+                                    </Text>
+                                  </>
+                                )}
+                              </View>
+                            )}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  );
                 })()}
               </View>
             </GlassCard>
 
-            {/* ── CARD 3: Quick Attributes (2x2 Grid) ── */}
-            <View style={styles.attributesGrid}>
-              {/* Industry */}
-              <GlassCard style={styles.attributeCard} variant="raised">
-                <View style={styles.attributeHeaderRow}>
-                  <View style={styles.attrHeaderTitleBox}>
-                    <BarChart2 size={12} color="#F59E0B" />
-                    <Text style={[styles.attrTitle, { color: colors.textPrimary }]}>Industry</Text>
+            {/* ── SECTION 2: BRAND OVERVIEW (Unified List with Hairlines, No 2x2 Box Clutter) ── */}
+            <GlassCard style={styles.cleanCard} variant="raised">
+              <View style={styles.sectionHeaderRow}>
+                <View style={styles.sectionTitleBox}>
+                  <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
+                    <Building2 size={14} color="#F59E0B" />
                   </View>
-                  <TouchableOpacity
-                    onPress={() => toggleEdit('industryCategory')}
-                    style={styles.attrEditBtn}
-                  >
+                  <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
+                    Brand Overview
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.unifiedListContainer}>
+                {/* Row 1: Industry */}
+                <View style={styles.unifiedRow}>
+                  <View style={styles.unifiedRowLeft}>
+                    <View style={styles.unifiedFieldIconBox}>
+                      <Briefcase size={13} color="#F59E0B" />
+                    </View>
+                    <Text style={[styles.unifiedFieldLabel, { color: colors.textSecondary }]}>Industry</Text>
+                  </View>
+                  <View style={styles.unifiedRowRight}>
                     {editState['industryCategory'] ? (
-                      <Check size={11} color="#10B981" />
+                      <TextInput
+                        value={effectiveProfile.industryCategory || ''}
+                        onChangeText={(text) => handleFieldChangeLocal('industryCategory', text)}
+                        placeholder="Industry..."
+                        placeholderTextColor={colors.textMuted}
+                        style={[styles.unifiedInput, { color: colors.textPrimary }]}
+                      />
                     ) : (
-                      <Edit3 size={11} color={colors.textMuted} />
+                      <Text style={[styles.unifiedFieldValue, { color: colors.textPrimary }]} numberOfLines={2}>
+                        {effectiveProfile.industryCategory || 'Not specified'}
+                      </Text>
                     )}
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => toggleEdit('industryCategory')}
+                      style={styles.fieldActionBtn}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      {editState['industryCategory'] ? (
+                        <Check size={12} color="#10B981" />
+                      ) : (
+                        <Edit3 size={12} color={colors.textMuted} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
-                {editState['industryCategory'] ? (
-                  <TextInput
-                    value={effectiveProfile.industryCategory || ''}
-                    onChangeText={(text) => handleFieldChangeLocal('industryCategory', text)}
-                    placeholder="Enter industry..."
-                    placeholderTextColor={colors.textMuted}
-                    style={[styles.attrInput, { color: colors.textPrimary }]}
-                  />
-                ) : (
-                  <Text style={[styles.attrValueText, { color: colors.textPrimary }]} numberOfLines={2}>
-                    {effectiveProfile.industryCategory || 'Not specified'}
-                  </Text>
-                )}
-              </GlassCard>
+                <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
 
-              {/* Headquarters */}
-              <GlassCard style={styles.attributeCard} variant="raised">
-                <View style={styles.attributeHeaderRow}>
-                  <View style={styles.attrHeaderTitleBox}>
-                    <Compass size={12} color="#F59E0B" />
-                    <Text style={[styles.attrTitle, { color: colors.textPrimary }]}>
-                      Headquarters
-                    </Text>
+                {/* Row 2: Headquarters */}
+                <View style={styles.unifiedRow}>
+                  <View style={styles.unifiedRowLeft}>
+                    <View style={styles.unifiedFieldIconBox}>
+                      <MapPin size={13} color="#F59E0B" />
+                    </View>
+                    <Text style={[styles.unifiedFieldLabel, { color: colors.textSecondary }]}>Headquarters</Text>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => toggleEdit('headquarters')}
-                    style={styles.attrEditBtn}
-                  >
+                  <View style={styles.unifiedRowRight}>
                     {editState['headquarters'] ? (
-                      <Check size={11} color="#10B981" />
+                      <TextInput
+                        value={effectiveProfile.headquarters || ''}
+                        onChangeText={(text) => handleFieldChangeLocal('headquarters', text)}
+                        placeholder="Headquarters..."
+                        placeholderTextColor={colors.textMuted}
+                        style={[styles.unifiedInput, { color: colors.textPrimary }]}
+                      />
                     ) : (
-                      <Edit3 size={11} color={colors.textMuted} />
+                      <Text style={[styles.unifiedFieldValue, { color: colors.textPrimary }]} numberOfLines={2}>
+                        {effectiveProfile.headquarters || 'Address not found'}
+                      </Text>
                     )}
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => toggleEdit('headquarters')}
+                      style={styles.fieldActionBtn}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      {editState['headquarters'] ? (
+                        <Check size={12} color="#10B981" />
+                      ) : (
+                        <Edit3 size={12} color={colors.textMuted} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
-                {editState['headquarters'] ? (
-                  <TextInput
-                    value={effectiveProfile.headquarters || ''}
-                    onChangeText={(text) => handleFieldChangeLocal('headquarters', text)}
-                    placeholder="Enter headquarters..."
-                    placeholderTextColor={colors.textMuted}
-                    style={[styles.attrInput, { color: colors.textPrimary }]}
-                  />
-                ) : (
-                  <Text style={[styles.attrValueText, { color: colors.textPrimary }]} numberOfLines={2}>
-                    {effectiveProfile.headquarters || 'Address not found'}
-                  </Text>
-                )}
-              </GlassCard>
+                <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
 
-              {/* Tagline */}
-              <GlassCard style={styles.attributeCard} variant="raised">
-                <View style={styles.attributeHeaderRow}>
-                  <View style={styles.attrHeaderTitleBox}>
-                    <MessageSquare size={12} color="#F59E0B" />
-                    <Text style={[styles.attrTitle, { color: colors.textPrimary }]}>
-                      Tagline / Slogan
-                    </Text>
+                {/* Row 3: Tagline / Slogan */}
+                <View style={styles.unifiedRow}>
+                  <View style={styles.unifiedRowLeft}>
+                    <View style={styles.unifiedFieldIconBox}>
+                      <Quote size={13} color="#F59E0B" />
+                    </View>
+                    <Text style={[styles.unifiedFieldLabel, { color: colors.textSecondary }]}>Tagline / Slogan</Text>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => toggleEdit('tagline')}
-                    style={styles.attrEditBtn}
-                  >
+                  <View style={styles.unifiedRowRight}>
                     {editState['tagline'] ? (
-                      <Check size={11} color="#10B981" />
+                      <TextInput
+                        value={effectiveProfile.tagline || ''}
+                        onChangeText={(text) => handleFieldChangeLocal('tagline', text)}
+                        placeholder="Tagline or slogan..."
+                        placeholderTextColor={colors.textMuted}
+                        style={[styles.unifiedInput, { color: colors.textPrimary }]}
+                      />
                     ) : (
-                      <Edit3 size={11} color={colors.textMuted} />
+                      <Text style={[styles.unifiedFieldValue, { color: colors.textPrimary, fontStyle: effectiveProfile.tagline ? 'italic' : 'normal' }]} numberOfLines={2}>
+                        {effectiveProfile.tagline ? `"${effectiveProfile.tagline}"` : 'Not specified'}
+                      </Text>
                     )}
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => toggleEdit('tagline')}
+                      style={styles.fieldActionBtn}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      {editState['tagline'] ? (
+                        <Check size={12} color="#10B981" />
+                      ) : (
+                        <Edit3 size={12} color={colors.textMuted} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
-                {editState['tagline'] ? (
-                  <TextInput
-                    value={effectiveProfile.tagline || ''}
-                    onChangeText={(text) => handleFieldChangeLocal('tagline', text)}
-                    placeholder="Enter tagline..."
-                    placeholderTextColor={colors.textMuted}
-                    style={[styles.attrInput, { color: colors.textPrimary }]}
-                  />
-                ) : (
-                  <Text style={[styles.attrValueText, { color: colors.textPrimary }]} numberOfLines={2}>
-                    {effectiveProfile.tagline ? `"${effectiveProfile.tagline}"` : 'Not specified'}
-                  </Text>
-                )}
-              </GlassCard>
+                <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
 
-              {/* Contact Info */}
-              <GlassCard style={styles.attributeCard} variant="raised">
-                <View style={styles.attributeHeaderRow}>
-                  <View style={styles.attrHeaderTitleBox}>
-                    <Globe size={12} color="#F59E0B" />
-                    <Text style={[styles.attrTitle, { color: colors.textPrimary }]}>
-                      Contact Info
+                {/* Row 4: Contact Info */}
+                <View style={styles.unifiedRow}>
+                  <View style={styles.unifiedRowLeft}>
+                    <View style={styles.unifiedFieldIconBox}>
+                      <Mail size={13} color="#F59E0B" />
+                    </View>
+                    <Text style={[styles.unifiedFieldLabel, { color: colors.textSecondary }]}>Contact</Text>
+                  </View>
+                  <View style={styles.unifiedRowRight}>
+                    {editState['contactInfo'] ? (
+                      <TextInput
+                        value={
+                          typeof effectiveProfile.contactInfo === 'string'
+                            ? effectiveProfile.contactInfo
+                            : `${effectiveProfile.contactInfo?.email || ''}${effectiveProfile.contactInfo?.phone ? ' | ' + effectiveProfile.contactInfo.phone : ''}`
+                        }
+                        onChangeText={(text) => handleFieldChangeLocal('contactInfo', text)}
+                        placeholder="Email or phone..."
+                        placeholderTextColor={colors.textMuted}
+                        style={[styles.unifiedInput, { color: colors.textPrimary }]}
+                      />
+                    ) : (
+                      <Text style={[styles.unifiedFieldValue, { color: colors.textPrimary }]} numberOfLines={2}>
+                        {typeof effectiveProfile.contactInfo === 'string'
+                          ? effectiveProfile.contactInfo || 'Not specified'
+                          : effectiveProfile.contactInfo?.email || effectiveProfile.contactInfo?.phone
+                          ? `${effectiveProfile.contactInfo.email || ''}${effectiveProfile.contactInfo.phone ? ' | ' + effectiveProfile.contactInfo.phone : ''}`
+                          : 'Not specified'}
+                      </Text>
+                    )}
+                    <TouchableOpacity
+                      onPress={() => toggleEdit('contactInfo')}
+                      style={styles.fieldActionBtn}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      {editState['contactInfo'] ? (
+                        <Check size={12} color="#10B981" />
+                      ) : (
+                        <Edit3 size={12} color={colors.textMuted} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </GlassCard>
+
+            {/* ── SECTION 3: PURPOSE & VISION (Clean Editorial Quotes, No Nested Boxes) ── */}
+            <GlassCard style={styles.cleanCard} variant="raised">
+              {/* Mission Statement Block */}
+              <View style={styles.editorialBlock}>
+                <View style={styles.editorialHeaderRow}>
+                  <View style={styles.editorialTitleRow}>
+                    <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
+                      <Compass size={13} color="#F59E0B" />
+                    </View>
+                    <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
+                      Mission Statement
                     </Text>
                   </View>
                   <TouchableOpacity
-                    onPress={() => toggleEdit('contactInfo')}
-                    style={styles.attrEditBtn}
+                    onPress={() => toggleEdit('missionStatement')}
+                    style={[styles.cleanEditBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    {editState['contactInfo'] ? (
-                      <Check size={11} color="#10B981" />
+                    {editState['missionStatement'] ? (
+                      <Check size={13} color="#10B981" />
                     ) : (
-                      <Edit3 size={11} color={colors.textMuted} />
+                      <Edit3 size={13} color={colors.textSecondary} />
                     )}
                   </TouchableOpacity>
                 </View>
 
-                {editState['contactInfo'] ? (
+                {editState['missionStatement'] ? (
                   <TextInput
-                    value={
-                      typeof effectiveProfile.contactInfo === 'string'
-                        ? effectiveProfile.contactInfo
-                        : `${effectiveProfile.contactInfo?.email || ''}${effectiveProfile.contactInfo?.phone ? ' | ' + effectiveProfile.contactInfo.phone : ''}`
-                    }
-                    onChangeText={(text) => handleFieldChangeLocal('contactInfo', text)}
-                    placeholder="Enter email or phone..."
+                    multiline
+                    numberOfLines={3}
+                    value={effectiveProfile.missionStatement || ''}
+                    onChangeText={(text) => handleFieldChangeLocal('missionStatement', text)}
+                    placeholder="Enter mission statement..."
                     placeholderTextColor={colors.textMuted}
-                    style={[styles.attrInput, { color: colors.textPrimary }]}
+                    style={[styles.cleanMultilineInput, { color: colors.textPrimary }]}
                   />
                 ) : (
-                  <Text style={[styles.attrValueText, { color: colors.textPrimary }]} numberOfLines={2}>
-                    {typeof effectiveProfile.contactInfo === 'string'
-                      ? effectiveProfile.contactInfo || 'Not specified'
-                      : effectiveProfile.contactInfo?.email || effectiveProfile.contactInfo?.phone
-                      ? `${effectiveProfile.contactInfo.email || ''}${effectiveProfile.contactInfo.phone ? ' | ' + effectiveProfile.contactInfo.phone : ''}`
-                      : 'Not specified'}
-                  </Text>
+                  <View style={styles.editorialQuoteRow}>
+                    <View style={styles.editorialAccentBar} />
+                    <Text style={[styles.editorialQuoteText, { color: colors.textPrimary }]}>
+                      {effectiveProfile.missionStatement
+                        ? `"${effectiveProfile.missionStatement}"`
+                        : 'Mission statement not available'}
+                    </Text>
+                  </View>
                 )}
-              </GlassCard>
-            </View>
-
-            {/* ── CARD 4: Core DNA Positioning Statements ── */}
-            {/* Mission Statement */}
-            <GlassCard style={styles.sectionCard} variant="raised">
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.cardTitleBox}>
-                  <View style={[styles.cardHeaderIconBox, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
-                    <Compass size={12} color="#F59E0B" />
-                  </View>
-                  <Text style={[styles.cardHeaderTitle, { color: colors.textPrimary }]}>
-                    Mission Statement
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => toggleEdit('missionStatement')}
-                  style={[styles.editIconButton, { backgroundColor: isDark ? '#1F2532' : '#E2E8F0' }]}
-                >
-                  {editState['missionStatement'] ? (
-                    <Check size={12} color="#10B981" />
-                  ) : (
-                    <Edit3 size={12} color={colors.textSecondary} />
-                  )}
-                </TouchableOpacity>
               </View>
 
-              {editState['missionStatement'] ? (
-                <TextInput
-                  multiline
-                  numberOfLines={3}
-                  value={effectiveProfile.missionStatement || ''}
-                  onChangeText={(text) => handleFieldChangeLocal('missionStatement', text)}
-                  placeholder="Enter mission statement..."
-                  placeholderTextColor={colors.textMuted}
-                  style={[styles.multilineInput, { color: colors.textPrimary }]}
-                />
-              ) : (
-                <View style={[styles.quoteContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }]}>
-                  <Text style={[styles.quoteText, { color: colors.textPrimary }]}>
-                    {effectiveProfile.missionStatement
-                      ? `"${effectiveProfile.missionStatement}"`
-                      : 'Mission statement not available'}
-                  </Text>
-                </View>
-              )}
-            </GlassCard>
+              <View style={[styles.hairlineDivider, { marginVertical: 14, backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
 
-            {/* Company Vision */}
-            <GlassCard style={styles.sectionCard} variant="raised">
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.cardTitleBox}>
-                  <View style={[styles.cardHeaderIconBox, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
-                    <Sparkles size={12} color="#F59E0B" />
+              {/* Company Vision Block */}
+              <View style={styles.editorialBlock}>
+                <View style={styles.editorialHeaderRow}>
+                  <View style={styles.editorialTitleRow}>
+                    <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
+                      <Eye size={13} color="#F59E0B" />
+                    </View>
+                    <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
+                      Company Vision
+                    </Text>
                   </View>
-                  <Text style={[styles.cardHeaderTitle, { color: colors.textPrimary }]}>
-                    Company Vision
-                  </Text>
+                  <TouchableOpacity
+                    onPress={() => toggleEdit('vision')}
+                    style={[styles.cleanEditBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    {editState['vision'] ? (
+                      <Check size={13} color="#10B981" />
+                    ) : (
+                      <Edit3 size={13} color={colors.textSecondary} />
+                    )}
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  onPress={() => toggleEdit('vision')}
-                  style={[styles.editIconButton, { backgroundColor: isDark ? '#1F2532' : '#E2E8F0' }]}
-                >
-                  {editState['vision'] ? (
-                    <Check size={12} color="#10B981" />
-                  ) : (
-                    <Edit3 size={12} color={colors.textSecondary} />
-                  )}
-                </TouchableOpacity>
+
+                {editState['vision'] ? (
+                  <TextInput
+                    multiline
+                    numberOfLines={3}
+                    value={effectiveProfile.vision || ''}
+                    onChangeText={(text) => handleFieldChangeLocal('vision', text)}
+                    placeholder="Enter company vision..."
+                    placeholderTextColor={colors.textMuted}
+                    style={[styles.cleanMultilineInput, { color: colors.textPrimary }]}
+                  />
+                ) : (
+                  <View style={styles.editorialQuoteRow}>
+                    <View style={styles.editorialAccentBar} />
+                    <Text style={[styles.editorialQuoteText, { color: colors.textPrimary }]}>
+                      {effectiveProfile.vision
+                        ? `"${effectiveProfile.vision}"`
+                        : 'Company vision not available'}
+                    </Text>
+                  </View>
+                )}
               </View>
-
-              {editState['vision'] ? (
-                <TextInput
-                  multiline
-                  numberOfLines={3}
-                  value={effectiveProfile.vision || ''}
-                  onChangeText={(text) => handleFieldChangeLocal('vision', text)}
-                  placeholder="Enter company vision..."
-                  placeholderTextColor={colors.textMuted}
-                  style={[styles.multilineInput, { color: colors.textPrimary }]}
-                />
-              ) : (
-                <View style={[styles.quoteContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }]}>
-                  <Text style={[styles.quoteText, { color: colors.textPrimary }]}>
-                    {effectiveProfile.vision
-                      ? `"${effectiveProfile.vision}"`
-                      : 'Company vision not available'}
-                  </Text>
-                </View>
-              )}
             </GlassCard>
 
-            {/* Target Audience */}
-            <GlassCard style={styles.sectionCard} variant="raised">
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.cardTitleBox}>
-                  <View style={[styles.cardHeaderIconBox, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
-                    <Target size={12} color="#F59E0B" />
+            {/* ── SECTION 4: TARGET AUDIENCE (Clean Bulleted List, No Nested Boxes) ── */}
+            <GlassCard style={styles.cleanCard} variant="raised">
+              <View style={styles.sectionHeaderRow}>
+                <View style={styles.sectionTitleBox}>
+                  <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
+                    <Target size={14} color="#F59E0B" />
                   </View>
-                  <Text style={[styles.cardHeaderTitle, { color: colors.textPrimary }]}>
+                  <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
                     Target Audience
                   </Text>
                 </View>
+
                 <TouchableOpacity
                   onPress={() => toggleEdit('targetAudience')}
-                  style={[styles.editIconButton, { backgroundColor: isDark ? '#1F2532' : '#E2E8F0' }]}
+                  style={[styles.cleanEditBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   {editState['targetAudience'] ? (
-                    <Check size={12} color="#10B981" />
+                    <Check size={13} color="#10B981" />
                   ) : (
-                    <Edit3 size={12} color={colors.textSecondary} />
+                    <Edit3 size={13} color={colors.textSecondary} />
                   )}
                 </TouchableOpacity>
               </View>
@@ -1142,54 +1176,47 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   onChangeText={(text) => handleFieldChangeLocal('targetAudience', text)}
                   placeholder="Enter target segments (one per line)..."
                   placeholderTextColor={colors.textMuted}
-                  style={[styles.multilineInput, { color: colors.textPrimary }]}
+                  style={[styles.cleanMultilineInput, { color: colors.textPrimary }]}
                 />
               ) : effectiveProfile.targetAudience.length > 0 ? (
-                <View style={styles.audienceItemsContainer}>
+                <View style={styles.cleanListContainer}>
                   {effectiveProfile.targetAudience.map((audience, i) => (
-                    <View
-                      key={i}
-                      style={[
-                        styles.audienceCard,
-                        {
-                          backgroundColor: isDark ? '#11151D' : '#DFE5EF',
-                          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-                        },
-                      ]}
-                    >
-                      <View style={styles.pillBullet} />
-                      <Text style={[styles.audienceText, { color: colors.textPrimary }]}>
+                    <View key={i} style={styles.cleanListItem}>
+                      <View style={styles.audienceBulletDot} />
+                      <Text style={[styles.cleanListItemText, { color: colors.textPrimary }]}>
                         {audience}
                       </Text>
                     </View>
                   ))}
                 </View>
               ) : (
-                <Text style={[styles.emptySectionText, { color: colors.textMuted }]}>
+                <Text style={[styles.cleanEmptyText, { color: colors.textMuted }]}>
                   Target audience not specified. Tap edit icon to add.
                 </Text>
               )}
             </GlassCard>
 
-            {/* Core Products & Services */}
-            <GlassCard style={styles.sectionCard} variant="raised">
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.cardTitleBox}>
-                  <View style={[styles.cardHeaderIconBox, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
-                    <Zap size={12} color="#F59E0B" />
+            {/* ── SECTION 5: CORE PRODUCTS & SERVICES (Clean Pill Chips) ── */}
+            <GlassCard style={styles.cleanCard} variant="raised">
+              <View style={styles.sectionHeaderRow}>
+                <View style={styles.sectionTitleBox}>
+                  <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
+                    <Zap size={14} color="#F59E0B" />
                   </View>
-                  <Text style={[styles.cardHeaderTitle, { color: colors.textPrimary }]}>
+                  <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
                     Core Products & Services
                   </Text>
                 </View>
+
                 <TouchableOpacity
                   onPress={() => toggleEdit('coreProductsServices')}
-                  style={[styles.editIconButton, { backgroundColor: isDark ? '#1F2532' : '#E2E8F0' }]}
+                  style={[styles.cleanEditBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   {editState['coreProductsServices'] ? (
-                    <Check size={12} color="#10B981" />
+                    <Check size={13} color="#10B981" />
                   ) : (
-                    <Edit3 size={12} color={colors.textSecondary} />
+                    <Edit3 size={13} color={colors.textSecondary} />
                   )}
                 </TouchableOpacity>
               </View>
@@ -1206,63 +1233,55 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   onChangeText={(text) => handleFieldChangeLocal('coreProductsServices', text)}
                   placeholder="Enter core products (one per line)..."
                   placeholderTextColor={colors.textMuted}
-                  style={[styles.multilineInput, { color: colors.textPrimary }]}
+                  style={[styles.cleanMultilineInput, { color: colors.textPrimary }]}
                 />
               ) : effectiveProfile.coreProductsServices.length > 0 ? (
-                <View style={styles.chipsContainer}>
+                <View style={styles.cleanChipsWrap}>
                   {effectiveProfile.coreProductsServices.map((product, i) => (
                     <View
                       key={i}
                       style={[
-                        styles.productChip,
+                        styles.cleanProductPill,
                         {
                           backgroundColor: isDark ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.08)',
-                          borderColor: isDark ? 'rgba(245,158,11,0.22)' : 'rgba(245,158,11,0.22)',
+                          borderColor: isDark ? 'rgba(245,158,11,0.22)' : 'rgba(245,158,11,0.2)',
                         },
                       ]}
                     >
-                      <View style={styles.chipDot} />
-                      <Text style={[styles.chipText, { color: colors.textPrimary }]}>
+                      <View style={styles.cleanProductDot} />
+                      <Text style={[styles.cleanProductText, { color: colors.textPrimary }]}>
                         {product}
                       </Text>
                     </View>
                   ))}
                 </View>
               ) : (
-                <Text style={[styles.emptySectionText, { color: colors.textMuted }]}>
+                <Text style={[styles.cleanEmptyText, { color: colors.textMuted }]}>
                   No core products specified. Tap edit icon to add.
                 </Text>
               )}
             </GlassCard>
 
-            {/* ── CARD 5: Extracted Marketing Claims (Unverified) ── */}
+            {/* ── SECTION 6: EXTRACTED MARKETING CLAIMS (Clean Quotes, No Nested Boxes) ── */}
             {effectiveProfile.extractedClaims.length > 0 && (
-              <GlassCard style={styles.sectionCard} variant="raised">
-                <View style={styles.cardHeaderRow}>
-                  <View style={styles.cardTitleBox}>
-                    <View style={[styles.cardHeaderIconBox, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
-                      <FileText size={12} color="#F59E0B" />
+              <GlassCard style={styles.cleanCard} variant="raised">
+                <View style={styles.sectionHeaderRow}>
+                  <View style={styles.sectionTitleBox}>
+                    <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
+                      <FileText size={14} color="#F59E0B" />
                     </View>
-                    <Text style={[styles.cardHeaderTitle, { color: colors.textPrimary }]}>
-                      Extracted Marketing Claims (Unverified)
+                    <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
+                      Extracted Marketing Claims
                     </Text>
                   </View>
                 </View>
 
-                <View style={styles.claimsListContainer}>
+                <View style={styles.cleanClaimsContainer}>
                   {effectiveProfile.extractedClaims.map((claim, idx) => (
-                    <View
-                      key={idx}
-                      style={[
-                        styles.claimCard,
-                        {
-                          backgroundColor: isDark ? '#11151D' : '#DFE5EF',
-                          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-                        },
-                      ]}
-                    >
-                      <Text style={[styles.claimText, { color: colors.textPrimary }]}>
-                        "{claim.claimText || claim}"
+                    <View key={idx} style={styles.cleanClaimRow}>
+                      <Text style={styles.claimQuoteMark}>“</Text>
+                      <Text style={[styles.cleanClaimText, { color: colors.textPrimary }]}>
+                        {claim.claimText || claim}
                       </Text>
                     </View>
                   ))}
@@ -1270,11 +1289,11 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               </GlassCard>
             )}
 
-            {/* Bottom Continue to SEO Action Button */}
+            {/* ── BOTTOM ACTION: CONTINUE TO SEO ── */}
             <View style={styles.bottomContinueContainer}>
               <TouchableOpacity
                 activeOpacity={0.85}
-                onPress={() => navigation.navigate('Strategy', { screen: 'Seo' })}
+                onPress={() => navigation.navigate('More', { screen: 'SEO' })}
                 style={styles.continueToSeoBtn}
               >
                 <LinearGradient
@@ -1415,10 +1434,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 12,
-    paddingTop: 8,
+    width: '100%',
+    maxWidth: 680,
+    alignSelf: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 10,
     paddingBottom: 110,
-    gap: 8,
+    gap: 12,
   },
 
   // ── No Brand Gate Styles ──
@@ -1511,81 +1533,177 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // ── Header Banner Styles ──
-  headerBannerCard: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 13,
-    gap: 8,
+  // ── Unified Hero Card Styles ──
+  heroCard: {
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    gap: 12,
   },
-  bannerRow: {
+  heroTopRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+    alignItems: 'flex-start',
+    gap: 12,
   },
-  bannerIconBox: {
-    width: 34,
-    height: 34,
-    borderRadius: 9,
+  heroLogoWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    padding: 3,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#F59E0B',
+    position: 'relative',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
     elevation: 3,
   },
-  bannerTextCol: {
+  heroLogoImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroLogoZoomBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 6,
+    padding: 3,
+  },
+  heroTitleCol: {
     flex: 1,
+    gap: 3,
   },
-  bannerTitle: {
-    fontSize: 14.5,
-    lineHeight: 19,
-    fontWeight: '700',
-  },
-  bannerSubtitle: {
-    fontSize: 11,
-    lineHeight: 15,
-    marginTop: 1,
-  },
-  bannerActionsRow: {
+  heroNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    justifyContent: 'space-between',
+    gap: 8,
   },
-  analysisBtn: {
+  heroBrandName: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.3,
     flex: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
   },
-  analysisBtnGrad: {
-    flexDirection: 'row',
+  heroEditBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    gap: 5,
   },
-  analysisBtnText: {
-    color: '#FFFFFF',
+  heroWebsiteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+    paddingVertical: 1,
+  },
+  heroWebsiteText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#10B981',
+    flexShrink: 1,
+  },
+  heroBrandSubtitle: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 2,
+  },
+  heroEditInputsBox: {
+    borderTopWidth: 1,
+    paddingTop: 10,
+    gap: 6,
+  },
+  inputFieldLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
-  saveProfileBtn: {
-    borderRadius: 12,
-    overflow: 'hidden',
+  cleanInput: {
+    fontSize: 13,
+    fontWeight: '500',
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.3)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
   },
-  saveProfileBtnGrad: {
+  toggleLogoUrlBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 7,
     paddingHorizontal: 12,
-    gap: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 6,
+    marginTop: 4,
   },
-  saveProfileBtnText: {
+  toggleLogoUrlBtnText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: '#F59E0B',
+  },
+  logoInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  logoApplyBtn: {
+    backgroundColor: '#F59E0B',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  logoApplyBtnText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  heroActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  heroAnalysisBtn: {
+    flex: 1,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  heroAnalysisBtnGrad: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    gap: 6,
+  },
+  heroAnalysisBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '700',
+  },
+  heroSaveBtn: {
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  heroSaveBtnGrad: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    gap: 6,
+  },
+  heroSaveBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
     fontWeight: '700',
   },
 
@@ -1593,14 +1711,14 @@ const styles = StyleSheet.create({
   alertBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 7,
-    paddingHorizontal: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
     gap: 8,
   },
   alertBannerText: {
-    fontSize: 11.5,
+    fontSize: 12,
     fontWeight: '600',
     flex: 1,
   },
@@ -1609,411 +1727,354 @@ const styles = StyleSheet.create({
   loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 24,
-    gap: 8,
-  },
-  loadingText: {
-    fontSize: 11.5,
-  },
-
-  // ── Section Card Styles ──
-  sectionCard: {
-    paddingVertical: 9,
-    paddingHorizontal: 11,
-    borderRadius: 13,
-    gap: 7,
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardTitleBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flex: 1,
-  },
-  cardHeaderIconBox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardHeaderTitle: {
-    fontSize: 10.5,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  editIconButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  // ── Identity Card Styles ──
-  identityInnerBox: {
-    paddingVertical: 2,
-    paddingHorizontal: 0,
-    gap: 6,
-  },
-  identityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingVertical: 32,
     gap: 10,
   },
-  logoSquircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: '#FFFFFF',
-    padding: 3,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1.5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  logoImage: {
-    width: '100%',
-    height: '100%',
-  },
-  logoZoomOverlay: {
-    position: 'absolute',
-    bottom: 1,
-    right: 1,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-    borderRadius: 4,
-    padding: 1.5,
-  },
-  identityDetailsCol: {
-    flex: 1,
-  },
-  identityCompanyName: {
-    fontSize: 14.5,
-    lineHeight: 18,
-    fontWeight: '700',
-  },
-  websiteLinkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    marginTop: 2,
-  },
-  websiteLinkText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#10B981',
-    flexShrink: 1,
-  },
-  identityInputsCol: {
-    gap: 5,
-  },
-  inlineInput: {
-    fontSize: 12,
-    fontWeight: '600',
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  logoEditPanel: {
-    gap: 6,
-    paddingTop: 5,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(245,158,11,0.2)',
-  },
-  toggleLogoInputBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 5,
-  },
-  toggleLogoInputBtnText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#F59E0B',
-  },
-  logoInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  logoUrlInput: {
-    flex: 1,
-    fontSize: 11,
-    borderWidth: 1,
-    borderColor: '#F59E0B',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  logoApplyBtn: {
-    backgroundColor: '#F59E0B',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  logoApplyBtnText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '700',
+  loadingText: {
+    fontSize: 13,
   },
 
-  // ── Palette Styles ──
-  paletteHeaderActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  // ── Unified Clean Cards & Section Headers ──
+  cleanCard: {
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    gap: 12,
   },
-  colorSwatchesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  colorSwatchCard: {
-    flex: 1,
-    minWidth: 68,
-    maxWidth: 110,
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 5,
-    alignItems: 'center',
-    gap: 3,
-  },
-  swatchColorBar: {
-    width: '100%',
-    height: 22,
-    borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  copiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    paddingHorizontal: 3,
-    paddingVertical: 1,
-    borderRadius: 3,
-    gap: 2,
-  },
-  copiedBadgeText: {
-    color: '#10B981',
-    fontSize: 8,
-    fontWeight: '700',
-  },
-  copyIconBadge: {
-    opacity: 0.8,
-  },
-  swatchLabel: {
-    fontSize: 8.5,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  hexText: {
-    fontSize: 9.5,
-    fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-  },
-  hexInput: {
-    fontSize: 9.5,
-    fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    borderWidth: 1,
-    borderColor: '#F59E0B',
-    borderRadius: 4,
-    paddingHorizontal: 2,
-    paddingVertical: 1,
-    textAlign: 'center',
-    width: '100%',
-  },
-
-  // ── Attributes Grid (2x2) ──
-  attributesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 7,
-  },
-  attributeCard: {
-    flexBasis: '48%',
-    flexGrow: 1,
-    paddingVertical: 7,
-    paddingHorizontal: 9,
-    borderRadius: 11,
-    gap: 3,
-  },
-  attributeHeaderRow: {
+  sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  attrHeaderTitleBox: {
+  sectionTitleBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 8,
     flex: 1,
   },
-  attrTitle: {
+  sectionIconBadge: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionTitleText: {
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  sectionHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cleanEditBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // ── Theme Color Palette (Clean Cards, Perfectly Aligned) ──
+  paletteContainer: {
+    width: '100%',
+  },
+  paletteWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  colorCard: {
+    flex: 1,
+    minWidth: 86,
+    maxWidth: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 3,
+  },
+  colorDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 2,
+    elevation: 1.5,
+  },
+  colorRoleText: {
     fontSize: 9.5,
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.35,
+    textAlign: 'center',
   },
-  attrEditBtn: {
-    padding: 2,
+  colorHexText: {
+    fontSize: 11,
+    fontWeight: '700',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    textAlign: 'center',
+    letterSpacing: 0.2,
   },
-  attrInput: {
-    fontSize: 11.5,
-    fontWeight: '600',
+  colorHexInput: {
+    fontSize: 11,
+    fontWeight: '700',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     borderWidth: 1,
     borderColor: '#F59E0B',
     borderRadius: 5,
     paddingHorizontal: 5,
     paddingVertical: 2,
+    textAlign: 'center',
+    width: '100%',
   },
-  attrValueText: {
-    fontSize: 11.5,
-    lineHeight: 15,
+  colorCopyPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 5,
+    gap: 3,
+    marginTop: 1,
+  },
+  colorCopyText: {
+    fontSize: 9.5,
     fontWeight: '600',
   },
-
-  // ── Quotes & Multi-line ──
-  quoteContainer: {
-    paddingVertical: 7,
-    paddingHorizontal: 9,
-    borderRadius: 7,
-    borderLeftWidth: 3,
-    borderLeftColor: '#F59E0B',
+  colorCopiedText: {
+    color: '#10B981',
+    fontSize: 9.5,
+    fontWeight: '700',
   },
-  quoteText: {
+
+  // ── Unified Brand Overview (Hairline List, No 2x2 Box Clutter) ──
+  unifiedListContainer: {
+    width: '100%',
+  },
+  unifiedRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    gap: 10,
+  },
+  unifiedRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    width: 120,
+    flexShrink: 0,
+    paddingTop: 1,
+  },
+  unifiedFieldIconBox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    backgroundColor: 'rgba(245,158,11,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unifiedFieldLabel: {
     fontSize: 12,
-    lineHeight: 17,
+    fontWeight: '600',
+  },
+  unifiedRowRight: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  unifiedFieldValue: {
+    fontSize: 13,
+    lineHeight: 18,
     fontWeight: '500',
+    textAlign: 'right',
+    flex: 1,
+  },
+  unifiedInput: {
+    flex: 1,
+    fontSize: 12.5,
+    fontWeight: '500',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    textAlign: 'left',
+  },
+  fieldActionBtn: {
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hairlineDivider: {
+    height: StyleSheet.hairlineWidth,
+    width: '100%',
+  },
+
+  // ── Purpose & Vision (Clean Editorial Quotes) ──
+  editorialBlock: {
+    width: '100%',
+    gap: 8,
+  },
+  editorialHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  editorialTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  editorialQuoteRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 10,
+    paddingLeft: 2,
+    paddingVertical: 2,
+  },
+  editorialAccentBar: {
+    width: 3.5,
+    borderRadius: 2,
+    backgroundColor: '#F59E0B',
+  },
+  editorialQuoteText: {
+    flex: 1,
+    fontSize: 13.5,
+    lineHeight: 20,
+    fontWeight: '400',
     fontStyle: 'italic',
   },
-  multilineInput: {
-    fontSize: 12,
-    lineHeight: 17,
+  cleanMultilineInput: {
+    fontSize: 13,
+    lineHeight: 19,
     borderWidth: 1,
     borderColor: '#F59E0B',
     borderRadius: 8,
-    padding: 7,
+    padding: 8,
     textAlignVertical: 'top',
   },
 
-  // ── Target Audience Items ──
-  audienceItemsContainer: {
-    gap: 5,
+  // ── Target Audience (Clean Bulleted List) ──
+  cleanListContainer: {
+    width: '100%',
+    gap: 8,
   },
-  audienceCard: {
+  cleanListItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 9,
+    paddingVertical: 2,
+  },
+  audienceBulletDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F59E0B',
+    marginTop: 7,
+    flexShrink: 0,
+  },
+  cleanListItemText: {
+    fontSize: 13.5,
+    lineHeight: 20,
+    fontWeight: '500',
+    flex: 1,
+  },
+  cleanEmptyText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    paddingVertical: 4,
+  },
+
+  // ── Products & Services (Clean Pill Chips) ──
+  cleanChipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  cleanProductPill: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 6,
-    paddingHorizontal: 9,
-    borderRadius: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
     borderWidth: 1,
-    gap: 7,
+    gap: 6,
   },
-  pillBullet: {
+  cleanProductDot: {
     width: 5,
     height: 5,
     borderRadius: 2.5,
     backgroundColor: '#F59E0B',
   },
-  audienceText: {
-    fontSize: 11.5,
-    lineHeight: 15,
-    fontWeight: '500',
-    flex: 1,
-  },
-
-  // ── Wrap Chips for Products ──
-  chipsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 5,
-  },
-  productChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 4.5,
-    paddingHorizontal: 8.5,
-    borderRadius: 7,
-    borderWidth: 1,
-    gap: 5,
-  },
-  chipDot: {
-    width: 4.5,
-    height: 4.5,
-    borderRadius: 2.25,
-    backgroundColor: '#F59E0B',
-  },
-  chipText: {
-    fontSize: 11,
+  cleanProductText: {
+    fontSize: 12.5,
     fontWeight: '600',
   },
 
-  emptySectionText: {
-    fontSize: 11,
-    fontStyle: 'italic',
+  // ── Extracted Claims (Clean Quote Rows) ──
+  cleanClaimsContainer: {
+    width: '100%',
+    gap: 10,
   },
-
-  // ── Claims ──
-  claimsListContainer: {
-    gap: 5,
+  cleanClaimRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    paddingVertical: 2,
   },
-  claimCard: {
-    paddingVertical: 6,
-    paddingHorizontal: 9,
-    borderRadius: 8,
-    borderWidth: 1,
+  claimQuoteMark: {
+    fontSize: 18,
+    lineHeight: 18,
+    fontWeight: '700',
+    color: '#F59E0B',
   },
-  claimText: {
-    fontSize: 11.5,
-    lineHeight: 15,
+  cleanClaimText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
     fontWeight: '500',
   },
 
-  // ── Bottom Continue ──
+  // ── Bottom Continue Button ──
   bottomContinueContainer: {
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: 10,
+    marginBottom: 16,
     alignItems: 'center',
     width: '100%',
   },
   continueToSeoBtn: {
     width: '100%',
-    maxWidth: 320,
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: 'hidden',
     shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.22,
-    shadowRadius: 5,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   continueToSeoGrad: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 9,
-    paddingHorizontal: 16,
-    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    gap: 8,
   },
   continueToSeoText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.2,
   },

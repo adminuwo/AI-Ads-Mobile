@@ -14,6 +14,7 @@ RUN npm ci || npm install --no-audit
 # Build production frontend bundle
 COPY frontend/ ./
 ENV VITE_API_URL=/api
+ENV VITE_GOOGLE_CLIENT_ID=743928421487-jdji1kn6u5gpklrgiv52956cftcojlj3.apps.googleusercontent.com
 RUN npm run build
 
 # ─── Stage 2: Production Unified Server ────────────────────────────────────────

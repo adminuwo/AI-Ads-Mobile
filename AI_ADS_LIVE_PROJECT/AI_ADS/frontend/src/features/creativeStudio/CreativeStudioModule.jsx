@@ -857,7 +857,7 @@ export const CreativeStudioModule = () => {
     <div className="space-y-6 animate-in fade-in w-full max-w-[1600px] mx-auto p-6">
       <div className="space-y-6">
         {/* Header Bar */}
-        <div className="p-6 rounded-3xl accent-card glass-card border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-indigo-500 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-purple-600 text-white flex items-center justify-center shadow-md shrink-0">
               <Palette className="w-5 h-5" />

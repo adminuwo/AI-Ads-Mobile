@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
     minWidth: 34,
   },
   permColTitle: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
   },

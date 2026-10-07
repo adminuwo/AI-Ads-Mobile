@@ -282,8 +282,142 @@ async function sendProductFeedbackEmail({ userEmail, userName = 'User', feedback
   return { success: true, mode: 'DEV_LOG' };
 }
 
+/**
+ * Sends a 6-digit Password Reset OTP email
+ */
+async function sendPasswordResetOTP({ email, otp, userName = 'User' }) {
+  const senderEmail = process.env.EMAIL_USER || process.env.SMTP_USER || 'no-reply@aiads.com';
+  const appName = 'AI Ads™ Enterprise Platform';
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; }
+        .card { max-width: 520px; margin: 30px auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 32px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        h2 { color: #0f172a; font-size: 22px; font-weight: 800; margin: 0 0 8px 0; }
+        p { color: #475569; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; }
+        .otp-box { background: #f1f5f9; border: 2px dashed #94a3b8; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 24px; }
+        .otp-code { font-size: 36px; font-weight: 900; letter-spacing: 10px; color: #4f46e5; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <h2>Reset Your Password</h2>
+        <p>Hello <strong>${userName}</strong>,</p>
+        <p>We received a request to reset your password for your account associated with <strong>${email}</strong>.</p>
+        <p>Please enter the 6-digit verification code below:</p>
+        
+        <div class="otp-box">
+          <div class="otp-code">${otp}</div>
+        </div>
+
+        <p>This code will expire in <strong>10 minutes</strong>. If you did not request this, please ignore this email.</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const transporter = getTransporter();
+  if (transporter) {
+    try {
+      const info = await transporter.sendMail({
+        from: `"${appName} Support" <${senderEmail}>`,
+        to: email,
+        subject: `🔑 ${otp} is your Password Reset Code - ${appName}`,
+        text: `Your 6-digit password reset code is: ${otp}. Valid for 10 minutes.`,
+        html: htmlContent
+      });
+      return { success: true, messageId: info.messageId, mode: 'SMTP' };
+    } catch (err) {
+      console.error('Password reset email error:', err.message);
+    }
+  }
+
+  console.log(`\n=== 🔑 SIMULATED PASSWORD RESET OTP ===\nEmail: ${email}\nCode: ${otp}\n======================================\n`);
+  return { success: true, mode: 'CONSOLE_LOG' };
+}
+
+/**
+ * Sends a 6-digit Login Verification OTP
+ */
+async function sendLoginOTP({ email, otp, userName = 'User' }) {
+  const senderEmail = process.env.EMAIL_USER || process.env.SMTP_USER || 'no-reply@aiads.com';
+  const appName = 'AI Ads™ Enterprise Platform';
+  const htmlContent = `
+    <!DOCTYPE html><html><head><meta charset="utf-8">
+    <style>
+      body { font-family: -apple-system, sans-serif; background: #f8fafc; padding: 20px; }
+      .card { max-width: 520px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+      .code { font-size: 32px; font-weight: bold; letter-spacing: 8px; text-align: center; color: #4f46e5; background: #f1f5f9; padding: 20px; border-radius: 12px; margin: 20px 0; }
+    </style></head>
+    <body><div class="card">
+      <h2>Login Verification Code</h2>
+      <p>Hello ${userName},</p>
+      <p>Please use this code to complete your login:</p>
+      <div class="code">${otp}</div>
+      <p>This code expires in 5 minutes.</p>
+    </div></body></html>
+  `;
+  const transporter = getTransporter();
+  if (transporter) {
+    try {
+      await transporter.sendMail({
+        from: `"${appName} Security" <${senderEmail}>`,
+        to: email,
+        subject: `🔐 ${otp} is your Login Verification Code`,
+        html: htmlContent
+      });
+      return { success: true };
+    } catch (err) {}
+  }
+  console.log(`\n=== 🔐 SIMULATED LOGIN OTP ===\nEmail: ${email}\nCode: ${otp}\n==============================\n`);
+  return { success: true, mode: 'CONSOLE_LOG' };
+}
+
+/**
+ * Sends a 6-digit Account Verification OTP
+ */
+async function sendRegisterOTP({ email, otp }) {
+  const senderEmail = process.env.EMAIL_USER || process.env.SMTP_USER || 'no-reply@aiads.com';
+  const appName = 'AI Ads™ Enterprise Platform';
+  const htmlContent = `
+    <!DOCTYPE html><html><head><meta charset="utf-8">
+    <style>
+      body { font-family: -apple-system, sans-serif; background: #f8fafc; padding: 20px; }
+      .card { max-width: 520px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+      .code { font-size: 32px; font-weight: bold; letter-spacing: 8px; text-align: center; color: #10b981; background: #f1f5f9; padding: 20px; border-radius: 12px; margin: 20px 0; }
+    </style></head>
+    <body><div class="card">
+      <h2>Verify Your Email</h2>
+      <p>Welcome to ${appName}! Please use this code to verify your email address and create your account:</p>
+      <div class="code">${otp}</div>
+      <p>This code expires in 10 minutes.</p>
+    </div></body></html>
+  `;
+  const transporter = getTransporter();
+  if (transporter) {
+    try {
+      await transporter.sendMail({
+        from: `"${appName} Onboarding" <${senderEmail}>`,
+        to: email,
+        subject: `✉️ ${otp} is your Email Verification Code`,
+        html: htmlContent
+      });
+      return { success: true };
+    } catch (err) {}
+  }
+  console.log(`\n=== ✉️ SIMULATED REGISTER OTP ===\nEmail: ${email}\nCode: ${otp}\n===============================\n`);
+  return { success: true, mode: 'CONSOLE_LOG' };
+}
+
 module.exports = {
   sendAccountDeletionOTP,
   sendWelcomeEmail,
-  sendProductFeedbackEmail
+  sendProductFeedbackEmail,
+  sendPasswordResetOTP,
+  sendLoginOTP,
+  sendRegisterOTP
 };

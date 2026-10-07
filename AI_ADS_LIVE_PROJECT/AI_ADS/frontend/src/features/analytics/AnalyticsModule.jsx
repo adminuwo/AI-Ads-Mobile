@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { analyticsAPI, campaignAPI } from '../../services/api';
 import {
@@ -96,7 +96,7 @@ export const AnalyticsModule = () => {
   return (
     <div className="space-y-6 animate-in fade-in w-full max-w-[1600px] mx-auto p-6">
       {/* Header Bar */}
-      <div className="p-6 rounded-3xl accent-card glass-card border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-blue-500 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-brand-600 dark:text-brand-400" />
@@ -118,7 +118,7 @@ export const AnalyticsModule = () => {
           {metrics.map((m, idx) => {
             const Icon = m.icon;
             return (
-              <div key={idx} className="p-5 rounded-2xl accent-card glass-card border border-slate-200 dark:border-slate-800 space-y-2">
+              <div key={idx} className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-blue-500 space-y-2 shadow-sm">
                 <div className="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400 font-semibold">
                   <span>{m.title}</span>
                   <Icon className={`w-4 h-4 ${m.color}`} />
@@ -132,7 +132,7 @@ export const AnalyticsModule = () => {
       )}
 
       {/* Active Campaigns Overview */}
-      <div className="p-6 rounded-3xl accent-card glass-card border border-slate-200 dark:border-slate-800 space-y-4">
+      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-blue-500 space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
             <Layers className="w-4 h-4 text-brand-500" /> Campaign Breakdown & Production Progress
@@ -173,7 +173,7 @@ export const AnalyticsModule = () => {
       </div>
 
       {/* AI Recommendation Engine Card */}
-      <div className="p-6 rounded-3xl accent-card glass-card border border-slate-200 dark:border-slate-800 space-y-4">
+      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-blue-500 space-y-4 shadow-sm">
         <h2 className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
           Closed-Loop AI Strategy Recommendations

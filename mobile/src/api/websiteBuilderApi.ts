@@ -1,4 +1,5 @@
 import { apiRequest } from './client';
+import { getApiBaseUrl } from '../config/env';
 
 export interface WebsiteBuilderProject {
   _id?: string;
@@ -95,8 +96,43 @@ export const websiteBuilderApi = {
     }
   },
 
-  getProject: async (projectId: string): Promise<{ success: boolean; project: WebsiteBuilderProject; runtime?: any }> => {
-    return apiRequest<{ success: boolean; project: WebsiteBuilderProject; runtime?: any }>(`/website-builder/projects/${projectId}`);
+  getProject: async (projectId: string): Promise<{ success: boolean; project: WebsiteBuilderProject; runtime?: any; files?: Record<string, string> }> => {
+    return apiRequest<{ success: boolean; project: WebsiteBuilderProject; runtime?: any; files?: Record<string, string> }>(`/website-builder/projects/${projectId}`);
+  },
+
+  getProjectFiles: async (projectId: string, version: string = 'v1'): Promise<{ success: boolean; files?: Record<string, string>; error?: string }> => {
+    try {
+      return await apiRequest<{ success: boolean; files?: Record<string, string>; error?: string }>(`/website-builder/projects/${projectId}/files`, {
+        method: 'GET',
+        params: { version },
+      });
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  getExportZipUrl: async (projectId: string): Promise<string> => {
+    const baseUrl = await getApiBaseUrl();
+    return `${baseUrl}/website-builder/projects/${projectId}/export-zip`;
+  },
+
+  getProjectRuntime: async (projectId: string): Promise<{ success: boolean; runtime?: any }> => {
+    return apiRequest<{ success: boolean; runtime?: any }>(`/website-builder/projects/${projectId}/runtime`, {
+      method: 'GET',
+    });
+  },
+
+  startProjectRuntime: async (projectId: string, forceRebuild: boolean = false): Promise<{ success: boolean; runtime?: any }> => {
+    return apiRequest<{ success: boolean; runtime?: any }>(`/website-builder/projects/${projectId}/runtime/start`, {
+      method: 'POST',
+      body: JSON.stringify({ forceRebuild }),
+    });
+  },
+
+  stopProjectRuntime: async (projectId: string): Promise<{ success: boolean; result?: any }> => {
+    return apiRequest<{ success: boolean; result?: any }>(`/website-builder/projects/${projectId}/runtime/stop`, {
+      method: 'POST',
+    });
   },
 
   buildWebsite: async (data: BuildWebsiteRequest): Promise<{ success: boolean; build?: any; error?: string }> => {

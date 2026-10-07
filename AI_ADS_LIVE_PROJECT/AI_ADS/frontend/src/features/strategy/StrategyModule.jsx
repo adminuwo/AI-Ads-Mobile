@@ -1187,33 +1187,33 @@ export const StrategyModule = () => {
       )}
 
       {/* ══════════ HEADER ══════════ */}
-      <div className="relative overflow-hidden p-6 sm:p-7 rounded-3xl accent-card bg-gradient-to-r from-purple-500/8 via-indigo-500/5 to-pink-500/8 dark:from-purple-950/30 dark:to-slate-900/90 border border-purple-200/60 dark:border-purple-800/40 shadow-md backdrop-blur-xl">
+      <div className="relative overflow-hidden p-6 sm:p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-violet-500 shadow-sm">
         {/* Decorative background orbs */}
-        <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full bg-gradient-to-br from-brand-500/10 to-purple-500/8 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-gradient-to-br from-emerald-500/10 to-cyan-500/8 blur-3xl pointer-events-none" />
+        <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full bg-gradient-to-br from-violet-500/10 to-purple-500/8 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-gradient-to-br from-purple-500/10 to-indigo-500/8 blur-3xl pointer-events-none" />
 
         <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
           {/* Left: Title block */}
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-500 via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-brand-500/20 text-white shrink-0">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20 text-white shrink-0">
                 <Target className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-brand-600 via-purple-600 to-indigo-600 dark:from-brand-300 dark:via-purple-300 dark:to-indigo-300 bg-clip-text text-transparent leading-none tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 dark:from-violet-300 dark:via-purple-300 dark:to-indigo-300 bg-clip-text text-transparent leading-none tracking-tight">
                   {selectedStrategyType === 'campaign' ? t('campaignMarketingStrategy', 'Campaign Marketing Strategy') : selectedStrategyType === 'custom' ? t('imageBriefVisualStrategy', 'Image Brief Visual Strategy') : t('strategyTitle', 'Marketing Strategy & Roadmap')}
                 </h1>
                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-semibold">
                   {selectedStrategyType === 'campaign' ? t('integratedGtmSeoGeoSub', 'Integrated GTM, SEO & GEO roadmap derived from your active campaign.') : selectedStrategyType === 'custom' ? t('custom30DayVisualSub', 'Custom 30-day visual social roadmap generated from reference image brief.') : t('aiGenerated30DayBlueprint', 'AI-generated 30-day growth blueprint for')}{' '}
-                  <span className="font-black text-brand-600 dark:text-brand-300 px-1.5 py-0.5 rounded-md bg-brand-500/10 border border-brand-500/20">{activeWorkspace.brandName}</span>
+                  <span className="font-black text-violet-600 dark:text-violet-300 px-1.5 py-0.5 rounded-md bg-violet-500/10 border border-violet-500/20">{activeWorkspace.brandName}</span>
                 </p>
                 {activeWorkspace.currentStrategy?.campaignName && selectedStrategyType === 'campaign' && (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-xs font-black mt-1.5 shadow-sm">
-                    <Target className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-800 dark:text-violet-200 text-xs font-black mt-1.5 shadow-sm">
+                    <Target className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
                     <span>{t('campaignFocus', 'Campaign Focus')}: <strong>{activeWorkspace.currentStrategy.campaignName}</strong></span>
                     <button
                       onClick={() => setActiveModule('campaigns')}
-                      className="ml-1 text-[11px] underline hover:text-emerald-950 dark:hover:text-emerald-100 font-extrabold"
+                      className="ml-1 text-[11px] underline hover:text-violet-950 dark:hover:text-violet-100 font-extrabold"
                     >
                       {t('backToCampaign', 'Back to Campaign →')}
                     </button>
@@ -1233,9 +1233,9 @@ export const StrategyModule = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all duration-200 ${
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer ${
                       activeTab === tab.id
-                        ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 text-white shadow-md'
+                        ? 'bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white shadow-md'
                         : 'text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-white hover:bg-white/50'
                     } ${tab.isCustom ? 'text-purple-700 dark:text-purple-300' : ''}`}
                   >
@@ -1255,7 +1255,7 @@ export const StrategyModule = () => {
             {generatedDoc && (
               <button
                 onClick={handleDownloadPDF}
-                className="btn-primary px-4 py-2.5 rounded-xl font-extrabold text-xs tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                className="px-4 py-2.5 rounded-xl font-extrabold text-xs tracking-wider flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg shadow-violet-500/25"
                 title="Download full 30-day marketing strategy report as PDF to your device"
               >
                 <div className="w-5 h-5 rounded-lg bg-white/20 flex items-center justify-center shadow-sm text-white">
@@ -1319,18 +1319,18 @@ export const StrategyModule = () => {
           onClick={() => setSelectedStrategyType('campaign')}
           className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all duration-200 cursor-pointer ${
             selectedStrategyType === 'campaign'
-              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/20'
+              ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md shadow-violet-500/20'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
           }`}
         >
-          <Target className="w-4 h-4 text-emerald-300" />
+          <Target className="w-4 h-4 text-violet-200" />
           <span>{t('campaignStrategy', 'Campaign Strategy')}</span>
           {isCampaignLocked ? (
             <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-500 dark:text-amber-300 text-[9px] font-black border border-amber-500/30 flex items-center gap-0.5">
               <Lock className="w-2.5 h-2.5" /> {t('proTag', 'PRO')}
             </span>
           ) : (activeWorkspace.currentStrategy?.campaignStrategy || activeWorkspace.currentStrategy?.campaignName) ? (
-            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-[9px] font-extrabold">{t('activeTag', 'Active')}</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-violet-500/20 text-violet-600 dark:text-violet-300 text-[9px] font-extrabold">{t('activeTag', 'Active')}</span>
           ) : (
             <span className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[9px] font-medium">{t('notCreatedTag', 'Not Created')}</span>
           )}
@@ -1379,8 +1379,8 @@ export const StrategyModule = () => {
       )}
 
       {selectedStrategyType === 'campaign' && !isCampaignLocked && !activeWorkspace.currentStrategy?.campaignStrategy && !activeWorkspace.currentStrategy?.campaignName && (
-        <div className="text-center py-16 p-8 rounded-3xl accent-card glass-card border border-dashed border-slate-300 dark:border-slate-700 mt-6">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto mb-4 text-emerald-500 shadow-sm">
+        <div className="text-center py-16 p-8 rounded-3xl accent-card glass-card border border-dashed border-violet-300 dark:border-violet-800/60 mt-6">
+          <div className="w-14 h-14 rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center mx-auto mb-4 text-violet-500 shadow-sm">
             <Target className="w-7 h-7" />
           </div>
           <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mb-2">{t('noCampaignStrategyTitle', 'No Campaign Strategy Created Yet')}</h3>
@@ -1389,7 +1389,7 @@ export const StrategyModule = () => {
           </p>
           <button
             onClick={() => setActiveModule('campaigns')}
-            className="btn-primary text-xs flex items-center gap-2 mx-auto px-6 py-2.5 rounded-xl shadow-lg shadow-brand-500/20 hover:scale-105 transition-all cursor-pointer font-extrabold"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-xs flex items-center gap-2 mx-auto shadow-lg shadow-violet-500/25 hover:scale-105 active:scale-95 transition-all cursor-pointer font-extrabold"
           >
             <Target className="w-4 h-4 text-white" />
             <span>{t('proceedToCampaignModule', 'Proceed to Campaign Module →')}</span>
@@ -1420,7 +1420,7 @@ export const StrategyModule = () => {
               }
               setShowImageBriefModal(true);
             }}
-            className="btn-primary text-xs flex items-center gap-2 mx-auto px-6 py-2.5 rounded-xl shadow-lg shadow-brand-500/20 hover:scale-105 transition-all cursor-pointer font-extrabold"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-xs flex items-center gap-2 mx-auto shadow-lg shadow-violet-500/25 hover:scale-105 active:scale-95 transition-all cursor-pointer font-extrabold"
           >
             <UploadCloud className="w-4 h-4 text-white" />
             <span>{t('uploadImageBrief', 'Upload Image Brief')}</span>

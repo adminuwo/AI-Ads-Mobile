@@ -172,6 +172,10 @@ let memoryCalendar = [
 
 // --- API ENDPOINTS ---
 
+// Login and Register In-Memory Stores for OTP Verification
+const loginOtpStore = new Map();
+const registerOtpStore = new Map();
+
 // Auth Endpoints
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
@@ -213,17 +217,67 @@ app.post('/api/auth/login', async (req, res) => {
     });
   }
 
-  // 2. Generate Token & Response
+  // Direct Login on valid password (No OTP step required)
+  const userId = user._id ? user._id.toString() : String(user.id || `usr_${Date.now()}`);
+  let userRole = user.role || 'AgencyAdmin';
+  const userEmail = user.email || cleanEmail;
+
+  if (userEmail === 'admin@aiads.com') {
+    userRole = 'SuperAdmin';
+    if (user._id && user.role !== 'SuperAdmin') {
+      user.role = 'SuperAdmin';
+      await user.save().catch(e => console.log('Failed to save SuperAdmin role', e.message));
+    }
+  }
+
+  const jwtSecret = process.env.JWT_SECRET || 'ai_ads_secret_key_123';
+  const token = jwt.sign(
+    { userId, email: userEmail, role: userRole },
+    jwtSecret,
+    { expiresIn: '7d' }
+  );
+
+  return res.json({
+    success: true,
+    requiresOtp: false,
+    token,
+    user: {
+      id: userId,
+      _id: userId,
+      email: userEmail,
+      name: user.name || userEmail.split('@')[0],
+      role: userRole,
+      avatar: user.avatar || '',
+      accentColor: user.accentColor || 'indigo',
+      appearance: user.appearance || 'light'
+    }
+  });
+});
+
+app.post('/api/auth/login-verify', async (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) return res.status(400).json({ success: false, error: 'Email and OTP are required' });
+
+  const cleanEmail = email.toLowerCase().trim();
+  const record = loginOtpStore.get(cleanEmail);
+
+  if (!record) return res.status(400).json({ success: false, error: 'No OTP requested or expired.' });
+  if (Date.now() > record.expiresAt) {
+    loginOtpStore.delete(cleanEmail);
+    return res.status(400).json({ success: false, error: 'OTP has expired. Please login again.' });
+  }
+  if (record.otp !== otp) return res.status(400).json({ success: false, error: 'Invalid verification code.' });
+
+  loginOtpStore.delete(cleanEmail);
+  const user = record.user;
+
   try {
     const userId = user._id ? user._id.toString() : String(user.id || `usr_${Date.now()}`);
     let userRole = user.role || 'AgencyAdmin';
     const userEmail = user.email || cleanEmail;
 
-    // Force SuperAdmin for the specific admin email
     if (userEmail === 'admin@aiads.com') {
       userRole = 'SuperAdmin';
-
-      // Optionally update it in DB so future queries see it
       if (user._id && user.role !== 'SuperAdmin') {
         user.role = 'SuperAdmin';
         await user.save().catch(e => console.log('Failed to save SuperAdmin role', e.message));
@@ -351,6 +405,199 @@ const handleUwoLogin = async (req, res) => {
 app.post('/api/auth/uwo-login', handleUwoLogin);
 app.post('/api/auth/sso/uwo-login', handleUwoLogin);
 
+// Google SSO Login Endpoint
+const handleGoogleLogin = async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) {
+    return res.status(400).json({ success: false, error: 'Google credential is required' });
+  }
+
+  try {
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    
+    let payload;
+    // Check if the credential is a JWT (id_token) or an access_token
+    if (credential.split('.').length === 3) {
+      const ticket = await client.verifyIdToken({
+          idToken: credential,
+          audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } else {
+      // It's an access_token, fetch user info from Google API
+      const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${credential}` }
+      });
+      if (!userInfoRes.ok) {
+        throw new Error('Failed to fetch user profile using the provided access token.');
+      }
+      payload = await userInfoRes.json();
+    }
+    
+    const email = payload.email;
+    const name = payload.name;
+    const googleId = payload.sub;
+    const picture = payload.picture;
+    
+    const cleanEmail = email.toLowerCase().trim();
+    let user = null;
+    
+    try {
+      user = await User.findOne({ email: cleanEmail });
+      if (!user) {
+        user = await User.create({
+          email: cleanEmail,
+          name: name || cleanEmail.split('@')[0],
+          provider: 'google',
+          providerId: googleId,
+          isVerified: true,
+          avatar: picture || '',
+          appearance: 'light',
+          role: cleanEmail === 'admin@aiads.com' ? 'SuperAdmin' : 'AgencyAdmin',
+          credits: 500,
+          plan: 'free'
+        });
+        console.log(`👤 New Google SSO user registered in MongoDB: ${cleanEmail}`);
+      } else {
+        if (!user.provider || user.provider === 'local') {
+          user.provider = 'google';
+        }
+        user.isVerified = true;
+        if (name && (!user.name || user.name === user.email.split('@')[0])) {
+          user.name = name;
+        }
+        if (picture && !user.avatar) {
+          user.avatar = picture;
+        }
+        await user.save().catch(e => console.log('Google user update note:', e.message));
+      }
+    } catch (dbErr) {
+      console.log('MongoDB Google Auth Note (Checking Memory Store):', dbErr.message);
+      user = memoryUsers.find(u => u.email === cleanEmail);
+      if (!user) {
+        user = {
+          id: `usr_${Date.now()}`,
+          email: cleanEmail,
+          name: name || cleanEmail.split('@')[0],
+          provider: 'google',
+          providerId: googleId,
+          isVerified: true,
+          avatar: picture || '',
+          accentColor: 'indigo',
+          appearance: 'light',
+          role: cleanEmail === 'admin@aiads.com' ? 'SuperAdmin' : 'AgencyAdmin',
+          credits: 500,
+          plan: 'free'
+        };
+        memoryUsers.push(user);
+        console.log(`👤 New Google SSO user registered in Memory: ${cleanEmail}`);
+      }
+    }
+
+    const userId = user._id ? user._id.toString() : String(user.id || `usr_${Date.now()}`);
+    let userRole = user.role || 'AgencyAdmin';
+    if (cleanEmail === 'admin@aiads.com') {
+       userRole = 'SuperAdmin';
+    }
+
+    const token = jwt.sign(
+      { userId, email: cleanEmail, role: userRole },
+      process.env.JWT_SECRET || 'ai_ads_secret_key_123',
+      { expiresIn: '7d' }
+    );
+
+    return res.json({
+      success: true,
+      token,
+      user: {
+        id: userId,
+        _id: userId,
+        email: cleanEmail,
+        name: user.name || cleanEmail.split('@')[0],
+        avatar: user.avatar || '',
+        accentColor: user.accentColor || 'indigo',
+        appearance: user.appearance || 'light',
+        role: userRole,
+        credits: user.credits !== undefined ? user.credits : 500,
+        plan: user.plan || 'free'
+      }
+    });
+
+  } catch (err) {
+    console.error('Google Auth verification error:', err);
+    return res.status(500).json({ success: false, error: 'Google Auth Error: ' + err.message });
+  }
+};
+
+app.post('/api/auth/google', handleGoogleLogin);
+
+// Forgot Password In-Memory Store
+const resetOtpStore = new Map();
+
+// Forgot Password - Send OTP
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, error: 'Email is required' });
+    
+    const cleanEmail = email.toLowerCase().trim();
+    const User = require('./models/User'); // ensure User model is loaded
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) return res.status(404).json({ success: false, error: 'Account not found. Please verify the email.' });
+    
+    // Rate limit
+    const existing = resetOtpStore.get(cleanEmail);
+    if (existing && Date.now() - existing.createdAt < 30000) {
+      return res.status(429).json({ success: false, error: 'Please wait 30 seconds before requesting another code.' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    resetOtpStore.set(cleanEmail, { otp, createdAt: Date.now(), expiresAt: Date.now() + 10 * 60 * 1000 });
+    
+    const { sendPasswordResetOTP } = require('./services/emailService');
+    await sendPasswordResetOTP({ email: cleanEmail, otp, userName: user.name || cleanEmail.split('@')[0] });
+    
+    return res.json({ success: true, message: 'A 6-digit verification code has been sent to your email.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: 'Failed to process request.' });
+  }
+});
+
+// Reset Password
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+    
+    const cleanEmail = email.toLowerCase().trim();
+    const record = resetOtpStore.get(cleanEmail);
+    
+    if (!record) return res.status(400).json({ success: false, error: 'No OTP requested or expired.' });
+    if (Date.now() > record.expiresAt) {
+      resetOtpStore.delete(cleanEmail);
+      return res.status(400).json({ success: false, error: 'OTP has expired. Please request a new one.' });
+    }
+    if (record.otp !== otp) return res.status(400).json({ success: false, error: 'Invalid verification code.' });
+    
+    const User = require('./models/User');
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+    
+    user.password = newPassword;
+    await user.save();
+    resetOtpStore.delete(cleanEmail);
+    
+    return res.json({ success: true, message: 'Password reset successfully. You can now login.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: 'Failed to reset password.' });
+  }
+});
+
 // Register Endpoint
 app.post('/api/auth/register', async (req, res) => {
   const { email, password, confirmPassword } = req.body;
@@ -367,21 +614,51 @@ app.post('/api/auth/register', async (req, res) => {
   }
 
   const cleanEmail = email.toLowerCase().trim();
-  let user = null;
 
   try {
     const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser) {
       return res.status(400).json({ success: false, error: 'An account with this email already exists. Please Sign In.' });
     }
-    user = await User.create({ email: cleanEmail, password, name: cleanEmail.split('@')[0], appearance: 'light' });
-    console.log(`👤 New user registered in MongoDB: ${cleanEmail}`);
   } catch (error) {
-    console.log('MongoDB Register Note (Using Memory Store Fallback):', error.message);
     const existing = memoryUsers.find(u => u.email === cleanEmail);
     if (existing) {
       return res.status(400).json({ success: false, error: 'An account with this email already exists. Please Sign In.' });
     }
+  }
+
+  // Generate OTP instead of creating immediately
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  registerOtpStore.set(cleanEmail, { password, otp, expiresAt: Date.now() + 10 * 60 * 1000 });
+
+  const { sendRegisterOTP } = require('./services/emailService');
+  await sendRegisterOTP({ email: cleanEmail, otp });
+
+  return res.json({ success: true, requiresOtp: true, message: 'Verification code sent to your email.' });
+});
+
+app.post('/api/auth/register-verify', async (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) return res.status(400).json({ success: false, error: 'Email and OTP are required' });
+
+  const cleanEmail = email.toLowerCase().trim();
+  const record = registerOtpStore.get(cleanEmail);
+
+  if (!record) return res.status(400).json({ success: false, error: 'No registration requested or expired.' });
+  if (Date.now() > record.expiresAt) {
+    registerOtpStore.delete(cleanEmail);
+    return res.status(400).json({ success: false, error: 'OTP has expired. Please register again.' });
+  }
+  if (record.otp !== otp) return res.status(400).json({ success: false, error: 'Invalid verification code.' });
+
+  const password = record.password;
+  registerOtpStore.delete(cleanEmail);
+  let user = null;
+
+  try {
+    user = await User.create({ email: cleanEmail, password, name: cleanEmail.split('@')[0], appearance: 'light' });
+    console.log(`👤 New user registered in MongoDB: ${cleanEmail}`);
+  } catch (error) {
     user = { id: `usr_${Date.now()}`, email: cleanEmail, password, name: cleanEmail.split('@')[0], avatar: '', accentColor: 'indigo', appearance: 'light', role: 'AgencyAdmin' };
     memoryUsers.push(user);
     console.log(`👤 New user registered in Memory: ${cleanEmail}`);
@@ -396,13 +673,10 @@ app.post('/api/auth/register', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Send Welcome & Account Creation Confirmation Email
+    // Send Welcome Email
     try {
       const { sendWelcomeEmail } = require('./services/emailService');
-      sendWelcomeEmail({
-        email: cleanEmail,
-        userName: cleanEmail.split('@')[0]
-      }).catch(err => console.warn('Welcome email error:', err.message));
+      sendWelcomeEmail({ email: cleanEmail, userName: cleanEmail.split('@')[0] }).catch(() => {});
     } catch (e) { }
 
     return res.json({

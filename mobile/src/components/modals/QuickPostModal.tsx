@@ -981,7 +981,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   visualMetaText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     color: '#E2E8F0',
     flex: 1,
@@ -996,7 +996,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   visualExpandText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     color: '#34D399',
   },
@@ -1102,7 +1102,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   fullImageSubtitle: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '500',
     color: '#94A3B8',
     textTransform: 'uppercase',

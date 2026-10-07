@@ -23,9 +23,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const systemColorScheme = useColorScheme();
-  const [mode, setModeState] = useState<ThemeMode>(
-    systemColorScheme === 'dark' ? 'dark' : 'dark' // Default to dark for premium AI Ads aesthetic
-  );
+  const [mode, setModeState] = useState<ThemeMode>('light');
   const [accentKey, setAccentKeyState] = useState<AccentColorKey>('purple');
 
   useEffect(() => {

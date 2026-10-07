@@ -614,14 +614,14 @@ export const ScraperModal: React.FC = () => {
                       <>
                         <ActivityIndicator size="small" color="#FFFFFF" />
                         <Text style={styles.submitActionText}>
-                          Scraping Website & Extracting Unified Brand DNA...
+                          Analyzing The Brand...
                         </Text>
                       </>
                     ) : (
                       <>
                         <Dna size={16} color="#FFFFFF" />
                         <Text style={styles.submitActionText}>
-                          Extract & Generate Complete Brand DNA Memory
+                          Analyze The Brand
                         </Text>
                       </>
                     )}
@@ -647,32 +647,14 @@ export const ScraperModal: React.FC = () => {
                     </View>
 
                     <View style={styles.previewInfoCol}>
-                      <View style={styles.previewNameBadgeRow}>
-                        <Text style={[styles.previewBrandName, { color: colors.textPrimary }]} numberOfLines={1}>
-                          {result.brandName}
-                        </Text>
-                        <Badge
-                          label={result.industryCategory || 'General Business'}
-                          variant="warning"
-                        />
-                      </View>
+                      <Text style={[styles.previewBrandName, { color: colors.textPrimary }]} numberOfLines={1}>
+                        {result.brandName}
+                      </Text>
                       <Text style={[styles.previewDomain, { color: '#F59E0B' }]} numberOfLines={1}>
                         {result.domainUrl}
                       </Text>
                     </View>
                   </View>
-
-                  {/* Brand Colors preview dots */}
-                  {result.brandColors && result.brandColors.length > 0 && (
-                    <View style={styles.previewColorsRow}>
-                      {result.brandColors.map((hex, i) => (
-                        <View
-                          key={i}
-                          style={[styles.colorDot, { backgroundColor: typeof hex === 'string' ? hex : (hex as any).hex }]}
-                        />
-                      ))}
-                    </View>
-                  )}
                 </View>
 
                 {/* Display Uploaded Brand Images if available */}
@@ -804,14 +786,14 @@ export const ScraperModal: React.FC = () => {
                       <>
                         <ActivityIndicator size="small" color="#FFFFFF" />
                         <Text style={styles.submitActionText}>
-                          Saving & Locking Brand DNA Memory...
+                          Saving Brand...
                         </Text>
                       </>
                     ) : (
                       <>
                         <ArrowRight size={16} color="#FFFFFF" />
                         <Text style={styles.submitActionText}>
-                          Save & Lock Brand DNA Memory
+                          Save Brand
                         </Text>
                       </>
                     )}
@@ -969,7 +951,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(245,158,11,0.15)',
   },
   pasteBadgeBtnText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     color: '#F59E0B',
   },
@@ -999,7 +981,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   uploadSubText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '500',
     marginTop: 1,
   },
@@ -1061,7 +1043,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   pickedFileSize: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '500',
   },
   removeFileBtn: {
@@ -1088,7 +1070,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   docExtText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     color: '#0284C7',
   },
@@ -1189,11 +1171,6 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
-  previewNameBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   previewBrandName: {
     fontSize: FONT_SIZES.heading,
     lineHeight: LINE_HEIGHTS.heading,
@@ -1204,18 +1181,6 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.caption,
     fontWeight: '700',
   },
-  previewColorsRow: {
-    flexDirection: 'row',
-    gap: 6,
-    paddingTop: 4,
-  },
-  colorDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.2)',
-  },
   previewSectionCard: {
     padding: 14,
     borderRadius: 16,
@@ -1224,7 +1189,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   previewMiniHeader: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
   },
@@ -1250,7 +1215,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   previewFieldLabel: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.5,

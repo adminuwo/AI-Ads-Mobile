@@ -53,6 +53,26 @@ export const DEFAULT_WORKSPACE = {
   subscriptionTier: 'Agency Pro',
 };
 
+export const EMPTY_WORKSPACE = {
+  id: '',
+  _id: '',
+  brandName: 'No Brand',
+  domainUrl: '',
+  logoUrl: '',
+  brandColors: ['#64748B', '#94A3B8'],
+  industryCategory: 'General',
+  missionStatement: '',
+  tagline: '',
+  brandVoiceTone: {
+    formalityScore: 3,
+    toneKeywords: [],
+  },
+  contentPillars: [],
+  approvedClaims: [],
+  restrictedClaims: [],
+  subscriptionTier: 'Free',
+};
+
 export const INITIAL_WORKSPACES = [
   DEFAULT_WORKSPACE,
   {

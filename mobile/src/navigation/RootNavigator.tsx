@@ -7,12 +7,16 @@ import { useWorkspace } from '../context/WorkspaceContext';
 import { RootStackParamList } from './types';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { AppTabsNavigator } from './AppTabsNavigator';
+import { CreativeStudioScreen } from '../screens/studio/CreativeStudioScreen';
+import { AIWebsiteBuilderScreen } from '../screens/websiteBuilder/AIWebsiteBuilderScreen';
 import { BrandSwitcherModal } from '../components/modals/BrandSwitcherModal';
 import { ScraperModal } from '../components/modals/ScraperModal';
 import { QuickPostModal } from '../components/modals/QuickPostModal';
 import { AISAChatModal } from '../components/modals/AISAChatModal';
 import { NotificationModal } from '../components/modals/NotificationModal';
 import { ProfileMenuModal } from '../components/modals/ProfileMenuModal';
+import { AllModulesModal } from '../components/modals/AllModulesModal';
+import { ToolkitModal } from '../components/modals/ToolkitModal';
 import { PanchTattvaRibbon } from '../components/common/PanchTattvaRibbon';
 import { DualOrbitLogoAnimation } from '../components/common/DualOrbitLogoAnimation';
 import { FONT_SIZES, LINE_HEIGHTS } from '../config/typography';
@@ -27,6 +31,10 @@ export const RootNavigator: React.FC = () => {
     setIsNotificationOpen,
     isProfileMenuOpen,
     setIsProfileMenuOpen,
+    isAllModulesOpen,
+    setIsAllModulesOpen,
+    isToolkitOpen,
+    setIsToolkitOpen,
     setUnreadCount,
   } = useWorkspace();
 
@@ -71,7 +79,11 @@ export const RootNavigator: React.FC = () => {
         {!isAuthenticated ? (
           <Stack.Screen name="Auth" component={LoginScreen} />
         ) : (
-          <Stack.Screen name="Main" component={AppTabsNavigator} />
+          <>
+            <Stack.Screen name="Main" component={AppTabsNavigator} />
+            <Stack.Screen name="CreativeStudio" component={CreativeStudioScreen} options={{ animation: 'slide_from_right' }} />
+            <Stack.Screen name="WebsiteBuilder" component={AIWebsiteBuilderScreen} options={{ animation: 'slide_from_right' }} />
+          </>
         )}
       </Stack.Navigator>
 
@@ -90,6 +102,14 @@ export const RootNavigator: React.FC = () => {
           <ProfileMenuModal
             visible={isProfileMenuOpen}
             onClose={() => setIsProfileMenuOpen(false)}
+          />
+          <AllModulesModal
+            visible={isAllModulesOpen}
+            onClose={() => setIsAllModulesOpen(false)}
+          />
+          <ToolkitModal
+            visible={isToolkitOpen}
+            onClose={() => setIsToolkitOpen(false)}
           />
         </>
       )}

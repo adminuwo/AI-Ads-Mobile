@@ -9,7 +9,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronDown, ArrowLeft, Bell } from 'lucide-react-native';
+import { ChevronDown, ArrowLeft, Bell, Plus } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useAuth } from '../../context/AuthContext';
@@ -31,23 +31,36 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const {
+    workspaces,
     activeWorkspace,
     setIsBrandSwitcherOpen,
     setIsNotificationOpen,
     setIsProfileMenuOpen,
+    setIsAllModulesOpen,
     unreadCount,
   } = useWorkspace();
   const { user } = useAuth();
 
-  const brandName = (activeWorkspace?.brandName || 'ZIVA').trim();
-  const isZiva = brandName.toUpperCase() === 'ZIVA';
+  const hasBrand = Boolean(
+    workspaces &&
+    workspaces.length > 0 &&
+    activeWorkspace &&
+    activeWorkspace.brandName &&
+    activeWorkspace.brandName.trim().length > 0 &&
+    activeWorkspace.brandName.trim().toLowerCase() !== 'no brand'
+  );
 
-  const logoUrl = getBrandLogoUrl({
-    brandName: activeWorkspace?.brandName,
-    domainUrl: activeWorkspace?.domainUrl,
-    logoUrl: activeWorkspace?.logoUrl,
-    faviconUrl: activeWorkspace?.faviconUrl,
-  });
+  const brandName = hasBrand ? (activeWorkspace.brandName || '').trim() : 'No Brand';
+  const isZiva = hasBrand && brandName.toUpperCase() === 'ZIVA';
+
+  const logoUrl = hasBrand
+    ? getBrandLogoUrl({
+        brandName: activeWorkspace?.brandName,
+        domainUrl: activeWorkspace?.domainUrl,
+        logoUrl: activeWorkspace?.logoUrl,
+        faviconUrl: activeWorkspace?.faviconUrl,
+      })
+    : '';
 
   const userName = user?.name || 'Sonali Gupta';
   const userInitial = (userName.trim().charAt(0) || 'S').toUpperCase();
@@ -59,7 +72,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
   return (
     <View style={[styles.wrapper, { backgroundColor: colors.headerBackground, paddingTop: topPadding }]}>
       <View style={[styles.container, { borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
-        {/* Left Side: Back button or Brand Switcher ("ZIVA ▾") */}
+        {/* Left Side: Back button, Hamburger Menu, and Brand Switcher / Title */}
         <View style={styles.leftContainer}>
           {showBack && onBack ? (
             <TouchableOpacity
@@ -74,6 +87,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
             </TouchableOpacity>
           ) : null}
 
+
           {title ? (
             <Text style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
               {title}
@@ -85,7 +99,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
               style={[
                 styles.brandPill,
                 {
-                  backgroundColor: colors.neu.card,
+                  backgroundColor: isDark ? colors.neu.card : '#FFFFFF',
                   borderTopColor: colors.neu.borderLight,
                   borderLeftColor: colors.neu.borderLight,
                   borderBottomColor: colors.neu.borderDark,
@@ -96,7 +110,18 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
               activeOpacity={0.8}
             >
               <View style={styles.logoWrapper}>
-                {isZiva || !activeWorkspace?.logoUrl ? (
+                {!hasBrand ? (
+                  <View
+                    style={[
+                      styles.emptyLogoCircle,
+                      {
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                      },
+                    ]}
+                  >
+                    <Plus size={12} color={isDark ? '#94A3B8' : '#64748B'} strokeWidth={2.4} />
+                  </View>
+                ) : isZiva || !activeWorkspace?.logoUrl ? (
                   <ZivaBrandIcon size={20} />
                 ) : (
                   <Image
@@ -110,7 +135,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
               <Text
                 style={[
                   styles.brandNameText,
-                  { color: isDark ? '#F8FAFC' : '#0F172A' },
+                  { color: hasBrand ? (isDark ? '#F8FAFC' : '#0F172A') : (isDark ? '#94A3B8' : '#64748B') },
                 ]}
                 numberOfLines={1}
               >
@@ -134,7 +159,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
             style={[
               styles.bellButton,
               {
-                backgroundColor: colors.neu.card,
+                backgroundColor: isDark ? colors.neu.card : '#FFFFFF',
                 borderTopColor: colors.neu.borderLight,
                 borderLeftColor: colors.neu.borderLight,
                 borderBottomColor: colors.neu.borderDark,
@@ -146,14 +171,12 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
             activeOpacity={0.7}
           >
             <Bell size={18} color={isDark ? '#F8FAFC' : '#0F172A'} strokeWidth={1.9} />
-            {unreadCount > 0 && (
-              <View
-                style={[
-                  styles.bellBadgeDot,
-                  { borderColor: isDark ? colors.cardBackground : '#FFFFFF' },
-                ]}
-              />
-            )}
+            <View
+              style={[
+                styles.bellBadgeDot,
+                { borderColor: isDark ? colors.cardBackground : '#FFFFFF' },
+              ]}
+            />
           </TouchableOpacity>
 
           {/* User Profile Avatar */}
@@ -162,7 +185,7 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
             style={[
               styles.avatarButton,
               {
-                backgroundColor: colors.neu.card,
+                backgroundColor: isDark ? colors.neu.card : '#FFFFFF',
                 borderTopColor: colors.neu.borderLight,
                 borderLeftColor: colors.neu.borderLight,
                 borderBottomColor: colors.neu.borderDark,
@@ -173,14 +196,13 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             activeOpacity={0.75}
           >
-            {user?.avatar ? (
+            {user?.avatar && typeof user.avatar === 'string' && user.avatar.startsWith('http') ? (
               <Image source={{ uri: user.avatar }} style={styles.avatarImg} />
             ) : (
-              <View style={[styles.avatarCircle, { backgroundColor: isDark ? '#312E81' : '#EDE9FE' }]}>
-                <Text style={[styles.avatarInitial, { color: isDark ? '#C4B5FD' : '#6D28D9' }]}>
-                  {userInitial}
-                </Text>
-              </View>
+              <Image
+                source={require('../../../assets/header_avatar_exact.png')}
+                style={styles.avatarImg}
+              />
             )}
           </TouchableOpacity>
         </View>
@@ -245,6 +267,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  emptyLogoCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   brandLogo: {
     width: 20,
     height: 20,
@@ -284,6 +313,18 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   avatarButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+  },
+  hamburgerButton: {
     width: 36,
     height: 36,
     borderRadius: 18,

@@ -20,6 +20,9 @@ import {
   Globe,
   Users,
   Sparkles,
+  Palette,
+  Search,
+  Megaphone,
 } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -53,12 +56,36 @@ export const MoreMenuScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
   const menuItems = [
     {
+      id: 'CreativeStudio',
+      title: 'Creative Studio & Ad Mockups',
+      sub: '4K AI visuals, ad canvases, carousels & reels',
+      icon: Palette,
+      color: '#7C3AED',
+      onPress: () => navigation.navigate('CreativeStudio'),
+    },
+    {
       id: 'WebsiteBuilder',
       title: 'AI Website Builder & Projects',
       sub: 'Synthesize & preview standalone React websites',
       icon: Globe,
       color: '#0284C7',
       onPress: () => navigation.navigate('WebsiteBuilder'),
+    },
+    {
+      id: 'Seo',
+      title: 'SEO Intelligence & SERP Engine',
+      sub: 'Site crawl, keyword rank verification & blog writer',
+      icon: Search,
+      color: '#10B981',
+      onPress: () => navigation.navigate('SEO'),
+    },
+    {
+      id: 'Campaigns',
+      title: 'Ad Campaigns & Paid Growth',
+      sub: 'Multi-channel ad sets, targeting briefs & ad creation',
+      icon: Megaphone,
+      color: '#6366F1',
+      onPress: () => navigation.navigate('Campaigns'),
     },
     {
       id: 'TeamRbac',

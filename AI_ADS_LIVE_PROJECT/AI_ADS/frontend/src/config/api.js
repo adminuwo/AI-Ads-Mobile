@@ -5,7 +5,7 @@
  * Can be explicitly overridden with VITE_API_URL if needed.
  */
 
-export const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '');
+export const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '');
 
 /**
  * Returns full URL for a given API endpoint path.

@@ -18,7 +18,7 @@ import { FloatingAISABrain } from '../../components/common/FloatingAISABrain';
 import { ApprovalQueueItem } from '../../types';
 import { FONT_SIZES, LINE_HEIGHTS } from '../../config/typography';
 
-export const ApprovalsDeskScreen: React.FC = () => {
+export const ApprovalsDeskScreen: React.FC<{ navigation?: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
 
   const [queue, setQueue] = useState<ApprovalQueueItem[]>([
@@ -82,7 +82,7 @@ export const ApprovalsDeskScreen: React.FC = () => {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <BrandHeader title="Approvals Desk" />
+      <BrandHeader showBack onBack={() => navigation?.goBack?.()} title="Approvals Desk" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
