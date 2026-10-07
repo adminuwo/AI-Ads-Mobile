@@ -1,5 +1,0 @@
-{
-  "terminal.integrated.env.windows": {
-    "PATH": "${env:PATH};C:\\Program Files\\nodejs;C:\\Users\\uwo24\\AppData\\Roaming\\npm"
-  }
-}

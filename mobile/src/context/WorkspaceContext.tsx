@@ -164,18 +164,33 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const addWorkspace = async (newWs: Partial<Workspace>) => {
     try {
-      const res = await workspaceApi.create(newWs);
+      const email = user?.email || '';
+      let res: any;
+      try {
+        res = await workspaceApi.saveDna(newWs, email);
+      } catch (saveErr) {
+        console.warn('saveDna note, trying create:', saveErr);
+        res = await workspaceApi.create(newWs);
+      }
+
       if (res.success && res.workspace) {
-        const created = { ...res.workspace, id: res.workspace._id || res.workspace.id };
+        const created = {
+          ...newWs,
+          ...res.workspace,
+          id: res.workspace._id || res.workspace.id || (newWs as any).id,
+        };
         setWorkspaces((prev) => {
-          const updated = [created, ...prev];
+          const exists = prev.some((w: any) => w.id === created.id || w._id === created.id);
+          const updated = exists
+            ? prev.map((w: any) => (w.id === created.id || w._id === created.id ? created : w))
+            : [created, ...prev];
           appStorage.setJSON(STORAGE_KEYS.WORKSPACES, updated);
           return updated;
         });
         setActiveWorkspaceId(created.id);
         return { success: true, workspace: created };
       }
-      return { success: false, error: 'Failed to create workspace' };
+      return { success: false, error: res?.error || 'Failed to create workspace' };
     } catch (err: any) {
       return { success: false, error: err.message };
     }

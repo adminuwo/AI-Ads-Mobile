@@ -70,6 +70,37 @@ export const brandApi = {
     }),
 
   /**
+   * Run Master Brand DNA 10-Point Scraping Engine Preview (Single Unified Form)
+   */
+  unifiedDnaPreview: (
+    payload: FormData | { domainUrl: string; brandName?: string; logoUrl?: string; [key: string]: any }
+  ): Promise<{
+    success: boolean;
+    workspace?: any;
+    brandProfile?: any;
+    rawScrapedData?: any;
+    error?: string;
+  }> => {
+    const isForm = typeof FormData !== 'undefined' && payload instanceof FormData;
+    return apiRequest('/workspace/unified-dna-preview', {
+      method: 'POST',
+      body: isForm ? payload : JSON.stringify(payload),
+      timeoutMs: 240000,
+    });
+  },
+
+  /**
+   * Persist complete Brand DNA memory to MongoDB Atlas
+   */
+  saveDna: (payload: any, userEmail?: string): Promise<{ success: boolean; workspace?: any; brandProfile?: any; error?: string }> =>
+    apiRequest('/workspace/save-dna', {
+      method: 'POST',
+      headers: userEmail ? { 'x-user-email': userEmail } : undefined,
+      body: JSON.stringify({ ...payload, userEmail: userEmail || payload?.userEmail || '' }),
+      timeoutMs: 30000,
+    }),
+
+  /**
    * Run Evidence-First Deep AI Analysis & Web Scraper
    */
   analyze: (params: AnalyzeBrandParams): Promise<{ success: boolean; profile: BrandProfileData; brandDna?: any; error?: string }> =>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   Image,
   TextInput,
   Alert,
+  Animated,
+  Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Clipboard from 'expo-clipboard';
@@ -31,6 +33,9 @@ import {
   Plus,
   Link,
   ChevronRight,
+  Clock,
+  Check,
+  ShieldCheck,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
@@ -78,11 +83,168 @@ export const ScraperModal: React.FC = () => {
   const [imageInputText, setImageInputText] = useState('');
   const [showImageInput, setShowImageInput] = useState(false);
 
+interface PipelineStep {
+  id: number;
+  title: string;
+  description: string;
+  minSeconds: number;
+}
+
+const SCRAPING_STAGES = [
+  'Discovering domain & sitemap...',
+  'Crawling live homepage, about & contact...',
+  'Extracting brand logo, assets & color palette...',
+  'Multimodal AI analyzing visual brand evidence...',
+  'Synthesizing factual 10-Point Brand DNA...',
+  'Running multi-agent verification & audit...',
+  'Finalizing authentic Brand DNA profile...',
+];
+
+const PIPELINE_STEPS: PipelineStep[] = [
+  {
+    id: 1,
+    title: 'Domain & Sitemap Discovery',
+    description: 'Scanning sitemaps, robots.txt, and core entry points',
+    minSeconds: 0,
+  },
+  {
+    id: 2,
+    title: 'Multi-Page Web Scraping',
+    description: 'Fetching live copy across Home, About, Products & Contact',
+    minSeconds: 15,
+  },
+  {
+    id: 3,
+    title: 'Visual Identity & Logo Assets',
+    description: 'Harvesting official logos, color palette, and visual creatives',
+    minSeconds: 45,
+  },
+  {
+    id: 4,
+    title: '10-Point Multimodal AI Synthesis',
+    description: 'Analyzing brand positioning, target audience & tone of voice',
+    minSeconds: 85,
+  },
+  {
+    id: 5,
+    title: 'Consistency Audit & Profile Lock',
+    description: 'Validating facts against web evidence and compiling memory',
+    minSeconds: 140,
+  },
+];
+
+const getCurrentStepIndex = (sec: number): number => {
+  if (sec < 15) return 0;
+  if (sec < 45) return 1;
+  if (sec < 85) return 2;
+  if (sec < 140) return 3;
+  return 4;
+};
+
+const getProgressPercent = (sec: number): number => {
+  if (sec <= 0) return 6;
+  if (sec < 15) return Math.min(22, 6 + Math.round(sec * 1.1));
+  if (sec < 45) return Math.min(45, 22 + Math.round(((sec - 15) / 30) * 23));
+  if (sec < 85) return Math.min(70, 45 + Math.round(((sec - 45) / 40) * 25));
+  if (sec < 140) return Math.min(90, 70 + Math.round(((sec - 85) / 55) * 20));
+  return Math.min(96, 90 + Math.round(((sec - 140) / 60) * 6));
+};
+
   // Workflow State
   const [loading, setLoading] = useState(false);
+  const [loadingStageIndex, setLoadingStageIndex] = useState(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<NormalizedBrandDna | null>(null);
+
+  const currentStepIndex = getCurrentStepIndex(elapsedSeconds);
+  const progressPercent = getProgressPercent(elapsedSeconds);
+
+  // Animation values for loading state
+  const spinAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    let interval: any;
+    if (loading) {
+      setLoadingStageIndex(0);
+      interval = setInterval(() => {
+        setLoadingStageIndex((prev) => (prev + 1) % SCRAPING_STAGES.length);
+      }, 5000);
+    } else {
+      setLoadingStageIndex(0);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [loading]);
+
+  useEffect(() => {
+    let timer: any;
+    if (loading) {
+      setElapsedSeconds(0);
+      timer = setInterval(() => {
+        setElapsedSeconds((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setElapsedSeconds(0);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [loading]);
+
+  useEffect(() => {
+    let spinLoop: Animated.CompositeAnimation | null = null;
+    let pulseLoop: Animated.CompositeAnimation | null = null;
+
+    if (loading) {
+      spinAnim.setValue(0);
+      spinLoop = Animated.loop(
+        Animated.timing(spinAnim, {
+          toValue: 1,
+          duration: 3500,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      );
+      spinLoop.start();
+
+      pulseAnim.setValue(1);
+      pulseLoop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.08,
+            duration: 1100,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1100,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseLoop.start();
+    } else {
+      spinAnim.setValue(0);
+      pulseAnim.setValue(1);
+    }
+
+    return () => {
+      if (spinLoop) (spinLoop as any).stop();
+      if (pulseLoop) (pulseLoop as any).stop();
+    };
+  }, [loading]);
+
+  const formatElapsed = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     if (isScraperOpen) {
@@ -153,17 +315,47 @@ export const ScraperModal: React.FC = () => {
     setLoading(true);
 
     try {
-      const cleanUrl = url.trim().startsWith('http') ? url.trim() : `https://${url.trim()}`;
+      const raw = url.trim();
+      const cleanUrl = raw.startsWith('http://') || raw.startsWith('https://') ? raw : `https://${raw}`;
 
-      // Call Evidence-First AI Scraper
-      const response = await brandApi.analyze({
-        workspaceId: (activeWorkspace as any)?._id || activeWorkspace?.id || 'ws_preview',
-        websiteUrl: cleanUrl,
-        companyName: brandName.trim() || undefined,
-      });
+      let response: any;
+      if (documentFiles.length === 0 && imageFiles.length === 0) {
+        // Fast direct JSON payload (no multipart boundary overhead on mobile)
+        response = await workspaceApi.unifiedDnaPreview({
+          domainUrl: cleanUrl,
+          brandName: brandName.trim(),
+          logoUrl: logoUrl.trim() || undefined,
+        });
+      } else {
+        // Single Unified Form Request with attachments
+        const formData = new FormData();
+        formData.append('domainUrl', cleanUrl);
+        formData.append('brandName', brandName.trim());
 
-      if (response.success && response.profile) {
-        const normalized = normalizeBrandDna(response.profile);
+        if (logoUrl.trim()) {
+          formData.append('logoUrl', logoUrl.trim());
+        }
+
+        documentFiles.forEach((doc) => {
+          formData.append('documents', doc.name);
+        });
+
+        imageFiles.forEach((img) => {
+          formData.append('images', img);
+        });
+
+        response = await workspaceApi.unifiedDnaPreview(formData);
+      }
+
+      const extractedWorkspace = response.workspace || response.brandProfile;
+
+      if (response.success && extractedWorkspace) {
+        const normalized = normalizeBrandDna(extractedWorkspace);
+
+        // Retain raw scraped data from the master agent
+        if (response.rawScrapedData || extractedWorkspace.rawScrapedData) {
+          (normalized as any).rawScrapedData = response.rawScrapedData || extractedWorkspace.rawScrapedData;
+        }
 
         // Override custom logo if provided
         if (logoUrl.trim()) {
@@ -177,32 +369,11 @@ export const ScraperModal: React.FC = () => {
 
         setResult(normalized);
       } else {
-        throw new Error(response.error || 'Failed to extract Brand DNA.');
+        throw new Error(response.error || 'Failed to extract Brand DNA for this domain. Please verify the URL.');
       }
     } catch (err: any) {
-      console.error('[ScraperModal] Extraction error:', err);
-      // Fallback: If backend network error, generate clean client-side DNA preview from domain
-      if (url.trim()) {
-        const cleanDomain = url.trim().replace(/^(?:https?:\/\/)?(?:www\.)?/i, '').split('/')[0];
-        const computedName = brandName.trim() || cleanDomain.split('.')[0].toUpperCase();
-        const fallbackProfile = normalizeBrandDna({
-          brandName: computedName,
-          companyName: computedName,
-          domainUrl: `https://${cleanDomain}`,
-          logoUrl: logoUrl.trim() || `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=256`,
-          industryCategory: 'Technology & Digital Marketing',
-          tagline: `Empowering ${computedName} with AI advertising velocity.`,
-          missionStatement: `To deliver industry-leading solutions with uncompromising quality for ${computedName}.`,
-          vision: `Building the future of connected intelligence for ${computedName}.`,
-          brandColors: ['#F59E0B', '#D97706', '#06B6D4', '#151922'],
-        });
-        if (imageFiles.length > 0) {
-          (fallbackProfile as any).uploadedBrandImages = imageFiles;
-        }
-        setResult(fallbackProfile);
-      } else {
-        setError(err.message || 'An error occurred while extracting Brand DNA. Please try again.');
-      }
+      console.error('[ScraperModal] Unified extraction error:', err);
+      setError(err?.message || 'An error occurred while extracting Brand DNA. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -222,16 +393,21 @@ export const ScraperModal: React.FC = () => {
         await brandApi.updateProfile(wsId, result as any);
       } else {
         await addWorkspace({
+          ...result,
           brandName: result.brandName || brandName.trim() || 'New Brand',
           companyName: result.companyName || result.brandName || brandName.trim(),
           domainUrl: result.domainUrl || url.trim(),
-          logoUrl: result.logoUrl || '',
-          brandColors: result.brandColors || ['#F59E0B', '#D97706', '#06B6D4', '#151922'],
+          logoUrl: result.logoUrl || logoUrl.trim() || '',
+          brandColors: result.brandColors && result.brandColors.length > 0 ? result.brandColors : ['#F59E0B', '#D97706', '#06B6D4', '#151922'],
           industryCategory: result.industryCategory || 'General Business',
           missionStatement: result.missionStatement || '',
           tagline: result.tagline || '',
+          vision: result.vision || '',
           targetAudience: result.targetAudience || [],
           coreProductsServices: result.coreProductsServices || [],
+          companyDescription: result.companyDescription || '',
+          rawScrapedData: (result as any).rawScrapedData,
+          uploadedBrandImages: (result as any).uploadedBrandImages || imageFiles,
         } as any);
       }
 
@@ -291,10 +467,14 @@ export const ScraperModal: React.FC = () => {
               </LinearGradient>
               <View style={styles.titleCol}>
                 <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
-                  Discover Your Brand
+                  {loading ? 'Analyzing Brand DNA' : result ? 'Review Brand DNA' : 'Discover Your Brand'}
                 </Text>
                 <Text style={[styles.modalSubtitle, { color: '#F59E0B' }]}>
-                  Enter your website and let AI build your Brand DNA
+                  {loading
+                    ? 'Autonomous web crawler & AI memory engine'
+                    : result
+                    ? 'Confirm extracted profile to lock Brand DNA memory'
+                    : 'Enter your website and let AI build your Brand DNA'}
                 </Text>
               </View>
             </View>
@@ -314,10 +494,236 @@ export const ScraperModal: React.FC = () => {
               <View style={[styles.errorBox, { backgroundColor: 'rgba(239, 68, 68, 0.12)', borderColor: 'rgba(239, 68, 68, 0.3)' }]}>
                 <AlertCircle size={15} color="#EF4444" />
                 <Text style={styles.errorText}>{error}</Text>
+                <TouchableOpacity onPress={handleExtractBrandDna} style={styles.retryBadgeBtn}>
+                  <Text style={styles.retryBadgeBtnText}>Retry</Text>
+                </TouchableOpacity>
               </View>
             )}
 
-            {!result ? (
+            {loading ? (
+              /* ── DEDICATED COMPACT HUD PROGRESS VIEW (ZERO SCROLLING) ── */
+              <View style={styles.hudContainer}>
+                {/* 1. TOP UNIFIED HUD CARD */}
+                <View
+                  style={[
+                    styles.hudCard,
+                    {
+                      backgroundColor: isDark ? '#11151D' : '#F8FAFC',
+                      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                    },
+                  ]}
+                >
+                  <View style={styles.hudTopRow}>
+                    {/* Animated Cyber Orb */}
+                    <View style={styles.compactOrbBox}>
+                      <Animated.View
+                        style={[
+                          styles.compactOrbRing,
+                          {
+                            transform: [
+                              {
+                                rotate: spinAnim.interpolate({
+                                  inputRange: [0, 1],
+                                  outputRange: ['0deg', '360deg'],
+                                }),
+                              },
+                            ],
+                          },
+                        ]}
+                      />
+                      <Animated.View
+                        style={[
+                          styles.compactOrbGlow,
+                          {
+                            transform: [{ scale: pulseAnim }],
+                          },
+                        ]}
+                      >
+                        <LinearGradient
+                          colors={['#D97706', '#F59E0B']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.compactOrbCore}
+                        >
+                          <Dna size={16} color="#FFFFFF" />
+                        </LinearGradient>
+                      </Animated.View>
+                    </View>
+
+                    {/* Target & Wait details */}
+                    <View style={styles.hudDetailsCol}>
+                      <View style={styles.hudDomainRow}>
+                        <Globe size={13} color="#F59E0B" />
+                        <Text style={[styles.hudDomainText, { color: colors.textPrimary }]} numberOfLines={1}>
+                          {url.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '') || 'Target Domain'}
+                        </Text>
+                      </View>
+                      <View style={styles.hudWaitRow}>
+                        <Clock size={11} color="#D97706" />
+                        <Text style={styles.hudWaitText}>
+                          Wait 2 - 5 min for deep scrape
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Live Stopwatch Badge */}
+                    <View style={styles.hudStopwatchBadge}>
+                      <View style={styles.hudPulseDot} />
+                      <Text style={styles.hudStopwatchText}>{formatElapsed(elapsedSeconds)}</Text>
+                    </View>
+                  </View>
+
+                  {/* Progress Track */}
+                  <View style={styles.hudProgressTrackSection}>
+                    <View
+                      style={[
+                        styles.hudProgressTrack,
+                        { backgroundColor: isDark ? '#1E2430' : '#E2E8F0' },
+                      ]}
+                    >
+                      <LinearGradient
+                        colors={['#D97706', '#F59E0B']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={[styles.hudProgressBar, { width: `${progressPercent}%` }]}
+                      />
+                    </View>
+                    <View style={styles.hudProgressMetaRow}>
+                      <Text style={[styles.hudStageMetaText, { color: colors.textMuted }]}>
+                        Stage {currentStepIndex + 1} of 5: {PIPELINE_STEPS[currentStepIndex]?.title}
+                      </Text>
+                      <Text style={styles.hudPercentText}>{progressPercent}%</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* 2. PIPELINE STAGES CARD (COMPACT / EXPAND ONLY ACTIVE) */}
+                <View
+                  style={[
+                    styles.stagesCard,
+                    {
+                      backgroundColor: isDark ? '#11151D' : '#F8FAFC',
+                      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                    },
+                  ]}
+                >
+                  <View style={styles.stagesCardHeaderRow}>
+                    <Text style={[styles.stagesCardTitle, { color: colors.textSecondary }]}>
+                      ANALYSIS PIPELINE
+                    </Text>
+                    <View style={styles.activeStageCounterPill}>
+                      <Text style={styles.activeStageCounterText}>
+                        Stage {currentStepIndex + 1}/5
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.stagesList}>
+                    {PIPELINE_STEPS.map((step, idx) => {
+                      const isCompleted = idx < currentStepIndex;
+                      const isActive = idx === currentStepIndex;
+
+                      if (isActive) {
+                        return (
+                          <View
+                            key={step.id}
+                            style={[
+                              styles.activeStageBox,
+                              {
+                                backgroundColor: isDark ? 'rgba(245, 158, 11, 0.08)' : 'rgba(245, 158, 11, 0.1)',
+                                borderColor: 'rgba(245, 158, 11, 0.28)',
+                              },
+                            ]}
+                          >
+                            <View style={styles.activeStageTopRow}>
+                              <View style={styles.activeSpinnerBox}>
+                                <ActivityIndicator size="small" color="#F59E0B" />
+                              </View>
+                              <Text style={[styles.activeStageTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                                {step.title}
+                              </Text>
+                              <View style={styles.inProgressTag}>
+                                <Text style={styles.inProgressTagText}>Active</Text>
+                              </View>
+                            </View>
+                            <Text style={[styles.activeStageDesc, { color: isDark ? '#CBD5E1' : '#475569' }]} numberOfLines={1}>
+                              {step.description}
+                            </Text>
+                          </View>
+                        );
+                      }
+
+                      return (
+                        <View key={step.id} style={styles.compactStageRow}>
+                          <View style={styles.compactStageLeft}>
+                            {isCompleted ? (
+                              <View style={styles.compactCheckCircle}>
+                                <Check size={10} color="#FFFFFF" strokeWidth={3} />
+                              </View>
+                            ) : (
+                              <View
+                                style={[
+                                  styles.compactPendingCircle,
+                                  { backgroundColor: isDark ? '#1C222E' : '#E2E8F0' },
+                                ]}
+                              >
+                                <Text style={[styles.compactPendingNumber, { color: colors.textMuted }]}>
+                                  {idx + 1}
+                                </Text>
+                              </View>
+                            )}
+                            <Text
+                              style={[
+                                styles.compactStageTitle,
+                                {
+                                  color: isCompleted ? colors.textPrimary : colors.textMuted,
+                                  fontWeight: isCompleted ? '600' : '400',
+                                },
+                              ]}
+                              numberOfLines={1}
+                            >
+                              {step.title}
+                            </Text>
+                          </View>
+                          {isCompleted ? (
+                            <View style={styles.compactDonePill}>
+                              <Text style={styles.compactDoneText}>Done</Text>
+                            </View>
+                          ) : null}
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* 3. DYNAMIC MICRO-STATUS TICKER */}
+                <View
+                  style={[
+                    styles.liveTickerBox,
+                    {
+                      backgroundColor: isDark ? '#181D28' : '#F1F5F9',
+                      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+                    },
+                  ]}
+                >
+                  <Sparkles size={13} color="#F59E0B" />
+                  <Text style={[styles.liveTickerText, { color: colors.textPrimary }]} numberOfLines={1}>
+                    {SCRAPING_STAGES[loadingStageIndex]}
+                  </Text>
+                  <View style={styles.liveTagBox}>
+                    <Text style={styles.liveTagText}>LIVE</Text>
+                  </View>
+                </View>
+
+                {/* 4. REASSURANCE NOTE */}
+                <View style={styles.reassuranceRow}>
+                  <ShieldCheck size={12} color={colors.textMuted} />
+                  <Text style={[styles.reassuranceText, { color: colors.textMuted }]}>
+                    Zero hallucinations • Cross-verified against live web evidence
+                  </Text>
+                </View>
+              </View>
+            ) : !result ? (
               /* ── STEP 1: SINGLE UNIFIED INPUT FORM ── */
               <View style={styles.formContainer}>
                 {/* SECTION 1: WEBSITE DOMAIN & BRAND NAME */}
@@ -601,8 +1007,8 @@ export const ScraperModal: React.FC = () => {
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={handleExtractBrandDna}
-                  disabled={loading || !isFormValid}
-                  style={[styles.submitActionBtn, (!isFormValid || loading) && { opacity: 0.6 }]}
+                  disabled={!isFormValid}
+                  style={[styles.submitActionBtn, !isFormValid && { opacity: 0.6 }]}
                 >
                   <LinearGradient
                     colors={['#D97706', '#F59E0B']}
@@ -610,21 +1016,10 @@ export const ScraperModal: React.FC = () => {
                     end={{ x: 1, y: 1 }}
                     style={styles.submitActionGrad}
                   >
-                    {loading ? (
-                      <>
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                        <Text style={styles.submitActionText}>
-                          Analyzing The Brand...
-                        </Text>
-                      </>
-                    ) : (
-                      <>
-                        <Dna size={16} color="#FFFFFF" />
-                        <Text style={styles.submitActionText}>
-                          Analyze The Brand
-                        </Text>
-                      </>
-                    )}
+                    <Dna size={16} color="#FFFFFF" />
+                    <Text style={styles.submitActionText}>
+                      Analyze Brand DNA
+                    </Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -885,6 +1280,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
+  retryBadgeBtn: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  retryBadgeBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
 
   // ── Step 1 Form ──
   formContainer: {
@@ -1135,6 +1541,311 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: FONT_SIZES.body,
     fontWeight: '700',
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  loadingTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  submitActionSubText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+
+  // ── Dedicated Compact HUD Progress UI (Zero Scrolling) ──
+  hudContainer: {
+    paddingVertical: 4,
+    gap: 10,
+    paddingBottom: 10,
+  },
+  hudCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+    gap: 10,
+  },
+  hudTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  compactOrbBox: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compactOrbRing: {
+    position: 'absolute',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1.5,
+    borderColor: '#F59E0B',
+    borderStyle: 'dashed',
+  },
+  compactOrbGlow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compactOrbCore: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  hudDetailsCol: {
+    flex: 1,
+    gap: 2,
+  },
+  hudDomainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  hudDomainText: {
+    fontSize: 13,
+    fontWeight: '700',
+    flexShrink: 1,
+  },
+  hudWaitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  hudWaitText: {
+    fontSize: 11,
+    color: '#D97706',
+    fontWeight: '600',
+  },
+  hudStopwatchBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(217, 119, 6, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(217, 119, 6, 0.2)',
+  },
+  hudPulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+  },
+  hudStopwatchText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#D97706',
+    fontVariant: ['tabular-nums'],
+  },
+  hudProgressTrackSection: {
+    gap: 4,
+  },
+  hudProgressTrack: {
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  hudProgressBar: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  hudProgressMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  hudStageMetaText: {
+    fontSize: 10,
+    fontWeight: '600',
+    flex: 1,
+  },
+  hudPercentText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#F59E0B',
+  },
+
+  // Stages Card
+  stagesCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+    gap: 8,
+  },
+  stagesCardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  stagesCardTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  activeStageCounterPill: {
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  activeStageCounterText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#F59E0B',
+  },
+  stagesList: {
+    gap: 4,
+  },
+  activeStageBox: {
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    gap: 2,
+  },
+  activeStageTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  activeSpinnerBox: {
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeStageTitle: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  inProgressTag: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+  },
+  inProgressTagText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+  },
+  activeStageDesc: {
+    fontSize: 11,
+    lineHeight: 14,
+    paddingLeft: 24,
+  },
+  compactStageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 3,
+    paddingHorizontal: 4,
+  },
+  compactStageLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  compactCheckCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compactPendingCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compactPendingNumber: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  compactStageTitle: {
+    fontSize: 12,
+    flex: 1,
+  },
+  compactDonePill: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+  },
+  compactDoneText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#10B981',
+  },
+
+  // Live Micro-Ticker
+  liveTickerBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  liveTickerText: {
+    flex: 1,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  liveTagBox: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  liveTagText: {
+    fontSize: 8,
+    fontWeight: '800',
+    color: '#10B981',
+    letterSpacing: 0.5,
+  },
+  reassuranceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingVertical: 2,
+  },
+  reassuranceText: {
+    fontSize: 10,
+    fontWeight: '500',
     textAlign: 'center',
   },
 

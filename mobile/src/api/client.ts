@@ -45,7 +45,9 @@ export const apiRequest = async <T = any>(
   // Retrieve auth token
   const token = await secureStorage.getItem(STORAGE_KEYS.TOKEN);
 
-  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const isFormData =
+    (typeof FormData !== 'undefined' && options.body instanceof FormData) ||
+    Boolean(options.body && typeof (options.body as any).append === 'function');
   const headers: Record<string, string> = {
     ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     Accept: 'application/json',
@@ -91,7 +93,7 @@ export const apiRequest = async <T = any>(
   } catch (err: any) {
     clearTimeout(timeout);
     if (err.name === 'AbortError') {
-      throw new ApiError('Request timed out. Please check backend connection.', 408);
+      throw new ApiError('Analysis timed out. The website took longer than expected to process. Please retry.', 408);
     }
     if (err instanceof ApiError) {
       throw err;

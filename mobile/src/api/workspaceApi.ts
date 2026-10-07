@@ -25,18 +25,39 @@ export const workspaceApi = {
       method: 'DELETE',
     }),
 
-  // Single Unified Form Scraper & DNA Preview
-  unifiedDnaPreview: (formData: FormData): Promise<{
+  // Single Unified Form Scraper & DNA Preview (Master Brand DNA 10-Point Engine)
+  unifiedDnaPreview: (
+    payload: FormData | { domainUrl: string; brandName?: string; logoUrl?: string; [key: string]: any }
+  ): Promise<{
     success: boolean;
     workspace?: any;
     brandProfile?: any;
     rawScrapedData?: any;
     error?: string;
-  }> =>
-    apiRequest('/workspace/unified-dna-preview', {
+  }> => {
+    const isForm = typeof FormData !== 'undefined' && payload instanceof FormData;
+    return apiRequest('/workspace/unified-dna-preview', {
       method: 'POST',
-      body: formData,
-      timeoutMs: 60000,
+      body: isForm ? payload : JSON.stringify(payload),
+      timeoutMs: 240000, // 240s (4 minutes) for deep multi-agent crawl & AI synthesis
+    });
+  },
+
+  // Save & Lock Brand DNA Memory (Persists to MongoDB Canonical BrandProfile)
+  saveDna: (
+    data: any,
+    userEmail?: string
+  ): Promise<{
+    success: boolean;
+    workspace?: Workspace;
+    brandProfile?: any;
+    error?: string;
+  }> =>
+    apiRequest('/workspace/save-dna', {
+      method: 'POST',
+      headers: userEmail ? { 'x-user-email': userEmail } : undefined,
+      body: JSON.stringify({ ...data, userEmail: userEmail || data?.userEmail || '' }),
+      timeoutMs: 30000,
     }),
 
   // Brand Intelligence & Auto Scraper

@@ -7,3 +7,6 @@ Build/
 .expo/
 *.log
 *.apk
+
+# Web project
+AI_ADS_LIVE_PROJECT/
