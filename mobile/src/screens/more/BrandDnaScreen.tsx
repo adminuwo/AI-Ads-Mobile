@@ -920,6 +920,44 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
                 <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
 
+                {/* Row 1b: Business Type */}
+                <View style={styles.unifiedRow}>
+                  <View style={styles.unifiedRowLeft}>
+                    <View style={styles.unifiedFieldIconBox}>
+                      <Briefcase size={13} color="#F59E0B" />
+                    </View>
+                    <Text style={[styles.unifiedFieldLabel, { color: colors.textSecondary }]}>Business Type</Text>
+                  </View>
+                  <View style={styles.unifiedRowRight}>
+                    {editState['businessType'] ? (
+                      <TextInput
+                        value={effectiveProfile.businessType || ''}
+                        onChangeText={(text) => handleFieldChangeLocal('businessType', text)}
+                        placeholder="Business type..."
+                        placeholderTextColor={colors.textMuted}
+                        style={[styles.unifiedInput, { color: colors.textPrimary }]}
+                      />
+                    ) : (
+                      <Text style={[styles.unifiedFieldValue, { color: colors.textPrimary }]} numberOfLines={2}>
+                        {effectiveProfile.businessType || 'Not specified'}
+                      </Text>
+                    )}
+                    <TouchableOpacity
+                      onPress={() => toggleEdit('businessType')}
+                      style={styles.fieldActionBtn}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      {editState['businessType'] ? (
+                        <Check size={12} color="#10B981" />
+                      ) : (
+                        <Edit3 size={12} color={colors.textMuted} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={[styles.hairlineDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+
                 {/* Row 2: Headquarters */}
                 <View style={styles.unifiedRow}>
                   <View style={styles.unifiedRowLeft}>
@@ -1071,7 +1109,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 {editState['missionStatement'] ? (
                   <TextInput
                     multiline
-                    numberOfLines={3}
+                    scrollEnabled={false}
                     value={effectiveProfile.missionStatement || ''}
                     onChangeText={(text) => handleFieldChangeLocal('missionStatement', text)}
                     placeholder="Enter mission statement..."
@@ -1119,7 +1157,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 {editState['vision'] ? (
                   <TextInput
                     multiline
-                    numberOfLines={3}
+                    scrollEnabled={false}
                     value={effectiveProfile.vision || ''}
                     onChangeText={(text) => handleFieldChangeLocal('vision', text)}
                     placeholder="Enter company vision..."
@@ -1167,7 +1205,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               {editState['targetAudience'] ? (
                 <TextInput
                   multiline
-                  numberOfLines={4}
+                  scrollEnabled={false}
                   value={
                     Array.isArray(effectiveProfile.targetAudience)
                       ? effectiveProfile.targetAudience.join('\n')
@@ -1224,7 +1262,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               {editState['coreProductsServices'] ? (
                 <TextInput
                   multiline
-                  numberOfLines={4}
+                  scrollEnabled={false}
                   value={
                     Array.isArray(effectiveProfile.coreProductsServices)
                       ? effectiveProfile.coreProductsServices.join('\n')

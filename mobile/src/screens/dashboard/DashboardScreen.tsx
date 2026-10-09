@@ -20,7 +20,7 @@ import {
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { BrandHeader } from '../../components/common/BrandHeader';
-import { HeroFeatureAnimation } from '../../components/dashboard/HeroFeatureAnimation';
+import { AIToolkitNexus } from '../../components/dashboard/AIToolkitNexus';
 import { analyticsApi, campaignApi } from '../../api';
 
 export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
@@ -116,17 +116,6 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
       >
         {/* ── 1. HERO SECTION ── */}
         <View style={styles.heroSection}>
-          {/* Logo Row: Mascot Camera + AI Ads™ */}
-          <View style={styles.heroLogoRow}>
-            <Image
-              source={require('../../../assets/ai_ads_camera_reference.png')}
-              style={styles.heroCameraLogo}
-              resizeMode="contain"
-            />
-            <Text style={[styles.heroAppTitle, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
-              AI Ads<Text style={styles.tmSymbol}>™</Text>
-            </Text>
-          </View>
 
           {/* Tagline Row: Create • Plan • Publish • Grow */}
           <View style={styles.taglineRow}>
@@ -139,8 +128,8 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             <Text style={[styles.taglineWord, { color: '#8B5CF6' }]}>Grow</Text>
           </View>
 
-          {/* Soft Feature Animation of AI Ads (No person or robot) */}
-          <HeroFeatureAnimation />
+          {/* ── 2026 Futuristic AI Nexus Command Deck ── */}
+          <AIToolkitNexus />
         </View>
 
         {/* ── BODY CONTENT WITH HORIZONTAL PADDING ── */}

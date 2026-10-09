@@ -13,6 +13,7 @@ import {
   Alert,
   Animated,
   Easing,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Clipboard from 'expo-clipboard';
@@ -36,7 +37,12 @@ import {
   Clock,
   Check,
   ShieldCheck,
+  MapPin,
+  Mail,
+  Phone,
+  Briefcase,
 } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -54,7 +60,10 @@ interface BrandAssetDoc {
 }
 
 export const ScraperModal: React.FC = () => {
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const modalHeight = Math.round(windowHeight * 0.90);
   const { colors, isDark } = useTheme();
   const {
     isScraperOpen,
@@ -157,6 +166,17 @@ const getProgressPercent = (sec: number): number => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<NormalizedBrandDna | null>(null);
+  const [multilineHeights, setMultilineHeights] = useState<Record<string, number>>({});
+
+  const handleContentSizeChange = (key: string, e: any) => {
+    const h = e?.nativeEvent?.contentSize?.height;
+    if (h && h > 0) {
+      setMultilineHeights((prev) => {
+        if (prev[key] === h) return prev;
+        return { ...prev, [key]: h };
+      });
+    }
+  };
 
   const currentStepIndex = getCurrentStepIndex(elapsedSeconds);
   const progressPercent = getProgressPercent(elapsedSeconds);
@@ -250,6 +270,7 @@ const getProgressPercent = (sec: number): number => {
     if (isScraperOpen) {
       setResult(null);
       setError(null);
+      setMultilineHeights({});
       if (scraperMode === 'ACTIVE_BRAND' && activeWorkspace && activeWorkspace.domainUrl) {
         setUrl(activeWorkspace.domainUrl || '');
         setBrandName(activeWorkspace.brandName || '');
@@ -400,6 +421,10 @@ const getProgressPercent = (sec: number): number => {
           logoUrl: result.logoUrl || logoUrl.trim() || '',
           brandColors: result.brandColors && result.brandColors.length > 0 ? result.brandColors : ['#F59E0B', '#D97706', '#06B6D4', '#151922'],
           industryCategory: result.industryCategory || 'General Business',
+          businessType: result.businessType || 'D2C / B2B',
+          headquarters: result.headquarters || '',
+          address: result.headquarters || '',
+          contactInfo: result.contactInfo || null,
           missionStatement: result.missionStatement || '',
           tagline: result.tagline || '',
           vision: result.vision || '',
@@ -418,6 +443,19 @@ const getProgressPercent = (sec: number): number => {
       setLogoUrl('');
       setDocumentFiles([]);
       setImageFiles([]);
+
+      // Navigate to Brand DNA page for the saved brand
+      setTimeout(() => {
+        try {
+          navigation.navigate('More', { screen: 'BrandDna' });
+        } catch {
+          try {
+            navigation.navigate('BrandDna');
+          } catch (navErr) {
+            console.warn('[ScraperModal] Navigation to BrandDna failed:', navErr);
+          }
+        }
+      }, 150);
     } catch (err: any) {
       console.error('[ScraperModal] Save Error:', err);
       Alert.alert('Error', err.message || 'Failed to save Brand DNA Memory. Please try again.');
@@ -439,20 +477,22 @@ const getProgressPercent = (sec: number): number => {
       animationType="slide"
       onRequestClose={() => !loading && !isSaving && setIsScraperOpen(false)}
     >
-      <Pressable
-        style={styles.backdrop}
-        onPress={() => !loading && !isSaving && setIsScraperOpen(false)}
-      >
+      <View style={styles.backdrop}>
+        {/* Backdrop tappable dismiss area (occupies space above modal sheet) */}
         <Pressable
+          style={styles.backdropDismissArea}
+          onPress={() => !loading && !isSaving && setIsScraperOpen(false)}
+        />
+        <View
           style={[
             styles.modalContent,
             {
+              height: modalHeight,
+              maxHeight: modalHeight,
               backgroundColor: isDark ? colors.cardBackground : '#FFFFFF',
               borderColor: colors.neu.borderLight,
-              paddingBottom: Math.max(insets.bottom, 24),
             },
           ]}
-          onPress={(e) => e.stopPropagation()}
         >
           {/* Modal Header */}
           <View style={[styles.header, { borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }]}>
@@ -489,7 +529,19 @@ const getProgressPercent = (sec: number): number => {
             )}
           </View>
 
-          <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.scrollBody}
+            contentContainerStyle={[
+              styles.scrollContentContainer,
+              { paddingBottom: Math.max(insets.bottom, 24) + 60 },
+            ]}
+            showsVerticalScrollIndicator={true}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            nestedScrollEnabled={true}
+            bounces={true}
+            overScrollMode="always"
+          >
             {error && (
               <View style={[styles.errorBox, { backgroundColor: 'rgba(239, 68, 68, 0.12)', borderColor: 'rgba(239, 68, 68, 0.3)' }]}>
                 <AlertCircle size={15} color="#EF4444" />
@@ -1118,15 +1170,38 @@ const getProgressPercent = (sec: number): number => {
                   </View>
 
                   <View style={styles.previewFieldGroup}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <Briefcase size={12} color="#F59E0B" />
+                      <Text style={[styles.previewFieldLabel, { color: colors.textMuted }]}>BUSINESS TYPE</Text>
+                    </View>
+                    <TextInput
+                      value={result.businessType || ''}
+                      onChangeText={(val) => setResult((prev) => prev ? { ...prev, businessType: val } : null)}
+                      placeholder="e.g. D2C E-Commerce, B2B SaaS, Retail..."
+                      placeholderTextColor={colors.textMuted}
+                      style={[styles.previewInput, { color: colors.textPrimary, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}
+                    />
+                  </View>
+
+                  <View style={styles.previewFieldGroup}>
                     <Text style={[styles.previewFieldLabel, { color: colors.textMuted }]}>COMPANY DESCRIPTION</Text>
                     <TextInput
                       multiline
-                      numberOfLines={3}
+                      scrollEnabled={false}
                       value={result.companyDescription || ''}
                       onChangeText={(val) => setResult((prev) => prev ? { ...prev, companyDescription: val } : null)}
+                      onContentSizeChange={(e) => handleContentSizeChange('companyDescription', e)}
                       placeholder="Enter company description..."
                       placeholderTextColor={colors.textMuted}
-                      style={[styles.previewMultilineInput, { color: colors.textPrimary, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}
+                      style={[
+                        styles.previewMultilineInput,
+                        {
+                          color: colors.textPrimary,
+                          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                          minHeight: 64,
+                          ...(multilineHeights['companyDescription'] ? { height: Math.max(64, multilineHeights['companyDescription'] + 16) } : {}),
+                        },
+                      ]}
                     />
                   </View>
                 </View>
@@ -1141,12 +1216,21 @@ const getProgressPercent = (sec: number): number => {
                     <Text style={[styles.previewFieldLabel, { color: colors.textMuted }]}>MISSION</Text>
                     <TextInput
                       multiline
-                      numberOfLines={2}
+                      scrollEnabled={false}
                       value={result.missionStatement || ''}
                       onChangeText={(val) => setResult((prev) => prev ? { ...prev, missionStatement: val } : null)}
+                      onContentSizeChange={(e) => handleContentSizeChange('missionStatement', e)}
                       placeholder="Enter mission statement..."
                       placeholderTextColor={colors.textMuted}
-                      style={[styles.previewMultilineInput, { color: colors.textPrimary, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}
+                      style={[
+                        styles.previewMultilineInput,
+                        {
+                          color: colors.textPrimary,
+                          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                          minHeight: 52,
+                          ...(multilineHeights['missionStatement'] ? { height: Math.max(52, multilineHeights['missionStatement'] + 16) } : {}),
+                        },
+                      ]}
                     />
                   </View>
 
@@ -1154,12 +1238,94 @@ const getProgressPercent = (sec: number): number => {
                     <Text style={[styles.previewFieldLabel, { color: colors.textMuted }]}>VISION</Text>
                     <TextInput
                       multiline
-                      numberOfLines={2}
+                      scrollEnabled={false}
                       value={result.vision || ''}
                       onChangeText={(val) => setResult((prev) => prev ? { ...prev, vision: val } : null)}
+                      onContentSizeChange={(e) => handleContentSizeChange('vision', e)}
                       placeholder="Enter vision statement..."
                       placeholderTextColor={colors.textMuted}
-                      style={[styles.previewMultilineInput, { color: colors.textPrimary, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}
+                      style={[
+                        styles.previewMultilineInput,
+                        {
+                          color: colors.textPrimary,
+                          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                          minHeight: 52,
+                          ...(multilineHeights['vision'] ? { height: Math.max(52, multilineHeights['vision'] + 16) } : {}),
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
+
+                {/* SECTION 3: LOCATION & CONTACT DETAILS */}
+                <View style={[styles.previewSectionCard, { backgroundColor: isDark ? '#11151D' : '#F8FAFC' }]}>
+                  <Text style={[styles.previewSectionHeaderTitle, { color: '#F59E0B' }]}>
+                    Location & Contact Info
+                  </Text>
+
+                  <View style={styles.previewFieldGroup}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <MapPin size={12} color="#F59E0B" />
+                      <Text style={[styles.previewFieldLabel, { color: colors.textMuted }]}>HEADQUARTERS & ADDRESS</Text>
+                    </View>
+                    <TextInput
+                      multiline
+                      scrollEnabled={false}
+                      value={result.headquarters || ''}
+                      onChangeText={(val) => setResult((prev) => prev ? { 
+                        ...prev, 
+                        headquarters: val,
+                        contactInfo: { ...(prev.contactInfo || {}), location: val }
+                      } : null)}
+                      onContentSizeChange={(e) => handleContentSizeChange('headquarters', e)}
+                      placeholder="e.g. Mumbai, Maharashtra, India..."
+                      placeholderTextColor={colors.textMuted}
+                      style={[
+                        styles.previewMultilineInput,
+                        {
+                          color: colors.textPrimary,
+                          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                          minHeight: 40,
+                          ...(multilineHeights['headquarters'] ? { height: Math.max(40, multilineHeights['headquarters'] + 16) } : {}),
+                        },
+                      ]}
+                    />
+                  </View>
+
+                  <View style={styles.previewFieldGroup}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <Mail size={12} color="#0284C7" />
+                      <Text style={[styles.previewFieldLabel, { color: colors.textMuted }]}>CONTACT EMAIL</Text>
+                    </View>
+                    <TextInput
+                      value={result.contactInfo?.email || ''}
+                      onChangeText={(val) => setResult((prev) => prev ? { 
+                        ...prev, 
+                        contactInfo: { ...(prev.contactInfo || {}), email: val } 
+                      } : null)}
+                      placeholder="e.g. support@brand.com"
+                      placeholderTextColor={colors.textMuted}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      style={[styles.previewInput, { color: colors.textPrimary, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}
+                    />
+                  </View>
+
+                  <View style={styles.previewFieldGroup}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <Phone size={12} color="#10B981" />
+                      <Text style={[styles.previewFieldLabel, { color: colors.textMuted }]}>PHONE / HELPLINE</Text>
+                    </View>
+                    <TextInput
+                      value={result.contactInfo?.phone || ''}
+                      onChangeText={(val) => setResult((prev) => prev ? { 
+                        ...prev, 
+                        contactInfo: { ...(prev.contactInfo || {}), phone: val } 
+                      } : null)}
+                      placeholder="e.g. +91 9876543210 or 1800-XXX-XXXX"
+                      placeholderTextColor={colors.textMuted}
+                      keyboardType="phone-pad"
+                      style={[styles.previewInput, { color: colors.textPrimary, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}
                     />
                   </View>
                 </View>
@@ -1197,8 +1363,8 @@ const getProgressPercent = (sec: number): number => {
               </View>
             )}
           </ScrollView>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 };
@@ -1209,14 +1375,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.75)',
     justifyContent: 'flex-end',
   },
+  backdropDismissArea: {
+    flex: 1,
+    width: '100%',
+  },
   modalContent: {
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     borderTopWidth: 1,
-    maxHeight: '90%',
     width: '100%',
     maxWidth: 600,
     alignSelf: 'center',
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -1262,8 +1432,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scrollBody: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContentContainer: {
     paddingHorizontal: 16,
     paddingTop: 14,
+    paddingBottom: 60,
+    flexGrow: 1,
   },
   errorBox: {
     flexDirection: 'row',

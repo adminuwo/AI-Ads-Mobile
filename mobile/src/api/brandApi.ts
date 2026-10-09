@@ -85,7 +85,7 @@ export const brandApi = {
     return apiRequest('/workspace/unified-dna-preview', {
       method: 'POST',
       body: isForm ? payload : JSON.stringify(payload),
-      timeoutMs: 240000,
+      timeoutMs: 600000, // 600s (10 minutes) for deep multi-agent crawl & full accuracy synthesis
     });
   },
 
@@ -107,7 +107,7 @@ export const brandApi = {
     apiRequest('/brand/analyze', {
       method: 'POST',
       body: JSON.stringify(params),
-      timeoutMs: 60000, // 60s timeout for deep web scraping and multi-agent synthesis
+      timeoutMs: 600000, // 600s (10 minutes) for deep web scraping and multi-agent synthesis
     }),
 
   /**

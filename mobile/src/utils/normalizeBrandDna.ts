@@ -82,10 +82,10 @@ export function normalizeBrandDna(rawWorkspaceOrProfile: any): NormalizedBrandDn
 
   // Business Type
   const rawBType = Array.isArray(w.businessType) ? w.businessType.join(' & ') : (w.businessType || null);
-  const businessType = (rawBType && rawBType !== 'Not Specified in Evidence') ? rawBType : null;
+  const businessType = (rawBType && rawBType !== 'Not Specified in Evidence') ? rawBType : 'D2C / B2B';
 
   // Headquarters
-  const rawHq = w.headquarters || null;
+  const rawHq = w.headquarters || w.address || (typeof w.contactInfo === 'object' ? w.contactInfo?.location : null) || null;
   const headquarters = (rawHq && rawHq !== 'Address Not Found' && rawHq !== 'Not Specified in Evidence') ? rawHq : null;
 
   // Company Description
@@ -141,7 +141,16 @@ export function normalizeBrandDna(rawWorkspaceOrProfile: any): NormalizedBrandDn
   const contentPillars = Array.isArray(w.contentPillars) ? w.contentPillars : [];
 
   // Contact Info
-  const contactInfo = w.contactInfo || (headquarters ? { location: headquarters } : null);
+  let contactInfo: any = null;
+  if (w.contactInfo && typeof w.contactInfo === 'object') {
+    contactInfo = {
+      email: w.contactInfo.email || null,
+      phone: w.contactInfo.phone || null,
+      location: w.contactInfo.location || headquarters || null,
+    };
+  } else if (headquarters) {
+    contactInfo = { email: null, phone: null, location: headquarters };
+  }
 
   return {
     brandName,

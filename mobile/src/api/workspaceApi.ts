@@ -39,7 +39,7 @@ export const workspaceApi = {
     return apiRequest('/workspace/unified-dna-preview', {
       method: 'POST',
       body: isForm ? payload : JSON.stringify(payload),
-      timeoutMs: 240000, // 240s (4 minutes) for deep multi-agent crawl & AI synthesis
+      timeoutMs: 600000, // 600s (10 minutes) for deep multi-agent crawl & full AI accuracy synthesis
     });
   },
 
@@ -70,7 +70,7 @@ export const workspaceApi = {
     apiRequest('/brand/analyze', {
       method: 'POST',
       body: JSON.stringify(payload),
-      timeoutMs: 60000, // 60s for multi-agent scraping & LLM extraction
+      timeoutMs: 600000, // 600s (10 minutes) for deep multi-agent crawl & full accuracy synthesis
     }),
 
   getBrandProfile: (workspaceId: string): Promise<{ success: boolean; profile: any }> =>

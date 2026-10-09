@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,254 +7,173 @@ import {
   Easing,
   useWindowDimensions,
   Image,
+  TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import {
-  Sparkles,
-  Zap,
+  Dna,
+  Search,
+  Layers,
   Target,
-  Send,
-  TrendingUp,
-  Fingerprint,
+  Calendar,
+  Globe,
+  FolderKanban,
+  Palette,
   PenTool,
-  Check,
+  ChevronRight,
   Wifi,
   Battery,
+  Sparkles,
 } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
 
-interface FeatureLine {
+export interface ToolkitFeatureItem {
   id: string;
   name: string;
   desc: string;
   badge: string;
   color: string;
   icon: React.ComponentType<{ size: number; color: string; strokeWidth?: number }>;
+  onPress: (navigation: any) => void;
 }
 
-const FEATURE_LINES: FeatureLine[] = [
+export const TOOLKIT_FEATURES: ToolkitFeatureItem[] = [
   {
-    id: 'dna',
+    id: 'brand_dna',
     name: 'Brand DNA',
-    desc: 'Panch Tattva Voice & Style',
-    badge: '100% Brand Safe',
-    color: '#8B5CF6',
-    icon: Fingerprint,
+    desc: 'Panch Tattva Voice & Memory',
+    badge: 'Core Memory',
+    color: '#EA580C',
+    icon: Dna,
+    onPress: (nav) => nav.navigate('More', { screen: 'BrandDna' }),
   },
   {
-    id: 'creative',
-    name: 'Creative Studio',
-    desc: 'Instant 4K Banners & Video',
-    badge: 'Auto Generated',
-    color: '#F59E0B',
-    icon: Sparkles,
+    id: 'seo',
+    name: 'SEO Intelligence',
+    desc: 'Rank #1 & Competitor Audit',
+    badge: 'Rank #1',
+    color: '#0D9488',
+    icon: Search,
+    onPress: (nav) => nav.navigate('More', { screen: 'SEO' }),
   },
   {
     id: 'campaigns',
     name: 'Ad Campaigns',
     desc: 'Meta, Google & LinkedIn Ads',
-    badge: 'Multi-Channel',
-    color: '#0EA5E9',
+    badge: 'Omnichannel',
+    color: '#3B82F6',
+    icon: Layers,
+    onPress: (nav) => nav.navigate('More', { screen: 'Campaigns' }),
+  },
+  {
+    id: 'strategy',
+    name: 'Marketing Strategy',
+    desc: 'Autonomous 90-Day Plan',
+    badge: 'Autonomous',
+    color: '#8B5CF6',
     icon: Target,
+    onPress: (nav) => nav.navigate('Strategy', { screen: 'StrategyHome' }),
   },
   {
-    id: 'copy',
-    name: 'AI Copywriter',
-    desc: 'High-Converting Hooks & Captions',
-    badge: '+340% CTR',
-    color: '#EC4899',
-    icon: PenTool,
-  },
-  {
-    id: 'publish',
-    name: 'Auto-Publish',
-    desc: 'Smart Scheduled Pipeline',
-    badge: 'Synced Live',
+    id: 'calendar',
+    name: 'Content Calendar',
+    desc: 'Smart Auto-Publishing Queue',
+    badge: 'Auto-Publish',
     color: '#10B981',
-    icon: Send,
+    icon: Calendar,
+    onPress: (nav) => nav.navigate('CalendarTab', { screen: 'CalendarHome' }),
   },
   {
-    id: 'seo',
-    name: 'SEO & Growth ROI',
-    desc: 'Rank #1 & Scale Conversions',
-    badge: '4.8x ROI',
-    color: '#6366F1',
-    icon: TrendingUp,
+    id: 'website_builder',
+    name: 'AI Website Builder',
+    desc: 'Instant Landing Pages in 60s',
+    badge: 'Instant 60s',
+    color: '#EC4899',
+    icon: Globe,
+    onPress: (nav) => nav.navigate('More', { screen: 'WebsiteBuilder' }),
+  },
+  {
+    id: 'asset_library',
+    name: 'Asset Library',
+    desc: '4K Logos & Media Vault',
+    badge: '4K Cloud',
+    color: '#059669',
+    icon: FolderKanban,
+    onPress: (nav) => nav.navigate('AssetLibraryTab'),
+  },
+  {
+    id: 'creative_studio',
+    name: 'Creative Studio',
+    desc: 'Photoreal Banners & Creatives',
+    badge: '4K Photoreal',
+    color: '#7C3AED',
+    icon: Palette,
+    onPress: (nav) => nav.navigate('More', { screen: 'CreativeStudio' }),
+  },
+  {
+    id: 'content_studio',
+    name: 'AI Copywriting',
+    desc: 'High-Converting Copy & Hooks',
+    badge: '+340% CTR',
+    color: '#E11D48',
+    icon: PenTool,
+    onPress: (nav) => nav.navigate('CreateTab', { screen: 'CreateHome' }),
   },
 ];
 
+// Single card geometry
+const ITEM_HEIGHT = 54;
+const ITEM_MARGIN_BOTTOM = 8;
+const SINGLE_ITEM_SPAN = ITEM_HEIGHT + ITEM_MARGIN_BOTTOM; // 62px
+const CYCLE_TOTAL_HEIGHT = TOOLKIT_FEATURES.length * SINGLE_ITEM_SPAN; // 9 * 62 = 558px
+
+// Duplicated for 100% seamless infinite looping
+const STREAM_FEATURES = [
+  ...TOOLKIT_FEATURES,
+  ...TOOLKIT_FEATURES,
+  ...TOOLKIT_FEATURES,
+];
+
 export const HeroFeatureAnimation: React.FC = () => {
-  const { isDark } = useTheme();
+  const { colors, isDark } = useTheme();
+  const navigation = useNavigation<any>();
   const { width } = useWindowDimensions();
 
-  // 1. Phone 3D Entrance & Rotation Animation Values
-  const phoneScale = useRef(new Animated.Value(0.4)).current;
-  const phoneRotateY = useRef(new Animated.Value(1)).current; // 1 -> 0 (maps to -45deg -> 0deg)
-  const phoneRotateZ = useRef(new Animated.Value(1)).current; // 1 -> 0 (maps to -12deg -> 0deg)
-  const phoneTranslateY = useRef(new Animated.Value(45)).current;
-  const phoneIdleFloat = useRef(new Animated.Value(0)).current;
+  // Continuous vertical ticker translateY
+  const scrollAnim = useRef(new Animated.Value(0)).current;
 
-  // 2. Phone Screen Power-On & Header Entrance
-  const screenGlow = useRef(new Animated.Value(0)).current;
-  const headerOpacity = useRef(new Animated.Value(0)).current;
+  // Gentle floating bob
+  const floatAnim = useRef(new Animated.Value(0)).current;
 
-  // 3. Line-By-Line Animated Values (one per feature)
-  const lineAnims = useRef(
-    FEATURE_LINES.map(() => ({
-      opacity: new Animated.Value(0),
-      translateY: new Animated.Value(14),
-      scale: new Animated.Value(0.92),
-    }))
-  ).current;
+  // Live indicator pulsing opacity
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // 4. Live celebration chip at bottom of phone
-  const celebrationOpacity = useRef(new Animated.Value(0)).current;
-  const celebrationScale = useRef(new Animated.Value(0.85)).current;
-
-  // Master sequence controller
   useEffect(() => {
-    let isCancelled = false;
+    // 1. Continuous Linear Auto-Scroll Loop (Native UI Thread)
+    const scrollLoop = Animated.loop(
+      Animated.timing(scrollAnim, {
+        toValue: -CYCLE_TOTAL_HEIGHT,
+        duration: 18000, // 18 seconds for steady, comfortable reading speed
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    scrollLoop.start();
 
-    const runMasterAnimation = () => {
-      if (isCancelled) return;
-
-      // Reset values
-      phoneScale.setValue(0.4);
-      phoneRotateY.setValue(1);
-      phoneRotateZ.setValue(1);
-      phoneTranslateY.setValue(45);
-      screenGlow.setValue(0);
-      headerOpacity.setValue(0);
-      celebrationOpacity.setValue(0);
-      celebrationScale.setValue(0.85);
-      lineAnims.forEach((l) => {
-        l.opacity.setValue(0);
-        l.translateY.setValue(14);
-        l.scale.setValue(0.92);
-      });
-
-      // Step 1: 3D Phone Rotates & Comes Upfront with momentum
-      Animated.parallel([
-        Animated.timing(phoneScale, {
-          toValue: 1,
-          duration: 1100,
-          easing: Easing.out(Easing.back(1.15)),
-          useNativeDriver: true,
-        }),
-        Animated.timing(phoneRotateY, {
-          toValue: 0,
-          duration: 1100,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(phoneRotateZ, {
-          toValue: 0,
-          duration: 1100,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(phoneTranslateY, {
-          toValue: 0,
-          duration: 1100,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(screenGlow, {
-          toValue: 1,
-          duration: 900,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        if (isCancelled) return;
-
-        // Step 2: Screen turns on, AI Ads header appears
-        Animated.timing(headerOpacity, {
-          toValue: 1,
-          duration: 350,
-          useNativeDriver: true,
-        }).start(() => {
-          if (isCancelled) return;
-
-          // Step 3: Stream features LINE BY LINE
-          const lineStaggerAnimations = lineAnims.map((anim, index) => {
-            return Animated.parallel([
-              Animated.timing(anim.opacity, {
-                toValue: 1,
-                duration: 320,
-                delay: index * 260, // Staggered line by line
-                easing: Easing.out(Easing.cubic),
-                useNativeDriver: true,
-              }),
-              Animated.timing(anim.translateY, {
-                toValue: 0,
-                duration: 320,
-                delay: index * 260,
-                easing: Easing.out(Easing.back(1.2)),
-                useNativeDriver: true,
-              }),
-              Animated.timing(anim.scale, {
-                toValue: 1,
-                duration: 320,
-                delay: index * 260,
-                easing: Easing.out(Easing.cubic),
-                useNativeDriver: true,
-              }),
-            ]);
-          });
-
-          Animated.parallel(lineStaggerAnimations).start(() => {
-            if (isCancelled) return;
-
-            // Step 4: Show bottom celebration badge
-            Animated.parallel([
-              Animated.timing(celebrationOpacity, {
-                toValue: 1,
-                duration: 350,
-                useNativeDriver: true,
-              }),
-              Animated.spring(celebrationScale, {
-                toValue: 1,
-                friction: 6,
-                useNativeDriver: true,
-              }),
-            ]).start(() => {
-              if (isCancelled) return;
-
-              // Step 5: Hold showcase for 4 seconds, then smoothly restart
-              setTimeout(() => {
-                if (isCancelled) return;
-
-                Animated.timing(headerOpacity, {
-                  toValue: 0,
-                  duration: 400,
-                  useNativeDriver: true,
-                }).start(() => {
-                  if (!isCancelled) {
-                    runMasterAnimation();
-                  }
-                });
-              }, 4200);
-            });
-          });
-        });
-      });
-    };
-
-    runMasterAnimation();
-
-    // Idle floating bob for the phone
+    // 2. Subtle Floating Bob
     const floatLoop = Animated.loop(
       Animated.sequence([
-        Animated.timing(phoneIdleFloat, {
-          toValue: -4,
-          duration: 2000,
+        Animated.timing(floatAnim, {
+          toValue: -3.5,
+          duration: 2200,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
-        Animated.timing(phoneIdleFloat, {
-          toValue: 4,
-          duration: 2000,
+        Animated.timing(floatAnim, {
+          toValue: 3.5,
+          duration: 2200,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
@@ -262,30 +181,54 @@ export const HeroFeatureAnimation: React.FC = () => {
     );
     floatLoop.start();
 
+    // 3. Pulsing Live Dot
+    const pulseLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 0.35,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulseLoop.start();
+
     return () => {
-      isCancelled = true;
+      scrollLoop.stop();
       floatLoop.stop();
+      pulseLoop.stop();
     };
   }, []);
 
-  // 3D Rotations interpolation
-  const rotateYInterpolate = phoneRotateY.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '-42deg'],
-  });
+  const handleCardPress = (item: ToolkitFeatureItem) => {
+    Haptics.selectionAsync().catch(() => {});
+    try {
+      item.onPress(navigation);
+    } catch (err) {
+      console.warn('Navigation error:', err);
+    }
+  };
 
-  const rotateZInterpolate = phoneRotateZ.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '-10deg'],
-  });
+  const phoneWidth = Math.min(width * 0.78, 286);
+  const phoneHeight = 340;
 
-  // Responsive device sizing
-  const phoneWidth = Math.min(width * 0.72, 268);
-  const phoneHeight = 315;
+  const screenGradColors = isDark
+    ? (['#0A0E17', '#0F172A', '#1A1838'] as const)
+    : (['#FFFFFF', '#FFF5F8', '#F8FAFC'] as const);
+
+  const maskTopColor = isDark ? '#0A0E17' : '#FFFFFF';
+  const maskBottomColor = isDark ? '#1A1838' : '#F8FAFC';
 
   return (
     <View style={styles.container}>
-      {/* Soft Ambient Radial Backdrop */}
+      {/* Ambient Pulsing Glow Circle */}
       <View style={styles.ambientBackdrop} pointerEvents="none">
         <View
           style={[
@@ -293,53 +236,47 @@ export const HeroFeatureAnimation: React.FC = () => {
             {
               backgroundColor: isDark
                 ? 'rgba(139, 92, 246, 0.16)'
-                : 'rgba(252, 231, 243, 0.9)',
+                : 'rgba(252, 231, 243, 0.95)',
             },
           ]}
         />
       </View>
 
-      {/* ── 3D ROTATING SMARTPHONE MOCKUP ── */}
+      {/* ── SLEEK SMARTPHONE MOCKUP ── */}
       <Animated.View
         style={[
-          styles.phone3DWrapper,
+          styles.phoneWrapper,
           {
             width: phoneWidth,
             height: phoneHeight,
-            transform: [
-              { perspective: 900 },
-              { translateY: phoneTranslateY },
-              { translateY: phoneIdleFloat },
-              { scale: phoneScale },
-              { rotateY: rotateYInterpolate },
-              { rotateZ: rotateZInterpolate },
-            ],
+            transform: [{ translateY: floatAnim }],
           },
         ]}
       >
-        {/* Outer Phone Bezel / Metallic Frame */}
+        {/* Hardware Frame / Bezel */}
         <View
           style={[
             styles.phoneFrame,
             {
               backgroundColor: isDark ? '#090D16' : '#1E293B',
-              borderColor: isDark ? '#334155' : '#475569',
-              shadowColor: isDark ? '#8B5CF6' : '#A3B1C6',
+              borderColor: isDark ? '#334155' : '#334155',
+              shadowColor: isDark ? '#8B5CF6' : '#F472B6',
             },
           ]}
         >
-          {/* Inner Phone Screen Display */}
+          {/* Hardware Side Button Accents */}
+          <View style={styles.sideVolumeUp} />
+          <View style={styles.sideVolumeDown} />
+          <View style={styles.sidePowerBtn} />
+
+          {/* Inner High-Resolution Display */}
           <LinearGradient
-            colors={
-              isDark
-                ? ['#0F172A', '#13192B', '#1E1B4B']
-                : ['#FFFFFF', '#FFF5F8', '#F8FAFC']
-            }
+            colors={screenGradColors}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.phoneScreen}
           >
-            {/* Top Status Bar: Time & Dynamic Island */}
+            {/* 1. Status Bar & Dynamic Island */}
             <View style={styles.statusBarRow}>
               <Text
                 style={[
@@ -350,7 +287,7 @@ export const HeroFeatureAnimation: React.FC = () => {
                 9:41
               </Text>
 
-              {/* Dynamic Island Pill */}
+              {/* Dynamic Island Notch Pill */}
               <View style={styles.dynamicIslandPill}>
                 <View style={styles.cameraDot} />
               </View>
@@ -361,8 +298,8 @@ export const HeroFeatureAnimation: React.FC = () => {
               </View>
             </View>
 
-            {/* App Header Inside Phone */}
-            <Animated.View style={[styles.phoneAppHeader, { opacity: headerOpacity }]}>
+            {/* 2. Compact Phone App Header */}
+            <View style={styles.phoneAppHeader}>
               <View style={styles.appHeaderLeft}>
                 <Image
                   source={require('../../../assets/ai_ads_camera_reference.png')}
@@ -378,111 +315,149 @@ export const HeroFeatureAnimation: React.FC = () => {
                   >
                     AI Ads<Text style={styles.tmSmall}>™</Text>
                   </Text>
-                  <Text style={styles.phoneAppTagline}>Omnichannel Ad Engine</Text>
+                  <Text style={styles.phoneAppTagline}>Autonomous Toolkits</Text>
                 </View>
               </View>
 
+              {/* Pulsing Live Badge */}
               <View style={styles.liveActivePill}>
-                <View style={styles.greenLiveDot} />
-                <Text style={styles.liveActiveText}>ACTIVE</Text>
+                <Animated.View
+                  style={[
+                    styles.greenLiveDot,
+                    { opacity: pulseAnim },
+                  ]}
+                />
+                <Text style={styles.liveActiveText}>AUTO-STREAM</Text>
               </View>
-            </Animated.View>
-
-            {/* ── LINE-BY-LINE FEATURE STREAM ── */}
-            <View style={styles.featureStreamContainer}>
-              {FEATURE_LINES.map((feat, index) => {
-                const anim = lineAnims[index];
-                const IconComp = feat.icon;
-
-                return (
-                  <Animated.View
-                    key={feat.id}
-                    style={[
-                      styles.featureLineRow,
-                      {
-                        backgroundColor: isDark
-                          ? 'rgba(255, 255, 255, 0.05)'
-                          : '#FFFFFF',
-                        borderColor: isDark
-                          ? 'rgba(255, 255, 255, 0.08)'
-                          : 'rgba(226, 232, 240, 0.9)',
-                        opacity: anim.opacity,
-                        transform: [
-                          { translateY: anim.translateY },
-                          { scale: anim.scale },
-                        ],
-                      },
-                    ]}
-                  >
-                    {/* Feature Icon Dot */}
-                    <View
-                      style={[
-                        styles.featureIconBadge,
-                        { backgroundColor: `${feat.color}16` },
-                      ]}
-                    >
-                      <IconComp size={12} color={feat.color} strokeWidth={2.4} />
-                    </View>
-
-                    {/* Feature Title & Description */}
-                    <View style={styles.featureInfoCol}>
-                      <Text
-                        style={[
-                          styles.featureLineTitle,
-                          { color: isDark ? '#F1F5F9' : '#0F172A' },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {feat.name}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.featureLineDesc,
-                          { color: isDark ? '#94A3B8' : '#64748B' },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {feat.desc}
-                      </Text>
-                    </View>
-
-                    {/* Feature Live Badge */}
-                    <View
-                      style={[
-                        styles.featureLineBadge,
-                        { backgroundColor: `${feat.color}14` },
-                      ]}
-                    >
-                      <Check size={8} color={feat.color} strokeWidth={3} />
-                      <Text
-                        style={[
-                          styles.featureLineBadgeText,
-                          { color: feat.color },
-                        ]}
-                      >
-                        {feat.badge}
-                      </Text>
-                    </View>
-                  </Animated.View>
-                );
-              })}
             </View>
 
-            {/* Bottom Celebration / Summary Pill */}
-            <Animated.View
-              style={[
-                styles.celebrationPill,
-                {
-                  opacity: celebrationOpacity,
-                  transform: [{ scale: celebrationScale }],
-                },
-              ]}
-            >
-              <Zap size={10} color="#2563EB" fill="#2563EB" />
-              <Text style={styles.celebrationText}>
-                All AI Systems Connected & Ready
-              </Text>
-            </Animated.View>
+            {/* 3. CONTINUOUS AUTO-SCROLLING TOOLKITS REEL VIEWPORT */}
+            <View style={styles.scrollViewport}>
+              {/* Top Gradient Dissolve Mask */}
+              <LinearGradient
+                colors={[maskTopColor, 'rgba(0,0,0,0)']}
+                style={styles.topFadeMask}
+                pointerEvents="none"
+              />
+
+              {/* Seamless Infinite Conveyor Container */}
+              <Animated.View
+                style={[
+                  styles.streamContainer,
+                  {
+                    transform: [{ translateY: scrollAnim }],
+                  },
+                ]}
+              >
+                {STREAM_FEATURES.map((item, index) => {
+                  const IconComponent = item.icon;
+
+                  return (
+                    <TouchableOpacity
+                      key={`${item.id}-${index}`}
+                      activeOpacity={0.78}
+                      onPress={() => handleCardPress(item)}
+                      style={[
+                        styles.toolkitCard,
+                        {
+                          backgroundColor: isDark
+                            ? 'rgba(255, 255, 255, 0.05)'
+                            : '#FFFFFF',
+                          borderColor: isDark
+                            ? 'rgba(255, 255, 255, 0.08)'
+                            : 'rgba(226, 232, 240, 0.95)',
+                        },
+                      ]}
+                    >
+                      {/* Left: Glowing Icon Badge */}
+                      <View
+                        style={[
+                          styles.cardIconBox,
+                          {
+                            backgroundColor: `${item.color}15`,
+                            borderColor: `${item.color}35`,
+                          },
+                        ]}
+                      >
+                        <IconComponent
+                          size={16}
+                          color={item.color}
+                          strokeWidth={2.4}
+                        />
+                      </View>
+
+                      {/* Middle: Feature Title & Description */}
+                      <View style={styles.cardInfoCol}>
+                        <View style={styles.cardTitleRow}>
+                          <Text
+                            style={[
+                              styles.cardTitleText,
+                              { color: isDark ? '#F8FAFC' : '#0F172A' },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {item.name}
+                          </Text>
+                        </View>
+                        <Text
+                          style={[
+                            styles.cardDescText,
+                            { color: isDark ? '#94A3B8' : '#64748B' },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {item.desc}
+                        </Text>
+                      </View>
+
+                      {/* Right: Category Badge Pill & Chevron */}
+                      <View style={styles.cardRightCol}>
+                        <View
+                          style={[
+                            styles.featureBadgePill,
+                            {
+                              backgroundColor: `${item.color}14`,
+                              borderColor: `${item.color}30`,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.featureBadgeText,
+                              { color: item.color },
+                            ]}
+                          >
+                            {item.badge}
+                          </Text>
+                        </View>
+                        <ChevronRight
+                          size={11}
+                          color={isDark ? '#64748B' : '#94A3B8'}
+                          strokeWidth={2.2}
+                        />
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </Animated.View>
+
+              {/* Bottom Gradient Dissolve Mask */}
+              <LinearGradient
+                colors={['rgba(0,0,0,0)', maskBottomColor]}
+                style={styles.bottomFadeMask}
+                pointerEvents="none"
+              />
+            </View>
+
+            {/* 4. Bottom Home Indicator Bar */}
+            <View style={styles.homeBarContainer}>
+              <View
+                style={[
+                  styles.homeIndicatorBar,
+                  { backgroundColor: isDark ? '#475569' : '#CBD5E1' },
+                ]}
+              />
+            </View>
           </LinearGradient>
         </View>
       </Animated.View>
@@ -492,53 +467,81 @@ export const HeroFeatureAnimation: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    height: 325,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 4,
+    width: '100%',
+    paddingVertical: 12,
     position: 'relative',
   },
 
-  // Soft glow backdrop
+  // Soft Ambient Background Glow
   ambientBackdrop: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
   },
   ambientBlurCircle: {
-    width: 260,
-    height: 260,
-    borderRadius: 130,
+    width: 270,
+    height: 270,
+    borderRadius: 135,
   },
 
-  // Phone 3D Wrapper
-  phone3DWrapper: {
+  // Smartphone Wrapper
+  phoneWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  // Phone Outer Frame
+  // Smartphone Frame (Bezel)
   phoneFrame: {
     width: '100%',
     height: '100%',
-    borderRadius: 32,
-    borderWidth: 4,
+    borderRadius: 36,
+    borderWidth: 3.5,
     padding: 3,
-    elevation: 16,
-    shadowOffset: { width: 0, height: 12 },
+    elevation: 14,
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.28,
-    shadowRadius: 18,
+    shadowRadius: 20,
+    position: 'relative',
   },
 
-  // Phone Screen
+  // Side Hardware Accents
+  sideVolumeUp: {
+    position: 'absolute',
+    left: -6,
+    top: 68,
+    width: 3.5,
+    height: 24,
+    borderRadius: 2,
+    backgroundColor: '#475569',
+  },
+  sideVolumeDown: {
+    position: 'absolute',
+    left: -6,
+    top: 100,
+    width: 3.5,
+    height: 24,
+    borderRadius: 2,
+    backgroundColor: '#475569',
+  },
+  sidePowerBtn: {
+    position: 'absolute',
+    right: -6,
+    top: 80,
+    width: 3.5,
+    height: 34,
+    borderRadius: 2,
+    backgroundColor: '#475569',
+  },
+
+  // Inner Phone Screen
   phoneScreen: {
     flex: 1,
-    borderRadius: 26,
-    paddingHorizontal: 10,
+    borderRadius: 30,
+    paddingHorizontal: 9,
     paddingTop: 8,
-    paddingBottom: 8,
-    justifyContent: 'space-between',
+    paddingBottom: 6,
     overflow: 'hidden',
   },
 
@@ -547,7 +550,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
     marginBottom: 4,
   },
   statusTimeText: {
@@ -575,13 +578,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
 
-  // App Header
+  // Phone App Header
   phoneAppHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 2,
+    paddingHorizontal: 4,
     marginBottom: 6,
+    paddingBottom: 4,
   },
   appHeaderLeft: {
     flexDirection: 'row',
@@ -589,8 +593,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   miniCameraLogo: {
-    width: 22,
-    height: 22,
+    width: 20,
+    height: 20,
   },
   phoneAppTitle: {
     fontSize: 12,
@@ -614,6 +618,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2.5,
     borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
   },
   greenLiveDot: {
     width: 5,
@@ -628,73 +634,102 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // Feature Stream
-  featureStreamContainer: {
-    gap: 4,
+  // ── Auto-Scrolling Viewport ──
+  scrollViewport: {
     flex: 1,
-    justifyContent: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+    borderRadius: 16,
   },
-  featureLineRow: {
+  topFadeMask: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 22,
+    zIndex: 10,
+  },
+  bottomFadeMask: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 26,
+    zIndex: 10,
+  },
+  streamContainer: {
+    width: '100%',
+  },
+
+  // ── Toolkit Feature Card ──
+  toolkitCard: {
+    height: ITEM_HEIGHT,
+    marginBottom: ITEM_MARGIN_BOTTOM,
+    borderRadius: 14,
+    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    paddingVertical: 4.5,
-    paddingHorizontal: 7,
-    borderRadius: 10,
-    borderWidth: 1,
+    paddingHorizontal: 9,
+    gap: 9,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
   },
-  featureIconBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
+  cardIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  featureInfoCol: {
+  cardInfoCol: {
     flex: 1,
+    justifyContent: 'center',
+    gap: 1.5,
   },
-  featureLineTitle: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    lineHeight: 11,
-  },
-  featureLineDesc: {
-    fontSize: 7.8,
-    fontWeight: '500',
-    lineHeight: 9.5,
-  },
-  featureLineBadge: {
+  cardTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+  },
+  cardTitleText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: -0.1,
+  },
+  cardDescText: {
+    fontSize: 8.5,
+    fontWeight: '500',
+    lineHeight: 11,
+  },
+  cardRightCol: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  featureBadgePill: {
     paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 6,
+    borderWidth: 0.8,
   },
-  featureLineBadgeText: {
+  featureBadgeText: {
     fontSize: 7.5,
     fontWeight: '800',
+    letterSpacing: 0.2,
   },
 
-  // Bottom Celebration Pill
-  celebrationPill: {
-    flexDirection: 'row',
+  // Bottom Home Bar
+  homeBarContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(37, 99, 235, 0.08)',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-    marginTop: 3,
+    paddingTop: 4,
+    paddingBottom: 1,
   },
-  celebrationText: {
-    fontSize: 8,
-    fontWeight: '700',
-    color: '#2563EB',
+  homeIndicatorBar: {
+    width: 68,
+    height: 3,
+    borderRadius: 2,
   },
 });

@@ -210,20 +210,20 @@ export const SettingsBillingScreen: React.FC<{ navigation: any }> = ({ navigatio
 
           <View style={styles.apiPresetsRow}>
             <TouchableOpacity
-              onPress={() => setEditingUrl('https://ai-ads-743928421487.asia-south1.run.app/api')}
+              onPress={() => setEditingUrl('http://192.168.29.16:5000/api')}
               style={[styles.presetChip, { borderColor: colors.accent.primary, backgroundColor: `${colors.accent.primary}15` }]}
             >
               <Text style={[styles.presetText, { color: colors.accent.primary, fontWeight: '700' }]}>
-                ⭐ Cloud Run Live (asia-south1)
+                ⭐ Local Wi-Fi (192.168.29.16:5000)
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => setEditingUrl('http://192.168.29.16:5000/api')}
+              onPress={() => setEditingUrl('https://aiads.aisa24.com/api')}
               style={[styles.presetChip, { borderColor: colors.border }]}
             >
               <Text style={[styles.presetText, { color: colors.textSecondary }]}>
-                Local Wi-Fi (192.168.29.16)
+                Production (aiads.aisa24.com)
               </Text>
             </TouchableOpacity>
           </View>
