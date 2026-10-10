@@ -44,6 +44,8 @@ interface WorkspaceContextType {
   setUnreadCount: (count: number) => void;
   studioTarget: any | null;
   setStudioTarget: (target: any | null) => void;
+  activeToolkitFeature: string | null;
+  setActiveToolkitFeature: (feature: string | null) => void;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -67,6 +69,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isToolkitOpen, setIsToolkitOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(3);
   const [studioTarget, setStudioTarget] = useState<any | null>(null);
+  const [activeToolkitFeature, setActiveToolkitFeature] = useState<string | null>(null);
 
 
   // Hydrate local cache on startup
@@ -301,6 +304,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setUnreadCount,
         studioTarget,
         setStudioTarget,
+        activeToolkitFeature,
+        setActiveToolkitFeature,
       }}
     >
       {children}

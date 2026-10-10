@@ -79,6 +79,7 @@ export const CreativeStudioScreen: React.FC = () => {
     deductCredits,
     studioTarget,
     setStudioTarget,
+    setActiveToolkitFeature,
   } = useWorkspace();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -103,12 +104,15 @@ export const CreativeStudioScreen: React.FC = () => {
   }, []);
 
   const handleGoBack = useCallback(() => {
+    try {
+      setActiveToolkitFeature(null);
+    } catch {}
     if (navigation?.canGoBack && navigation.canGoBack()) {
       navigation.goBack();
     } else {
       navigation.navigate('Home');
     }
-  }, [navigation]);
+  }, [navigation, setActiveToolkitFeature]);
 
   // Clipboard copy helper
   const [copiedKey, setCopiedKey] = useState<string | null>(null);

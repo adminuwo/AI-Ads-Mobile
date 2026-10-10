@@ -34,6 +34,7 @@ import {
   Palette,
   Copy,
   Check,
+  Plus,
   Edit3,
   Upload,
   ImageIcon,
@@ -68,6 +69,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     updateActiveWorkspace,
     setIsScraperOpen,
     setIsBrandSwitcherOpen,
+    setActiveToolkitFeature,
   } = useWorkspace();
 
   const workspaceId = (activeWorkspace as any)?._id || activeWorkspace?.id;
@@ -232,10 +234,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const toggleEditBrandColors = async () => {
     if (!editState['brandColors']) {
       const current = [...effectiveProfile.brandColors];
-      while (current.length < 4) {
-        current.push(current.length === 0 ? '#F59E0B' : current.length === 1 ? '#D97706' : current.length === 2 ? '#06B6D4' : '#151922');
-      }
-      setColorDrafts(current.slice(0, 4));
+      setColorDrafts(current.length > 0 ? current : ['#F5A014', '#2196E8', '#FFFFFF', '#151922']);
     } else {
       if (colorDrafts) {
         const cleaned = colorDrafts.map((c) => (typeof c === 'string' ? c.trim() : '')).filter((c) => c.length > 0);
@@ -248,11 +247,24 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
   const handleColorDraftChange = (index: number, newValue: string) => {
     const nextDrafts = colorDrafts ? [...colorDrafts] : [...effectiveProfile.brandColors];
-    while (nextDrafts.length < 4) {
-      nextDrafts.push('#F59E0B');
-    }
     nextDrafts[index] = newValue;
     setColorDrafts(nextDrafts);
+  };
+
+  const handleAddColorDraft = () => {
+    const next = colorDrafts ? [...colorDrafts] : [...effectiveProfile.brandColors];
+    if (next.length < 8) {
+      next.push('#6366F1');
+      setColorDrafts(next);
+    }
+  };
+
+  const handleRemoveColorDraft = (index: number) => {
+    const next = colorDrafts ? [...colorDrafts] : [...effectiveProfile.brandColors];
+    if (next.length > 1) {
+      next.splice(index, 1);
+      setColorDrafts(next);
+    }
   };
 
   // Persist single field update to backend
@@ -383,6 +395,17 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       ? effectiveProfile.logoUrl
       : `https://www.google.com/s2/favicons?domain=${(effectiveProfile.website || effectiveProfile.domainUrl || activeWorkspace?.domainUrl || 'brand.com').replace(/^(?:https?:\/\/)?(?:www\.)?/i, '').split('/')[0]}&sz=128`;
 
+  // Navigate back directly to Dashboard
+  const handleBackToDashboard = useCallback(() => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {}
+    setActiveToolkitFeature(null);
+    if (navigation?.navigate) {
+      navigation.navigate('Home');
+    }
+  }, [navigation, setActiveToolkitFeature]);
+
   // ─────────────────────────────────────────────────────────────────────────────
   // NO BRAND GATE (When no active brand or workspace is empty)
   // ─────────────────────────────────────────────────────────────────────────────
@@ -395,7 +418,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   if (noBrand) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
-        <BrandHeader showBack onBack={() => navigation.goBack()} title="Brand Intelligence" />
+        <BrandHeader showBack onBack={handleBackToDashboard} title="Brand Intelligence" />
 
         <ScrollView
           contentContainerStyle={[
@@ -408,7 +431,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           <View style={styles.dnaGlowContainer}>
             <View style={[styles.dnaPulseRing, { backgroundColor: colors.accent.glow }]} />
             <LinearGradient
-              colors={['#D97706', '#F59E0B']}
+              colors={['#F5A014', '#2196E8']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.dnaIconSquircle}
@@ -423,7 +446,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           </Text>
           <Text style={[styles.noBrandSubtitle, { color: colors.textSecondary }]}>
             Build your{' '}
-            <Text style={{ color: '#F59E0B', fontWeight: '700' }}>Brand DNA</Text>{' '}
+            <Text style={{ color: '#F5A014', fontWeight: '700' }}>Brand DNA</Text>{' '}
             in under 60 seconds. Let AI ADS analyze your brand and generate an immutable memory
             that powers every module - strategy, SEO, content, and more.
           </Text>
@@ -442,8 +465,8 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 },
               ]}
             >
-              <View style={[styles.noBrandIconBox, { backgroundColor: 'rgba(245,158,11,0.12)' }]}>
-                <Globe size={22} color="#F59E0B" />
+              <View style={[styles.noBrandIconBox, { backgroundColor: 'rgba(33,150,232,0.12)' }]}>
+                <Globe size={22} color="#2196E8" />
               </View>
               <View style={styles.noBrandCardContent}>
                 <Text style={[styles.noBrandCardTitle, { color: colors.textPrimary }]}>
@@ -468,8 +491,8 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 },
               ]}
             >
-              <View style={[styles.noBrandIconBox, { backgroundColor: 'rgba(245,158,11,0.12)' }]}>
-                <Target size={22} color="#F59E0B" />
+              <View style={[styles.noBrandIconBox, { backgroundColor: 'rgba(245,160,20,0.12)' }]}>
+                <Target size={22} color="#F5A014" />
               </View>
               <View style={styles.noBrandCardContent}>
                 <Text style={[styles.noBrandCardTitle, { color: colors.textPrimary }]}>
@@ -494,8 +517,8 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 },
               ]}
             >
-              <View style={[styles.noBrandIconBox, { backgroundColor: 'rgba(245,158,11,0.12)' }]}>
-                <FileText size={22} color="#F59E0B" />
+              <View style={[styles.noBrandIconBox, { backgroundColor: 'rgba(33,150,232,0.12)' }]}>
+                <FileText size={22} color="#2196E8" />
               </View>
               <View style={styles.noBrandCardContent}>
                 <Text style={[styles.noBrandCardTitle, { color: colors.textPrimary }]}>
@@ -533,7 +556,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <BrandHeader showBack onBack={() => navigation.goBack()} title="Brand Intelligence" />
+      <BrandHeader showBack onBack={handleBackToDashboard} title="Brand Intelligence" />
 
       <ScrollView
         contentContainerStyle={[
@@ -542,8 +565,16 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── UNIFIED BRAND HERO CARD (Combines Identity & Actions) ── */}
-        <GlassCard style={styles.heroCard} variant="raised">
+        {/* ── UNIFIED BRAND HERO HEADER (Clean Minimalist Surface, No Heavy Box) ── */}
+        <View
+          style={[
+            styles.cleanHero,
+            {
+              backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+              borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+            },
+          ]}
+        >
           <View style={styles.heroTopRow}>
             {/* Logo Avatar (Tap to Zoom) */}
             <TouchableOpacity
@@ -572,7 +603,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   style={[styles.heroEditBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}
                 >
                   {editState['identity'] ? (
-                    <Check size={13} color="#10B981" />
+                    <Check size={13} color="#2196E8" />
                   ) : (
                     <Edit3 size={13} color={colors.textSecondary} />
                   )}
@@ -589,17 +620,17 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   }}
                   style={styles.heroWebsiteRow}
                 >
-                  <Globe size={11} color="#10B981" />
-                  <Text style={styles.heroWebsiteText} numberOfLines={1}>
+                  <Globe size={11} color="#2196E8" />
+                  <Text style={[styles.heroWebsiteText, { color: '#2196E8' }]} numberOfLines={1}>
                     {effectiveProfile.website}
                   </Text>
-                  <ExternalLink size={9} color="#10B981" />
+                  <ExternalLink size={9} color="#2196E8" />
                 </TouchableOpacity>
               ) : null}
 
               <Text style={[styles.heroBrandSubtitle, { color: colors.textSecondary }]} numberOfLines={2}>
                 Immutable brand memory governing voice, positioning, and content rules for{' '}
-                <Text style={{ color: '#F59E0B', fontWeight: '700' }}>
+                <Text style={{ color: '#F5A014', fontWeight: '700' }}>
                   {effectiveProfile.companyName || activeWorkspace?.brandName || 'your brand'}
                 </Text>
               </Text>
@@ -624,15 +655,15 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 onChangeText={(text) => handleFieldChangeLocal('website', text)}
                 placeholder="https://yourbrand.com"
                 placeholderTextColor={colors.textMuted}
-                style={[styles.cleanInput, { color: '#F59E0B' }]}
+                style={[styles.cleanInput, { color: '#2196E8' }]}
               />
 
               <TouchableOpacity
                 onPress={() => setShowLogoInput((prev) => !prev)}
-                style={[styles.toggleLogoUrlBtn, { borderColor: 'rgba(245,158,11,0.3)' }]}
+                style={[styles.toggleLogoUrlBtn, { borderColor: 'rgba(33,150,232,0.3)' }]}
               >
-                <ImageIcon size={13} color="#F59E0B" />
-                <Text style={styles.toggleLogoUrlBtnText}>
+                <ImageIcon size={13} color="#2196E8" />
+                <Text style={[styles.toggleLogoUrlBtnText, { color: '#2196E8' }]}>
                   {showLogoInput ? 'Hide Logo URL Input' : 'Update Brand Logo URL'}
                 </Text>
               </TouchableOpacity>
@@ -654,7 +685,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                       setLogoUrlInput('');
                       setShowLogoInput(false);
                     }}
-                    style={styles.logoApplyBtn}
+                    style={[styles.logoApplyBtn, { backgroundColor: '#2196E8' }]}
                   >
                     <Text style={styles.logoApplyBtnText}>Apply</Text>
                   </TouchableOpacity>
@@ -672,7 +703,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               style={[styles.heroAnalysisBtn, analyzing && { opacity: 0.6 }]}
             >
               <LinearGradient
-                colors={['#D97706', '#F59E0B']}
+                colors={['#1E88E5', '#2196E8']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.heroAnalysisBtnGrad}
@@ -695,7 +726,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               style={styles.heroSaveBtn}
             >
               <LinearGradient
-                colors={['#D97706', '#F59E0B']}
+                colors={['#E69500', '#F5A014']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.heroSaveBtnGrad}
@@ -709,13 +740,13 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               </LinearGradient>
             </TouchableOpacity>
           </View>
-        </GlassCard>
+        </View>
 
         {/* Saved Alert Banner */}
         {savedMsg ? (
-          <View style={[styles.alertBanner, { backgroundColor: 'rgba(16,185,129,0.12)', borderColor: '#10B981' }]}>
-            <CheckCircle2 size={14} color="#10B981" />
-            <Text style={[styles.alertBannerText, { color: '#10B981' }]}>{savedMsg}</Text>
+          <View style={[styles.alertBanner, { backgroundColor: 'rgba(33,150,232,0.12)', borderColor: '#2196E8' }]}>
+            <CheckCircle2 size={14} color="#2196E8" />
+            <Text style={[styles.alertBannerText, { color: '#2196E8' }]}>{savedMsg}</Text>
           </View>
         ) : null}
 
@@ -730,150 +761,200 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         {/* Loading Indicator */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#F59E0B" />
+            <ActivityIndicator size="large" color="#2196E8" />
             <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
               Loading Brand DNA Memory...
             </Text>
           </View>
         ) : (
           <>
-
             {/* ── SECTION 1: THEME COLOR PALETTE (Clean Swatches, No Box Clutter) ── */}
-            <GlassCard style={styles.cleanCard} variant="raised">
-              <View style={styles.sectionHeaderRow}>
-                <View style={styles.sectionTitleBox}>
-                  <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
-                    <Palette size={14} color="#F59E0B" />
+            {/* ── SECTION 1: THEME COLOR PALETTE (Continuous Capsule Spectrum Bar) ── */}
+            <View
+              style={[
+                styles.paletteCard,
+                {
+                  backgroundColor: isDark ? colors.cardBackground : '#FFFFFF',
+                  borderColor: isDark ? colors.border : '#E2E8F0',
+                },
+              ]}
+            >
+              <View style={styles.paletteHeaderRow}>
+                <View style={styles.paletteTitleBox}>
+                  <View style={styles.paletteIconCircle}>
+                    <Palette size={16} color="#FFFFFF" strokeWidth={2.4} />
                   </View>
-                  <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
-                    Theme Color Palette
-                  </Text>
+                  <View style={styles.paletteTitleCol}>
+                    <Text style={[styles.paletteHeading, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>
+                      Theme Color Palette
+                    </Text>
+                    <View style={styles.paletteHeadingUnderline} />
+                  </View>
                 </View>
 
                 <TouchableOpacity
                   onPress={toggleEditBrandColors}
-                  style={[styles.cleanEditBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}
+                  style={[
+                    styles.cleanEditBtn,
+                    { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' },
+                  ]}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   {editState['brandColors'] ? (
-                    <Check size={13} color="#10B981" />
+                    <Check size={14} color="#2196E8" strokeWidth={2.5} />
                   ) : (
-                    <Edit3 size={13} color={colors.textSecondary} />
+                    <Edit3 size={14} color={colors.textSecondary} />
                   )}
                 </TouchableOpacity>
               </View>
 
-              {/* Palette List (Clean vertical-aligned cards, no text wrapping) */}
-              <View style={styles.paletteContainer}>
-                {(() => {
-                  const isEditingColors = editState['brandColors'];
-                  const rawList = isEditingColors && colorDrafts
+              {(() => {
+                const isEditingColors = editState['brandColors'];
+                const fallbackPalette = ['#D88E46', '#233E69', '#FDB57F', '#698192', '#252D40', '#A3BFD2'];
+                const activeList =
+                  isEditingColors && colorDrafts
                     ? colorDrafts
-                    : effectiveProfile.brandColors;
+                    : effectiveProfile.brandColors && effectiveProfile.brandColors.length > 0
+                    ? effectiveProfile.brandColors
+                    : fallbackPalette;
 
-                  return (
-                    <View style={styles.paletteWrap}>
-                      {rawList.map((hex, idx) => {
-                        const colorLabel =
-                          idx === 0
-                            ? 'Primary'
-                            : idx === 1
-                            ? 'Secondary'
-                            : idx === 2
-                            ? 'Accent'
-                            : idx === 3
-                            ? 'Neutral'
-                            : `#${idx + 1}`;
+                return (
+                  <View style={styles.spectrumContainer}>
+                    {/* Continuous Rounded Capsule Spectrum Bar */}
+                    <View style={styles.spectrumBar}>
+                      {activeList.map((hex, idx) => {
                         const isCopied = copiedColor === hex;
-
                         return (
                           <TouchableOpacity
-                            key={idx}
-                            activeOpacity={isEditingColors ? 1 : 0.75}
+                            key={`swatch-seg-${idx}`}
+                            activeOpacity={isEditingColors ? 1 : 0.8}
                             onPress={() => !isEditingColors && handleCopyColor(hex)}
                             style={[
-                              styles.colorCard,
-                              {
-                                backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-                                borderColor: isCopied ? '#10B981' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-                              },
+                              styles.spectrumSegment,
+                              { backgroundColor: hex || '#CBD5E1' },
                             ]}
                           >
-                            {/* Color Dot Swatch */}
-                            <View style={[styles.colorDot, { backgroundColor: hex || '#F59E0B' }]} />
-
-                            {/* Role Label */}
-                            <Text
-                              style={[styles.colorRoleText, { color: colors.textSecondary }]}
-                              numberOfLines={1}
-                              ellipsizeMode="tail"
-                            >
-                              {colorLabel}
-                            </Text>
-
-                            {/* Hex Code (or Input if editing) */}
-                            {isEditingColors ? (
-                              <TextInput
-                                value={hex}
-                                onChangeText={(text) => handleColorDraftChange(idx, text)}
-                                placeholder="#000000"
-                                placeholderTextColor={colors.textMuted}
-                                style={[styles.colorHexInput, { color: colors.textPrimary }]}
-                                autoCapitalize="characters"
-                              />
-                            ) : (
-                              <Text
-                                style={[styles.colorHexText, { color: colors.textPrimary }]}
-                                numberOfLines={1}
-                              >
-                                {hex}
-                              </Text>
-                            )}
-
-                            {/* Copy Action Indicator */}
-                            {!isEditingColors && (
-                              <View
-                                style={[
-                                  styles.colorCopyPill,
-                                  {
-                                    backgroundColor: isCopied
-                                      ? 'rgba(16,185,129,0.14)'
-                                      : isDark
-                                      ? 'rgba(255,255,255,0.06)'
-                                      : 'rgba(0,0,0,0.04)',
-                                  },
-                                ]}
-                              >
-                                {isCopied ? (
-                                  <>
-                                    <Check size={9} color="#10B981" />
-                                    <Text style={styles.colorCopiedText}>Copied</Text>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy size={9} color={colors.textMuted} />
-                                    <Text style={[styles.colorCopyText, { color: colors.textMuted }]}>
-                                      Copy
-                                    </Text>
-                                  </>
-                                )}
-                              </View>
-                            )}
+                            {/* Center Bullseye / Donut Ring */}
+                            <View style={styles.bullseyeRing}>
+                              {isCopied && <View style={styles.bullseyeDot} />}
+                            </View>
                           </TouchableOpacity>
                         );
                       })}
                     </View>
-                  );
-                })()}
-              </View>
-            </GlassCard>
 
-            {/* ── SECTION 2: BRAND OVERVIEW (Unified List with Hairlines, No 2x2 Box Clutter) ── */}
-            <GlassCard style={styles.cleanCard} variant="raised">
+                    {/* Pointer Lines, Roles & Hex Codes */}
+                    <View style={styles.spectrumLabelsRow}>
+                      {activeList.map((hex, idx) => {
+                        const roleLabel =
+                          idx === 0
+                            ? 'PRIMARY'
+                            : idx === 1
+                            ? 'SECONDARY'
+                            : idx === 2
+                            ? 'ACCENT'
+                            : idx === 3
+                            ? 'NEUTRAL'
+                            : idx === 4
+                            ? 'COLOR 5'
+                            : idx === 5
+                            ? 'COLOR 6'
+                            : `COLOR ${idx + 1}`;
+                        const isCopied = copiedColor === hex;
+
+                        return (
+                          <View key={`swatch-col-${idx}`} style={styles.spectrumColumn}>
+                            {/* Vertical Connector Pointer Line */}
+                            <View
+                              style={[
+                                styles.spectrumPointerLine,
+                                { backgroundColor: hex || '#94A3B8' },
+                              ]}
+                            />
+
+                            {/* Role Label */}
+                            <Text
+                              style={[
+                                styles.spectrumRoleText,
+                                { color: isDark ? colors.textSecondary : '#64748B' },
+                              ]}
+                              numberOfLines={1}
+                              adjustsFontSizeToFit
+                            >
+                              {roleLabel}
+                            </Text>
+
+                            {/* Hex Value */}
+                            {isEditingColors ? (
+                              <View style={styles.spectrumEditWrap}>
+                                <TextInput
+                                  value={hex}
+                                  onChangeText={(text) => handleColorDraftChange(idx, text)}
+                                  placeholder="#000000"
+                                  placeholderTextColor={colors.textMuted}
+                                  style={[
+                                    styles.spectrumHexInput,
+                                    { color: colors.textPrimary, borderColor: '#2196E8' },
+                                  ]}
+                                  autoCapitalize="characters"
+                                  maxLength={9}
+                                />
+                                {activeList.length > 1 && (
+                                  <TouchableOpacity
+                                    onPress={() => handleRemoveColorDraft(idx)}
+                                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                                    style={styles.spectrumRemoveBtn}
+                                  >
+                                    <X size={10} color="#EF4444" />
+                                  </TouchableOpacity>
+                                )}
+                              </View>
+                            ) : (
+                              <TouchableOpacity
+                                activeOpacity={0.7}
+                                onPress={() => handleCopyColor(hex)}
+                              >
+                                <Text
+                                  style={[
+                                    styles.spectrumHexText,
+                                    { color: isCopied ? '#2196E8' : (isDark ? '#F1F5F9' : '#0F172A') },
+                                  ]}
+                                  numberOfLines={1}
+                                  adjustsFontSizeToFit
+                                >
+                                  {isCopied ? 'COPIED' : hex.toUpperCase()}
+                                </Text>
+                              </TouchableOpacity>
+                            )}
+                          </View>
+                        );
+                      })}
+                    </View>
+
+                    {/* Add Color Button (During Edit Mode) */}
+                    {isEditingColors && activeList.length < 8 && (
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={handleAddColorDraft}
+                        style={styles.spectrumAddRow}
+                      >
+                        <Plus size={14} color="#2196E8" strokeWidth={2.5} />
+                        <Text style={styles.spectrumAddText}>Add Color Swatch</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })()}
+            </View>
+
+            <View style={[styles.sectionDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+
+            {/* ── SECTION 2: BRAND OVERVIEW (Clean Flat Hairline List, No Box Clutter) ── */}
+            <View style={styles.cleanSection}>
               <View style={styles.sectionHeaderRow}>
                 <View style={styles.sectionTitleBox}>
-                  <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
-                    <Building2 size={14} color="#F59E0B" />
+                  <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,160,20,0.14)' }]}>
+                    <Building2 size={14} color="#F5A014" />
                   </View>
                   <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
                     Brand Overview
@@ -885,8 +966,8 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 {/* Row 1: Industry */}
                 <View style={styles.unifiedRow}>
                   <View style={styles.unifiedRowLeft}>
-                    <View style={styles.unifiedFieldIconBox}>
-                      <Briefcase size={13} color="#F59E0B" />
+                    <View style={[styles.unifiedFieldIconBox, { backgroundColor: 'rgba(33,150,232,0.12)' }]}>
+                      <Briefcase size={12} color="#2196E8" />
                     </View>
                     <Text style={[styles.unifiedFieldLabel, { color: colors.textSecondary }]}>Industry</Text>
                   </View>
@@ -897,7 +978,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                         onChangeText={(text) => handleFieldChangeLocal('industryCategory', text)}
                         placeholder="Industry..."
                         placeholderTextColor={colors.textMuted}
-                        style={[styles.unifiedInput, { color: colors.textPrimary }]}
+                        style={[styles.unifiedInput, { color: colors.textPrimary, borderColor: '#2196E8' }]}
                       />
                     ) : (
                       <Text style={[styles.unifiedFieldValue, { color: colors.textPrimary }]} numberOfLines={2}>
@@ -910,7 +991,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       {editState['industryCategory'] ? (
-                        <Check size={12} color="#10B981" />
+                        <Check size={12} color="#2196E8" />
                       ) : (
                         <Edit3 size={12} color={colors.textMuted} />
                       )}
@@ -923,8 +1004,8 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 {/* Row 1b: Business Type */}
                 <View style={styles.unifiedRow}>
                   <View style={styles.unifiedRowLeft}>
-                    <View style={styles.unifiedFieldIconBox}>
-                      <Briefcase size={13} color="#F59E0B" />
+                    <View style={[styles.unifiedFieldIconBox, { backgroundColor: 'rgba(33,150,232,0.12)' }]}>
+                      <Briefcase size={12} color="#2196E8" />
                     </View>
                     <Text style={[styles.unifiedFieldLabel, { color: colors.textSecondary }]}>Business Type</Text>
                   </View>
@@ -935,7 +1016,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                         onChangeText={(text) => handleFieldChangeLocal('businessType', text)}
                         placeholder="Business type..."
                         placeholderTextColor={colors.textMuted}
-                        style={[styles.unifiedInput, { color: colors.textPrimary }]}
+                        style={[styles.unifiedInput, { color: colors.textPrimary, borderColor: '#2196E8' }]}
                       />
                     ) : (
                       <Text style={[styles.unifiedFieldValue, { color: colors.textPrimary }]} numberOfLines={2}>
@@ -948,7 +1029,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       {editState['businessType'] ? (
-                        <Check size={12} color="#10B981" />
+                        <Check size={12} color="#2196E8" />
                       ) : (
                         <Edit3 size={12} color={colors.textMuted} />
                       )}
@@ -961,8 +1042,8 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 {/* Row 2: Headquarters */}
                 <View style={styles.unifiedRow}>
                   <View style={styles.unifiedRowLeft}>
-                    <View style={styles.unifiedFieldIconBox}>
-                      <MapPin size={13} color="#F59E0B" />
+                    <View style={[styles.unifiedFieldIconBox, { backgroundColor: 'rgba(245,160,20,0.12)' }]}>
+                      <MapPin size={12} color="#F5A014" />
                     </View>
                     <Text style={[styles.unifiedFieldLabel, { color: colors.textSecondary }]}>Headquarters</Text>
                   </View>
@@ -973,7 +1054,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                         onChangeText={(text) => handleFieldChangeLocal('headquarters', text)}
                         placeholder="Headquarters..."
                         placeholderTextColor={colors.textMuted}
-                        style={[styles.unifiedInput, { color: colors.textPrimary }]}
+                        style={[styles.unifiedInput, { color: colors.textPrimary, borderColor: '#F5A014' }]}
                       />
                     ) : (
                       <Text style={[styles.unifiedFieldValue, { color: colors.textPrimary }]} numberOfLines={2}>
@@ -986,7 +1067,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       {editState['headquarters'] ? (
-                        <Check size={12} color="#10B981" />
+                        <Check size={12} color="#2196E8" />
                       ) : (
                         <Edit3 size={12} color={colors.textMuted} />
                       )}
@@ -999,8 +1080,8 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 {/* Row 3: Tagline / Slogan */}
                 <View style={styles.unifiedRow}>
                   <View style={styles.unifiedRowLeft}>
-                    <View style={styles.unifiedFieldIconBox}>
-                      <Quote size={13} color="#F59E0B" />
+                    <View style={[styles.unifiedFieldIconBox, { backgroundColor: 'rgba(33,150,232,0.12)' }]}>
+                      <Quote size={12} color="#2196E8" />
                     </View>
                     <Text style={[styles.unifiedFieldLabel, { color: colors.textSecondary }]}>Tagline / Slogan</Text>
                   </View>
@@ -1011,7 +1092,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                         onChangeText={(text) => handleFieldChangeLocal('tagline', text)}
                         placeholder="Tagline or slogan..."
                         placeholderTextColor={colors.textMuted}
-                        style={[styles.unifiedInput, { color: colors.textPrimary }]}
+                        style={[styles.unifiedInput, { color: colors.textPrimary, borderColor: '#2196E8' }]}
                       />
                     ) : (
                       <Text style={[styles.unifiedFieldValue, { color: colors.textPrimary, fontStyle: effectiveProfile.tagline ? 'italic' : 'normal' }]} numberOfLines={2}>
@@ -1024,7 +1105,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       {editState['tagline'] ? (
-                        <Check size={12} color="#10B981" />
+                        <Check size={12} color="#2196E8" />
                       ) : (
                         <Edit3 size={12} color={colors.textMuted} />
                       )}
@@ -1037,8 +1118,8 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 {/* Row 4: Contact Info */}
                 <View style={styles.unifiedRow}>
                   <View style={styles.unifiedRowLeft}>
-                    <View style={styles.unifiedFieldIconBox}>
-                      <Mail size={13} color="#F59E0B" />
+                    <View style={[styles.unifiedFieldIconBox, { backgroundColor: 'rgba(245,160,20,0.12)' }]}>
+                      <Mail size={12} color="#F5A014" />
                     </View>
                     <Text style={[styles.unifiedFieldLabel, { color: colors.textSecondary }]}>Contact</Text>
                   </View>
@@ -1053,7 +1134,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                         onChangeText={(text) => handleFieldChangeLocal('contactInfo', text)}
                         placeholder="Email or phone..."
                         placeholderTextColor={colors.textMuted}
-                        style={[styles.unifiedInput, { color: colors.textPrimary }]}
+                        style={[styles.unifiedInput, { color: colors.textPrimary, borderColor: '#F5A014' }]}
                       />
                     ) : (
                       <Text style={[styles.unifiedFieldValue, { color: colors.textPrimary }]} numberOfLines={2}>
@@ -1070,7 +1151,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       {editState['contactInfo'] ? (
-                        <Check size={12} color="#10B981" />
+                        <Check size={12} color="#2196E8" />
                       ) : (
                         <Edit3 size={12} color={colors.textMuted} />
                       )}
@@ -1078,16 +1159,18 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   </View>
                 </View>
               </View>
-            </GlassCard>
+            </View>
+
+            <View style={[styles.sectionDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
 
             {/* ── SECTION 3: PURPOSE & VISION (Clean Editorial Quotes, No Nested Boxes) ── */}
-            <GlassCard style={styles.cleanCard} variant="raised">
+            <View style={styles.cleanSection}>
               {/* Mission Statement Block */}
               <View style={styles.editorialBlock}>
                 <View style={styles.editorialHeaderRow}>
                   <View style={styles.editorialTitleRow}>
-                    <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
-                      <Compass size={13} color="#F59E0B" />
+                    <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,160,20,0.14)' }]}>
+                      <Compass size={13} color="#F5A014" />
                     </View>
                     <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
                       Mission Statement
@@ -1099,7 +1182,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     {editState['missionStatement'] ? (
-                      <Check size={13} color="#10B981" />
+                      <Check size={13} color="#2196E8" />
                     ) : (
                       <Edit3 size={13} color={colors.textSecondary} />
                     )}
@@ -1114,11 +1197,11 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                     onChangeText={(text) => handleFieldChangeLocal('missionStatement', text)}
                     placeholder="Enter mission statement..."
                     placeholderTextColor={colors.textMuted}
-                    style={[styles.cleanMultilineInput, { color: colors.textPrimary }]}
+                    style={[styles.cleanMultilineInput, { color: colors.textPrimary, borderColor: '#F5A014' }]}
                   />
                 ) : (
                   <View style={styles.editorialQuoteRow}>
-                    <View style={styles.editorialAccentBar} />
+                    <View style={[styles.editorialAccentBar, { backgroundColor: '#F5A014' }]} />
                     <Text style={[styles.editorialQuoteText, { color: colors.textPrimary }]}>
                       {effectiveProfile.missionStatement
                         ? `"${effectiveProfile.missionStatement}"`
@@ -1134,8 +1217,8 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               <View style={styles.editorialBlock}>
                 <View style={styles.editorialHeaderRow}>
                   <View style={styles.editorialTitleRow}>
-                    <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
-                      <Eye size={13} color="#F59E0B" />
+                    <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(33,150,232,0.14)' }]}>
+                      <Eye size={13} color="#2196E8" />
                     </View>
                     <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
                       Company Vision
@@ -1147,7 +1230,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     {editState['vision'] ? (
-                      <Check size={13} color="#10B981" />
+                      <Check size={13} color="#2196E8" />
                     ) : (
                       <Edit3 size={13} color={colors.textSecondary} />
                     )}
@@ -1162,11 +1245,11 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                     onChangeText={(text) => handleFieldChangeLocal('vision', text)}
                     placeholder="Enter company vision..."
                     placeholderTextColor={colors.textMuted}
-                    style={[styles.cleanMultilineInput, { color: colors.textPrimary }]}
+                    style={[styles.cleanMultilineInput, { color: colors.textPrimary, borderColor: '#2196E8' }]}
                   />
                 ) : (
                   <View style={styles.editorialQuoteRow}>
-                    <View style={styles.editorialAccentBar} />
+                    <View style={[styles.editorialAccentBar, { backgroundColor: '#2196E8' }]} />
                     <Text style={[styles.editorialQuoteText, { color: colors.textPrimary }]}>
                       {effectiveProfile.vision
                         ? `"${effectiveProfile.vision}"`
@@ -1175,14 +1258,16 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   </View>
                 )}
               </View>
-            </GlassCard>
+            </View>
 
-            {/* ── SECTION 4: TARGET AUDIENCE (Clean Bulleted List, No Nested Boxes) ── */}
-            <GlassCard style={styles.cleanCard} variant="raised">
+            <View style={[styles.sectionDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+
+            {/* ── SECTION 4: TARGET AUDIENCE (Clean Chips, No Nested Boxes) ── */}
+            <View style={styles.cleanSection}>
               <View style={styles.sectionHeaderRow}>
                 <View style={styles.sectionTitleBox}>
-                  <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
-                    <Target size={14} color="#F59E0B" />
+                  <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(33,150,232,0.14)' }]}>
+                    <Target size={14} color="#2196E8" />
                   </View>
                   <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
                     Target Audience
@@ -1195,7 +1280,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   {editState['targetAudience'] ? (
-                    <Check size={13} color="#10B981" />
+                    <Check size={13} color="#2196E8" />
                   ) : (
                     <Edit3 size={13} color={colors.textSecondary} />
                   )}
@@ -1214,14 +1299,23 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   onChangeText={(text) => handleFieldChangeLocal('targetAudience', text)}
                   placeholder="Enter target segments (one per line)..."
                   placeholderTextColor={colors.textMuted}
-                  style={[styles.cleanMultilineInput, { color: colors.textPrimary }]}
+                  style={[styles.cleanMultilineInput, { color: colors.textPrimary, borderColor: '#2196E8' }]}
                 />
               ) : effectiveProfile.targetAudience.length > 0 ? (
-                <View style={styles.cleanListContainer}>
+                <View style={styles.cleanChipsWrap}>
                   {effectiveProfile.targetAudience.map((audience, i) => (
-                    <View key={i} style={styles.cleanListItem}>
-                      <View style={styles.audienceBulletDot} />
-                      <Text style={[styles.cleanListItemText, { color: colors.textPrimary }]}>
+                    <View
+                      key={i}
+                      style={[
+                        styles.cleanAudiencePill,
+                        {
+                          backgroundColor: isDark ? 'rgba(33,150,232,0.10)' : 'rgba(33,150,232,0.07)',
+                          borderColor: isDark ? 'rgba(33,150,232,0.25)' : 'rgba(33,150,232,0.20)',
+                        },
+                      ]}
+                    >
+                      <View style={[styles.cleanPillDot, { backgroundColor: '#2196E8' }]} />
+                      <Text style={[styles.cleanPillText, { color: colors.textPrimary }]}>
                         {audience}
                       </Text>
                     </View>
@@ -1232,14 +1326,16 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   Target audience not specified. Tap edit icon to add.
                 </Text>
               )}
-            </GlassCard>
+            </View>
+
+            <View style={[styles.sectionDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
 
             {/* ── SECTION 5: CORE PRODUCTS & SERVICES (Clean Pill Chips) ── */}
-            <GlassCard style={styles.cleanCard} variant="raised">
+            <View style={styles.cleanSection}>
               <View style={styles.sectionHeaderRow}>
                 <View style={styles.sectionTitleBox}>
-                  <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
-                    <Zap size={14} color="#F59E0B" />
+                  <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,160,20,0.14)' }]}>
+                    <Zap size={14} color="#F5A014" />
                   </View>
                   <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
                     Core Products & Services
@@ -1252,7 +1348,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   {editState['coreProductsServices'] ? (
-                    <Check size={13} color="#10B981" />
+                    <Check size={13} color="#2196E8" />
                   ) : (
                     <Edit3 size={13} color={colors.textSecondary} />
                   )}
@@ -1271,7 +1367,7 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   onChangeText={(text) => handleFieldChangeLocal('coreProductsServices', text)}
                   placeholder="Enter core products (one per line)..."
                   placeholderTextColor={colors.textMuted}
-                  style={[styles.cleanMultilineInput, { color: colors.textPrimary }]}
+                  style={[styles.cleanMultilineInput, { color: colors.textPrimary, borderColor: '#F5A014' }]}
                 />
               ) : effectiveProfile.coreProductsServices.length > 0 ? (
                 <View style={styles.cleanChipsWrap}>
@@ -1281,13 +1377,13 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                       style={[
                         styles.cleanProductPill,
                         {
-                          backgroundColor: isDark ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.08)',
-                          borderColor: isDark ? 'rgba(245,158,11,0.22)' : 'rgba(245,158,11,0.2)',
+                          backgroundColor: isDark ? 'rgba(245,160,20,0.10)' : 'rgba(245,160,20,0.07)',
+                          borderColor: isDark ? 'rgba(245,160,20,0.25)' : 'rgba(245,160,20,0.20)',
                         },
                       ]}
                     >
-                      <View style={styles.cleanProductDot} />
-                      <Text style={[styles.cleanProductText, { color: colors.textPrimary }]}>
+                      <View style={[styles.cleanPillDot, { backgroundColor: '#F5A014' }]} />
+                      <Text style={[styles.cleanPillText, { color: colors.textPrimary }]}>
                         {product}
                       </Text>
                     </View>
@@ -1298,33 +1394,36 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   No core products specified. Tap edit icon to add.
                 </Text>
               )}
-            </GlassCard>
+            </View>
 
-            {/* ── SECTION 6: EXTRACTED MARKETING CLAIMS (Clean Quotes, No Nested Boxes) ── */}
+            {/* ── SECTION 6: EXTRACTED MARKETING CLAIMS (Clean Quotes) ── */}
             {effectiveProfile.extractedClaims.length > 0 && (
-              <GlassCard style={styles.cleanCard} variant="raised">
-                <View style={styles.sectionHeaderRow}>
-                  <View style={styles.sectionTitleBox}>
-                    <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(245,158,11,0.14)' }]}>
-                      <FileText size={14} color="#F59E0B" />
-                    </View>
-                    <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
-                      Extracted Marketing Claims
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.cleanClaimsContainer}>
-                  {effectiveProfile.extractedClaims.map((claim, idx) => (
-                    <View key={idx} style={styles.cleanClaimRow}>
-                      <Text style={styles.claimQuoteMark}>“</Text>
-                      <Text style={[styles.cleanClaimText, { color: colors.textPrimary }]}>
-                        {claim.claimText || claim}
+              <>
+                <View style={[styles.sectionDivider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }]} />
+                <View style={styles.cleanSection}>
+                  <View style={styles.sectionHeaderRow}>
+                    <View style={styles.sectionTitleBox}>
+                      <View style={[styles.sectionIconBadge, { backgroundColor: 'rgba(33,150,232,0.14)' }]}>
+                        <FileText size={14} color="#2196E8" />
+                      </View>
+                      <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
+                        Extracted Marketing Claims
                       </Text>
                     </View>
-                  ))}
+                  </View>
+
+                  <View style={styles.cleanClaimsContainer}>
+                    {effectiveProfile.extractedClaims.map((claim, idx) => (
+                      <View key={idx} style={styles.cleanClaimRow}>
+                        <Text style={[styles.claimQuoteMark, { color: '#2196E8' }]}>“</Text>
+                        <Text style={[styles.cleanClaimText, { color: colors.textPrimary }]}>
+                          {claim.claimText || claim}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
-              </GlassCard>
+              </>
             )}
 
             {/* ── BOTTOM ACTION: CONTINUE TO SEO ── */}
@@ -1335,9 +1434,9 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 style={styles.continueToSeoBtn}
               >
                 <LinearGradient
-                  colors={['#D97706', '#F59E0B']}
+                  colors={['#F5A014', '#2196E8']}
                   start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                  end={{ x: 1, y: 0 }}
                   style={styles.continueToSeoGrad}
                 >
                   <Search size={15} color="#FFFFFF" />
@@ -1378,8 +1477,8 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
             {/* Modal Header */}
             <View style={styles.modalHeaderRow}>
               <View style={styles.modalHeaderTitleBox}>
-                <View style={[styles.modalHeaderIconBox, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
-                  <ImageIcon size={16} color="#F59E0B" />
+                <View style={[styles.modalHeaderIconBox, { backgroundColor: 'rgba(33,150,232,0.15)' }]}>
+                  <ImageIcon size={16} color="#2196E8" />
                 </View>
                 <View>
                   <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
@@ -1430,10 +1529,10 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                   toggleEdit('identity');
                   setShowLogoInput(true);
                 }}
-                style={[styles.modalActionBtn, { backgroundColor: 'rgba(245,158,11,0.15)' }]}
+                style={[styles.modalActionBtn, { backgroundColor: 'rgba(33,150,232,0.15)' }]}
               >
-                <Upload size={14} color="#F59E0B" />
-                <Text style={[styles.modalActionBtnText, { color: '#F59E0B' }]}>Replace Logo</Text>
+                <Upload size={14} color="#2196E8" />
+                <Text style={[styles.modalActionBtnText, { color: '#2196E8' }]}>Replace Logo</Text>
               </TouchableOpacity>
 
               {modalImgSrc ? (
@@ -1451,9 +1550,9 @@ export const BrandDnaScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 style={styles.modalDismissBtn}
               >
                 <LinearGradient
-                  colors={['#D97706', '#F59E0B']}
+                  colors={['#F5A014', '#2196E8']}
                   start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                  end={{ x: 1, y: 0 }}
                   style={styles.modalDismissGrad}
                 >
                   <Text style={styles.modalDismissBtnText}>Done</Text>
@@ -1478,7 +1577,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 110,
-    gap: 12,
+    gap: 8,
   },
 
   // ── No Brand Gate Styles ──
@@ -1509,7 +1608,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#F59E0B',
+    shadowColor: '#F5A014',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
@@ -1571,11 +1670,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // ── Unified Hero Card Styles ──
+  // ── Unified Hero Header Styles ──
+  cleanHero: {
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 12,
+  },
   heroCard: {
     paddingVertical: 14,
     paddingHorizontal: 14,
-    borderRadius: 16,
+    borderRadius: 14,
+    borderWidth: 1,
     gap: 12,
   },
   heroTopRow: {
@@ -1643,7 +1750,7 @@ const styles = StyleSheet.create({
   heroWebsiteText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#10B981',
+    color: '#2196E8',
     flexShrink: 1,
   },
   heroBrandSubtitle: {
@@ -1666,7 +1773,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.3)',
+    borderColor: 'rgba(33,150,232,0.3)',
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 7,
@@ -1685,7 +1792,7 @@ const styles = StyleSheet.create({
   toggleLogoUrlBtnText: {
     fontSize: 11.5,
     fontWeight: '600',
-    color: '#F59E0B',
+    color: '#2196E8',
   },
   logoInputRow: {
     flexDirection: 'row',
@@ -1694,7 +1801,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   logoApplyBtn: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#2196E8',
     borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -1772,7 +1879,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 
-  // ── Unified Clean Cards & Section Headers ──
+  // ── Clean Seamless Sections & Section Headers ──
+  cleanSection: {
+    width: '100%',
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+    gap: 10,
+  },
+  sectionDivider: {
+    height: 1,
+    width: '100%',
+    marginVertical: 4,
+  },
   cleanCard: {
     paddingVertical: 14,
     paddingHorizontal: 14,
@@ -1815,83 +1933,159 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // ── Theme Color Palette (Clean Cards, Perfectly Aligned) ──
-  paletteContainer: {
+  // ── Theme Color Palette (Continuous Capsule Spectrum Bar) ──
+  paletteCard: {
     width: '100%',
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 16,
+    shadowColor: '#8A9DBA',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    gap: 12,
   },
-  paletteWrap: {
+  paletteHeaderRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  colorCard: {
+  paletteTitleBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     flex: 1,
-    minWidth: 86,
-    maxWidth: 140,
+  },
+  paletteIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F5A014',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    borderRadius: 10,
-    borderWidth: 1,
-    gap: 3,
+    shadowColor: '#F5A014',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  colorDot: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+  paletteTitleCol: {
+    alignItems: 'flex-start',
+  },
+  paletteHeading: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  paletteHeadingUnderline: {
+    width: 38,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#F5A014',
+    marginTop: 3,
+  },
+  spectrumContainer: {
+    width: '100%',
+    gap: 8,
+  },
+  spectrumBar: {
+    height: 48,
+    borderRadius: 24,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    width: '100%',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
-    shadowRadius: 2,
-    elevation: 1.5,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  colorRoleText: {
-    fontSize: 9.5,
+  spectrumSegment: {
+    flex: 1,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bullseyeRing: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2.5,
+    borderColor: '#FFFFFF',
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bullseyeDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#FFFFFF',
+  },
+  spectrumLabelsRow: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  spectrumColumn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 1,
+  },
+  spectrumPointerLine: {
+    width: 1.5,
+    height: 18,
+    borderRadius: 1,
+    marginBottom: 4,
+  },
+  spectrumRoleText: {
+    fontSize: 8.5,
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.35,
+    letterSpacing: 0.3,
     textAlign: 'center',
+    marginBottom: 2,
   },
-  colorHexText: {
-    fontSize: 11,
-    fontWeight: '700',
+  spectrumHexText: {
+    fontSize: 9.5,
+    fontWeight: '800',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     textAlign: 'center',
     letterSpacing: 0.2,
   },
-  colorHexInput: {
-    fontSize: 11,
+  spectrumEditWrap: {
+    alignItems: 'center',
+    gap: 2,
+    width: '100%',
+  },
+  spectrumHexInput: {
+    fontSize: 8.5,
     fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     borderWidth: 1,
-    borderColor: '#F59E0B',
-    borderRadius: 5,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
+    borderRadius: 4,
+    paddingHorizontal: 2,
+    paddingVertical: 1,
     textAlign: 'center',
     width: '100%',
   },
-  colorCopyPill: {
+  spectrumRemoveBtn: {
+    padding: 2,
+  },
+  spectrumAddRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-    borderRadius: 5,
-    gap: 3,
-    marginTop: 1,
+    gap: 6,
+    paddingVertical: 6,
+    marginTop: 4,
   },
-  colorCopyText: {
-    fontSize: 9.5,
-    fontWeight: '600',
-  },
-  colorCopiedText: {
-    color: '#10B981',
-    fontSize: 9.5,
+  spectrumAddText: {
+    fontSize: 12,
     fontWeight: '700',
+    color: '#2196E8',
   },
 
   // ── Unified Brand Overview (Hairline List, No 2x2 Box Clutter) ──
@@ -1917,7 +2111,6 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 5,
-    backgroundColor: 'rgba(245,158,11,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1944,7 +2137,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     fontWeight: '500',
     borderWidth: 1,
-    borderColor: '#F59E0B',
+    borderColor: '#2196E8',
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1985,7 +2178,6 @@ const styles = StyleSheet.create({
   editorialAccentBar: {
     width: 3.5,
     borderRadius: 2,
-    backgroundColor: '#F59E0B',
   },
   editorialQuoteText: {
     flex: 1,
@@ -1998,13 +2190,26 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     borderWidth: 1,
-    borderColor: '#F59E0B',
     borderRadius: 8,
     padding: 8,
     textAlignVertical: 'top',
   },
 
-  // ── Target Audience (Clean Bulleted List) ──
+  // ── Target Audience (Clean Pill Chips) ──
+  cleanChipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  cleanAudiencePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 6,
+  },
   cleanListContainer: {
     width: '100%',
     gap: 8,
@@ -2019,7 +2224,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#2196E8',
     marginTop: 7,
     flexShrink: 0,
   },
@@ -2036,11 +2241,6 @@ const styles = StyleSheet.create({
   },
 
   // ── Products & Services (Clean Pill Chips) ──
-  cleanChipsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
   cleanProductPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2050,13 +2250,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 6,
   },
-  cleanProductDot: {
+  cleanPillDot: {
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: '#F59E0B',
   },
   cleanProductText: {
+    fontSize: 12.5,
+    fontWeight: '600',
+  },
+  cleanPillText: {
     fontSize: 12.5,
     fontWeight: '600',
   },
@@ -2076,7 +2279,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 18,
     fontWeight: '700',
-    color: '#F59E0B',
+    color: '#2196E8',
   },
   cleanClaimText: {
     flex: 1,
@@ -2096,7 +2299,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: '#F59E0B',
+    shadowColor: '#2196E8',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,

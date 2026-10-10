@@ -425,19 +425,22 @@ export interface SeoScreenProps {
 
 export const SeoScreen: React.FC<SeoScreenProps> = ({ navigation }) => {
   const rootNav = useNavigation<any>();
+  const { colors, isDark } = useTheme();
+  const { activeWorkspace, setActiveToolkitFeature } = useWorkspace();
+  const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+
   const handleGoBack = () => {
+    try {
+      setActiveToolkitFeature(null);
+    } catch {}
     if (navigation?.goBack) {
       navigation.goBack();
     } else if (rootNav?.canGoBack && rootNav.canGoBack()) {
       rootNav.goBack();
     }
   };
-
-  const { colors, isDark } = useTheme();
-  const { activeWorkspace } = useWorkspace();
-  const { user } = useAuth();
-  const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
 
   // Responsive device breakpoint checks
   const isTablet = width >= 768;

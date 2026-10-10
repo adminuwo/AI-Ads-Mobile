@@ -61,7 +61,7 @@ const SIDEBAR_WIDTH = Math.min(Dimensions.get('window').width * 0.76, 290);
 export const AllModulesModal: React.FC<AllModulesModalProps> = ({ visible, onClose }) => {
   const insets = useSafeAreaInsets();
   const { colors, isDark, toggleTheme } = useTheme();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, setActiveToolkitFeature } = useWorkspace();
   const { user } = useAuth();
   const navigation = useNavigation<any>();
 
@@ -190,12 +190,39 @@ export const AllModulesModal: React.FC<AllModulesModalProps> = ({ visible, onClo
   const handleNavigate = (item: NavModule) => {
     setActiveId(item.id);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    const isToolkitModule = [
+      'brand_dna',
+      'seo',
+      'campaigns',
+      'strategy',
+      'studio',
+      'creative',
+      'website_builder',
+    ].includes(item.id);
+
+    if (isToolkitModule) {
+      setActiveToolkitFeature(item.id);
+    } else {
+      setActiveToolkitFeature(null);
+    }
+
     onClose();
     setTimeout(() => {
       try {
         if (item.route.screen) {
+          try {
+            navigation.navigate('Main', {
+              screen: item.route.tab,
+              params: { screen: item.route.screen },
+            });
+            return;
+          } catch {}
           navigation.navigate(item.route.tab, { screen: item.route.screen });
         } else {
+          try {
+            navigation.navigate('Main', { screen: item.route.tab });
+            return;
+          } catch {}
           navigation.navigate(item.route.tab);
         }
       } catch (err) {

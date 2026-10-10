@@ -180,7 +180,7 @@ const TEMPLATE_CATEGORIES = [
 
 export const AIWebsiteBuilderScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, setActiveToolkitFeature } = useWorkspace();
   const { width: screenWidth } = useWindowDimensions();
   const isSmall = screenWidth < 380;
   const isTablet = screenWidth >= 768;
@@ -240,12 +240,15 @@ export const AIWebsiteBuilderScreen: React.FC<{ navigation: any }> = ({ navigati
 
   // Back Navigation matching Brand DNA, Content Studio, and Creative Studio
   const handleGoBack = useCallback(() => {
+    try {
+      setActiveToolkitFeature(null);
+    } catch {}
     if (navigation?.canGoBack && navigation.canGoBack()) {
       navigation.goBack();
     } else {
       navigation.navigate('Home');
     }
-  }, [navigation]);
+  }, [navigation, setActiveToolkitFeature]);
 
   // Load Projects from Backend
   const loadProjects = useCallback(async () => {

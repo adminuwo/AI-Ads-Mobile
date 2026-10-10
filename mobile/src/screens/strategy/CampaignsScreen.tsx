@@ -102,19 +102,22 @@ export const CampaignsScreen: React.FC = () => {
     cardBorder: baseColors.border,
   }), [baseColors]);
   const { user } = useAuth();
-  const { activeWorkspace, updateActiveWorkspace } = useWorkspace();
+  const { activeWorkspace, updateActiveWorkspace, setActiveToolkitFeature } = useWorkspace();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { width } = useWindowDimensions();
   const isTablet = width >= 720;
 
   const handleGoBack = useCallback(() => {
+    try {
+      setActiveToolkitFeature(null);
+    } catch {}
     if (navigation?.canGoBack && navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      navigation.navigate('DashboardTab');
+      navigation.navigate('Home');
     }
-  }, [navigation]);
+  }, [navigation, setActiveToolkitFeature]);
 
   // Workspace & Plan
   const workspaceId = activeWorkspace?._id || activeWorkspace?.id || '';

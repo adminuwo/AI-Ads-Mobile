@@ -25,7 +25,7 @@ import { analyticsApi, campaignApi } from '../../api';
 
 export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
-  const { activeWorkspace, setIsQuickPostOpen, setIsScraperOpen, workspaces } = useWorkspace();
+  const { activeWorkspace, setIsQuickPostOpen, setIsScraperOpen, workspaces, setActiveToolkitFeature } = useWorkspace();
   const { width } = useWindowDimensions();
 
   const hasWorkspace = Boolean(
@@ -146,7 +146,10 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             {/* Card 1: TOTAL BRANDS */}
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => navigation.navigate('More', { screen: 'BrandDna' })}
+              onPress={() => {
+                setActiveToolkitFeature('BrandDna');
+                navigation.navigate('More', { screen: 'BrandDna' });
+              }}
               style={[
                 styles.kpiCard,
                 {
@@ -182,7 +185,10 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             {/* Card 2: GENERATED CONTENT */}
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => navigation.navigate('AssetLibraryTab')}
+              onPress={() => {
+                setActiveToolkitFeature(null);
+                navigation.navigate('AssetLibraryTab');
+              }}
               style={[
                 styles.kpiCard,
                 {
@@ -218,7 +224,10 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             {/* Card 3: CAMPAIGNS */}
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => navigation.navigate('More', { screen: 'Campaigns' })}
+              onPress={() => {
+                setActiveToolkitFeature('Campaigns');
+                navigation.navigate('More', { screen: 'Campaigns' });
+              }}
               style={[
                 styles.kpiCard,
                 {

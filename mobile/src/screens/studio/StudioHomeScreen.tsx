@@ -91,6 +91,7 @@ export const StudioHomeScreen: React.FC<{ route?: any }> = ({ route }) => {
     deductCredits,
     studioTarget,
     setStudioTarget,
+    setActiveToolkitFeature,
   } = useWorkspace();
   const navigation = useNavigation<any>();
   const { width } = useWindowDimensions();
@@ -114,12 +115,15 @@ export const StudioHomeScreen: React.FC<{ route?: any }> = ({ route }) => {
   }, []);
 
   const handleGoBack = useCallback(() => {
+    try {
+      setActiveToolkitFeature(null);
+    } catch {}
     if (navigation?.canGoBack && navigation.canGoBack()) {
       navigation.goBack();
     } else {
       navigation.navigate('Home');
     }
-  }, [navigation]);
+  }, [navigation, setActiveToolkitFeature]);
 
   // Copy helper
   const [copiedKey, setCopiedKey] = useState<string | null>(null);

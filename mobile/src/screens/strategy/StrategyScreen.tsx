@@ -157,12 +157,15 @@ const formatPostTitle = (title = '', directive = '') => {
 
 export const StrategyScreen: React.FC = () => {
   const { colors, isDark } = useTheme();
-  const { activeWorkspace, updateActiveWorkspace, setStudioTarget } = useWorkspace();
+  const { activeWorkspace, updateActiveWorkspace, setStudioTarget, setActiveToolkitFeature } = useWorkspace();
   const navigation = useNavigation<any>();
 
   const handleGoBack = useCallback(() => {
+    try {
+      setActiveToolkitFeature(null);
+    } catch {}
     navigation.navigate('Home');
-  }, [navigation]);
+  }, [navigation, setActiveToolkitFeature]);
 
   const { width } = useWindowDimensions();
   const isTablet = width >= 600;

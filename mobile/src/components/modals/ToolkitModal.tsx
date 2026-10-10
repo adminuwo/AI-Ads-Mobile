@@ -27,6 +27,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
+import { useWorkspace } from '../../context/WorkspaceContext';
 
 interface ToolkitModalProps {
   visible: boolean;
@@ -47,41 +48,6 @@ export const ToolkitModal: React.FC<ToolkitModalProps> = ({ visible, onClose }) 
   const navigation = useNavigation<any>();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
-  // Slide and fade animations
-  const slideAnim = useRef(new Animated.Value(windowHeight)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          damping: 24,
-          stiffness: 220,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: windowHeight,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [visible, windowHeight]);
-
   // Responsive geometry: Full screen width, grounded at bottom
   const cardWidth = windowWidth;
   const bottomInset = insets.bottom;
@@ -94,6 +60,42 @@ export const ToolkitModal: React.FC<ToolkitModalProps> = ({ visible, onClose }) 
   const headerHeight = 62;
   const cardHeight = Math.round(headerHeight + radialAreaHeight + Math.max(bottomInset, 14));
   const archRadius = Math.min(cardWidth * 0.36, 136); // Sharp semi-circular curve
+
+  // Slide and fade animations (instant travel distance cardHeight for split-second appearance)
+  const slideAnim = useRef(new Animated.Value(cardHeight || 420)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          damping: 26,
+          stiffness: 380,
+          mass: 0.7,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 140,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: cardHeight || 420,
+          duration: 130,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible, cardHeight]);
 
   // Sharp semi-circular dome arch matching user request:
   // Starts on left screen edge at (0, archRadius), arches up as a true semi-circle
@@ -176,17 +178,105 @@ export const ToolkitModal: React.FC<ToolkitModalProps> = ({ visible, onClose }) 
       onPress: (nav) => nav.navigate('Studio'),
     },
   ];
+  const { setActiveToolkitFeature } = useWorkspace();
+
+  const navigateToFeature = (item: FeatureItem) => {
+    switch (item.id) {
+      case 'brand_dna':
+        try {
+          navigation.navigate('Main', { screen: 'More', params: { screen: 'BrandDna' } });
+        } catch {
+          navigation.navigate('More', { screen: 'BrandDna' });
+        }
+        break;
+      case 'seo':
+        try {
+          navigation.navigate('Main', { screen: 'More', params: { screen: 'SEO' } });
+        } catch {
+          navigation.navigate('More', { screen: 'SEO' });
+        }
+        break;
+      case 'campaigns':
+        try {
+          navigation.navigate('Main', { screen: 'More', params: { screen: 'Campaigns' } });
+        } catch {
+          navigation.navigate('More', { screen: 'Campaigns' });
+        }
+        break;
+      case 'strategy':
+        try {
+          navigation.navigate('Main', { screen: 'Strategy', params: { screen: 'StrategyHome' } });
+        } catch {
+          navigation.navigate('Strategy', { screen: 'StrategyHome' });
+        }
+        break;
+      case 'website_builder':
+        try {
+          navigation.navigate('Main', { screen: 'More', params: { screen: 'WebsiteBuilder' } });
+        } catch {
+          navigation.navigate('More', { screen: 'WebsiteBuilder' });
+        }
+        break;
+      case 'creative_studio':
+        try {
+          navigation.navigate('Main', { screen: 'More', params: { screen: 'CreativeStudio' } });
+        } catch {
+          navigation.navigate('More', { screen: 'CreativeStudio' });
+        }
+        break;
+      case 'content_studio':
+        try {
+          navigation.navigate('Main', { screen: 'Studio', params: { screen: 'CreateHome' } });
+        } catch {
+          navigation.navigate('Studio');
+        }
+        break;
+      case 'calendar':
+        try {
+          navigation.navigate('Main', { screen: 'CalendarTab', params: { screen: 'CalendarHome' } });
+        } catch {
+          navigation.navigate('CalendarTab', { screen: 'CalendarHome' });
+        }
+        break;
+      case 'asset_library':
+        try {
+          navigation.navigate('Main', { screen: 'AssetLibraryTab' });
+        } catch {
+          navigation.navigate('AssetLibraryTab');
+        }
+        break;
+      default:
+        item.onPress(navigation);
+    }
+  };
 
   const handleSelect = (item: FeatureItem) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    const isToolkitItem = [
+      'brand_dna',
+      'seo',
+      'campaigns',
+      'strategy',
+      'website_builder',
+      'creative_studio',
+      'content_studio',
+    ].includes(item.id);
+
+    // Lock blue indicator line onto ToolKit icon immediately
+    if (isToolkitItem) {
+      setActiveToolkitFeature(item.id);
+    } else {
+      setActiveToolkitFeature(null);
+    }
+
     onClose();
     setTimeout(() => {
       try {
-        item.onPress(navigation);
+        navigateToFeature(item);
       } catch (err) {
-        console.warn('Navigation error:', err);
+        console.warn('Navigation error in ToolkitModal:', err);
       }
-    }, 180);
+    }, 40);
   };
 
   if (!visible) return null;

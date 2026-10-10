@@ -31,6 +31,7 @@ import {
   TrendingUp,
 } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
+import { useWorkspace } from '../../context/WorkspaceContext';
 
 export interface AgentModule {
   id: string;
@@ -192,7 +193,7 @@ export const AGENT_MODULES: AgentModule[] = [
     metricValue: 'High CTR Hooks',
     metricTag: '5 Variants Each',
     tags: ['Punchy CTAs', 'Multi-Language'],
-    onPress: (nav) => nav.navigate('CreateTab', { screen: 'CreateHome' }),
+    onPress: (nav) => nav.navigate('Studio'),
   },
 ];
 
@@ -200,6 +201,7 @@ const AUTO_ROTATE_MS = 3800;
 
 export const AIToolkitNexus: React.FC = () => {
   const { colors, isDark } = useTheme();
+  const { setActiveToolkitFeature } = useWorkspace();
   const navigation = useNavigation<any>();
   const { width } = useWindowDimensions();
 
@@ -291,6 +293,22 @@ export const AIToolkitNexus: React.FC = () => {
 
   const handleLaunch = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    const isToolkitItem = [
+      'brand_dna',
+      'seo',
+      'campaigns',
+      'strategy',
+      'website_builder',
+      'creative_studio',
+      'content_studio',
+    ].includes(activeAgent.id);
+
+    if (isToolkitItem) {
+      setActiveToolkitFeature(activeAgent.id);
+    } else {
+      setActiveToolkitFeature(null);
+    }
+
     try {
       activeAgent.onPress(navigation);
     } catch (e) {
